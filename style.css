@@ -228,3 +228,10 @@ body:has(.diveScreen) #tools{display:block;margin-top:50px}body:has(.diveScreen)
 .sinkingGuess+.revealStage .revealCard{animation-delay:.64s;animation-fill-mode:both}
 .surfaceNotice{position:fixed;inset:0;display:grid;place-items:center;background:#050b16cf;color:#bed0df;letter-spacing:.12em;animation:promptArrival .45s ease-out}
 @media(prefers-reduced-motion:reduce){.sinkingGuess{display:none}.surfaceNotice{animation:none}}
+.catchBook{margin:32px 0}.catchBook h2 small{text-transform:uppercase}
+.catchBook details{border-top:1px solid #28394b}.catchBook details:last-child{border-bottom:1px solid #28394b}
+.catchBook summary{list-style:none;display:grid;grid-template-columns:1em minmax(0,1fr) auto 1em;gap:10px;align-items:center;padding:15px 3px;cursor:pointer}
+.catchBook summary::-webkit-details-marker{display:none}.catchBook summary::after{content:'+';color:#a4bfd0}.catchBook details[open]>summary::after{content:'−'}
+.catchBook summary small{display:block;color:#a7bdce;font-size:14px;white-space:pre-line}.catchBook summary b{font-size:22px;overflow-wrap:anywhere}.catchBook summary strong,.catchList b{color:var(--ink);font-weight:400}.catchBook summary>span:first-child{color:#90a3bd}
+.catchPanel{padding:0 0 16px 22px}.catchTabs{display:flex;flex-wrap:wrap;gap:5px}.catchTabs button{border:1px solid #35465d;background:#101d2d;color:var(--ink,#d7ebff);padding:5px 8px}.catchTabs [aria-pressed=true]{border-color:currentColor;background:#203346}
+.catchPanel input{width:100%;padding:8px 10px;margin:10px 0 4px;background:#101c2e;color:var(--foam);border:1px solid #375068}.catchList{list-style:none;margin:0;padding:0;max-height:270px;overflow:auto;overscroll-behavior:contain;scrollbar-color:#52728b #101a26}.catchList li{display:flex;justify-content:space-between;align-items:baseline;gap:8px;border-bottom:1px solid #233448;padding:8px;overflow-wrap:anywhere}.catchList em{font-size:13px;color:var(--cyan);font-style:normal;margin-left:8px}.catchPanel>small{display:block;margin-top:8px;color:#a7bdce}

@@ -193,7 +193,7 @@ async function submit(answer){
  const meters=verdict.points*10;
  score+=meters;
  receipts.push(verdict.receipt);
- answers.push({event:question.event,prompt:question.prompt,answer,points:meters,label:verdict.canonical,status:verdict.status});
+ answers.push({bank:question.bank??verdict.bank,event:question.event,prompt:question.prompt,answer,points:meters,label:verdict.canonical,status:verdict.status});
  tone(meters>0?500:190);
  const outcome=meters?tierNames[verdict.points]:verdict.status==='unverified'?'Could not verify':answer?'Not accepted':Date.now()>=deadline?'Time’s up':'Round skipped';
  const examples=verdict.examples.map(escapeText).join(' · ');
@@ -220,6 +220,52 @@ async function submit(answer){
  if(meters&&!matchMedia('(prefers-reduced-motion: reduce)').matches)requestAnimationFrame(descendFrame);
  else draw();
 }
+function renderCatch(rounds){
+ const list=app.querySelector('#catches');
+ for(const [index,roundResult] of rounds.entries()){
+   const {prompt,event,answer,label,status,points}=roundResult;
+   const item=document.createElement('details');
+   item.name='catch-round';
+   const scored=points/10;
+   const shown=answer||label||(status==='valid'?'Accepted answer':status==='unverified'?'Unverified':'Skipped');
+   item.innerHTML=`<summary style="--ink:${tierColors[scored]||tierColors[0]}"><span>${index+1}</span><span><small>${escapeText(event)} · ${escapeText(prompt)}</small><b>${escapeText(shown)}</b></span><strong>${scored} pts</strong></summary>`;
+   list.append(item);
+   item.addEventListener('toggle',()=>{
+     if(!item.open||item.querySelector('.catchPanel'))return;
+     const panel=document.createElement('div');panel.className='catchPanel';item.append(panel);
+     const catalog=events.find(([name])=>name===event)?.[1];
+     const bank=roundResult.bank??catalog?.find(row=>row.prompt===prompt)?.bank;
+     if(!bank){panel.textContent='The answer list for this saved version is unavailable.';return}
+     const rows=[...bank];
+     if(status==='valid'&&answer&&!label&&!rows.some(row=>row.canonical===answer)){
+       rows.push({canonical:answer,aliases:[],points:scored});
+     }
+     rows.sort((a,b)=>b.points-a.points||a.canonical.localeCompare(b.canonical,'en',{numeric:true}));
+     const tiers=[...new Set(rows.map(row=>row.points))].sort((a,b)=>b-a);
+     panel.innerHTML=`<div class="catchTabs" role="group" aria-label="Filter by rarity"><button type="button" data-tier="all" aria-pressed="true">All ${rows.length}</button>${tiers.map(n=>`<button type="button" data-tier="${n}" aria-pressed="false" style="--ink:${tierColors[n]}">${tierNames[n]} ${rows.filter(row=>row.points===n).length}</button>`).join('')}</div>
+       <input type="search" aria-label="Search answers for prompt ${index+1}" placeholder="Search all answers…">
+       <ul class="catchList" tabindex="0" aria-label="Accepted answers"></ul><small role="status"></small>`;
+     const input=panel.querySelector('input'),results=panel.querySelector('ul'),count=panel.lastElementChild;
+     let tier='all';
+     const fold=text=>text.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').trim();
+     function filter(){
+       const find=fold(input.value);
+       const matches=rows.filter(row=>(tier==='all'||row.points===Number(tier))&&[row.canonical,...row.aliases].some(name=>fold(name).includes(find)));
+       results.innerHTML=matches.map(row=>`<li style="--ink:${tierColors[row.points]}"><span>${escapeText(row.canonical)}${row.canonical===(label||answer)?'<em>Your catch</em>':''}</span><b>+${row.points}</b></li>`).join('');
+       results.scrollTop=0;
+       count.textContent=matches.length?matches.length+' of '+rows.length+' answers':'No matching answers';
+     }
+     panel.querySelector('.catchTabs').onclick=e=>{
+       const button=e.target.closest('button');if(!button)return;
+       tier=button.dataset.tier;
+       for(const tab of panel.querySelectorAll('button'))tab.setAttribute('aria-pressed',String(tab===button));
+       filter();
+     };
+     input.oninput=filter;filter();
+   });
+ }
+}
+
 function results(result){
  state='results'; score=result.score; document.body.classList.remove('surface');
  const points=result.score/10;
@@ -243,8 +289,9 @@ function results(result){
    <h2>THE BEARING</h2><ul class="bearings">${bands.map(([lo,hi,name])=>`<li class="${points>=lo&&points<=hi?'earned':''}"><small>${hi===700?'450+':lo+'–'+hi}</small>${name}</li>`).join('')}</ul>
    <div class="row reportActions">${button('COPY RESULT','copy','diveSubmit')}${button('SHARE…','share')}</div>
    <p id="shareStatus" role="status"></p>
-   <details><summary>Review answers</summary><ol class="review">${result.answers.map(a=>'<li><strong>'+escapeText(a.event)+'</strong> · '+escapeText(a.answer||a.label||({valid:'Valid answer',invalid:'Not accepted',unverified:'Could not verify'}[a.status])||'Skipped')+' · '+a.points+' m<br>'+escapeText(a.prompt)+'</li>').join('')}</ol></details>
+   <section class="catchBook"><h2>THE CATCH <small>Tap a prompt for every answer</small></h2><div id="catches"></div></section>
    <div class="row reportActions">${chip('/unlimited/classic','KEEP DIVING →')}${chip('/archive','ARCHIVE ⟲')}${chip('/','DAILY DIVE')}</div></section>`;
+ renderCatch(result.answers);
  const summary='Science Olympiad Dive | '+points+' pts · '+result.score+' m\n'+result.answers.map(a=>a.points?'🟦':'⬛').join('')+'\n'+siteRoot.href;
  const status=document.querySelector('#shareStatus');
  const copy=async()=>{try{await navigator.clipboard.writeText(summary);status.textContent='Result copied.'}catch{status.textContent=summary}};
@@ -310,7 +357,8 @@ async function finish(){
    save('streak',{day:seed,count:result.streak});
    save('daily-'+seed,saved);
  }
- save('log',[saved,...read('log',[])].slice(0,25));
+ const logEntry={...saved,answers:saved.answers.map(({bank,...entry})=>entry)};
+ save('log',[logEntry,...read('log',[])].slice(0,25));
  if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
    state='surfacing';
    app.innerHTML='<div class="surfaceNotice" role="status">Surfacing with your results…</div>';
