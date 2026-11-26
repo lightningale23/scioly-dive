@@ -3,20 +3,26 @@ import {events,packs} from './prompts.js';
 const app=document.querySelector('#app');
 const dialog=document.querySelector('#panel');
 dialog.remove();
-const route=location.pathname.replace(/\/$/,'')||'/';
+const siteRoot=new URL('./',import.meta.url);
+const sitePath=path=>new URL(path.slice(1),siteRoot).pathname;
+const route=('/'+location.pathname.slice(siteRoot.pathname.length)).replace(/\/$/,'')||'/';
 const endless=route==='/unlimited/classic';
 const day=Math.floor(Date.now()/86400000);
 const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem('scioly-'+key))??fallback}catch{return fallback}};
 const save=(key,value)=>{try{localStorage.setItem('scioly-'+key,JSON.stringify(value))}catch{}};
 const preferences=read('settings',{sound:false,scan:true,color:'#4de3ff'});
 let seed, firstEvent, dive, receipts, profile, timer, round=0, score=0, answers=[], session=[], mode='', state='home', deadline=0;
-const chip=(url,label)=>'<a class="chip" href="'+url+'">'+label+'</a>';
+const chip=(url,label)=>'<a class="chip" href="'+sitePath(url)+'">'+label+'</a>';
 const button=(label,action,cls='small')=>'<button class="'+cls+'" data-action="'+action+'">'+label+'</button>';
 const help='Each dive visits seven different Division C events. Enter one answer per round in 25 seconds. Valid answers earn 10, 15, 30, 60, 85, or 100 points based on rarity. Each point adds 10 meters. Skip anytime and review examples after each round.';
 const escapeText=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
 const tierNames={10:'Common',15:'Too Clever',30:'Uncommon',60:'Rare',85:'Very Rare',100:'One in a Krillion'};
 async function api(body){
+ if(document.documentElement.hasAttribute('data-static-game')){
+   const {guestApi}=await import('./guest-api.js');
+   return guestApi(body);
+ }
  const response=await fetch('/api/dive',body?{
    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),
    signal:AbortSignal.timeout(18000)
@@ -52,14 +58,14 @@ function home(){
  state='home';
  document.body.classList.toggle('surface',route==='/'||endless);
  if(route==='/archive'){
-   app.innerHTML='<section class="center archive"><div class="sigil" role="img" aria-label="Dive history">⟲</div><h1>THE DIVE ARCHIVE</h1><a class="action archiveAction" href="/unlimited/classic">OPEN UNLIMITED ∞</a><p>Practice across seven events in the ocean or revisit a past dive here on this device.</p><details><summary>Browse past dives</summary><ul>'+[1,2,3,4,5,6,7].map(i=>'<li>'+button(new Date((day-i)*86400000).toISOString().slice(0,10),'archive-'+i).replace('<button ', '<button aria-label="Start '+new Date((day-i)*86400000).toISOString().slice(0,10)+' dive" ')+'</li>').join('')+'</ul></details></section>';
+   app.innerHTML='<section class="center archive"><div class="sigil" role="img" aria-label="Dive history">⟲</div><h1>THE DIVE ARCHIVE</h1><a class="action archiveAction" href="'+sitePath('/unlimited/classic')+'">OPEN UNLIMITED ∞</a><p>Practice across seven events in the ocean or revisit a past dive here on this device.</p><details><summary>Browse past dives</summary><ul>'+[1,2,3,4,5,6,7].map(i=>'<li>'+button(new Date((day-i)*86400000).toISOString().slice(0,10),'archive-'+i).replace('<button ', '<button aria-label="Start '+new Date((day-i)*86400000).toISOString().slice(0,10)+' dive" ')+'</li>').join('')+'</ul></details></section>';
  }else if(route==='/packs'){
    app.innerHTML='<div class="packs"><div class="packHeader"><h1 class="wordmark">SCIOLY DIVE</h1><p class="eyebrow">THEMED PACKS · BEYOND THE DAILY DIVE</p></div><div class="cards">'+packs.map(([title,desc,icon,color],i)=>'<button class="card" data-action="pack-'+i+'" style="--accent:'+color+'">'+(i===0?'<span class="packBanner">OPEN PRACTICE <small>Start here with the field notebook</small></span>':'')+'<span class="art art-'+i+'" role="img" aria-label="'+title+' illustration">'+packScenes[i]+'</span><span class="cardText"><strong>'+title+'</strong><small>'+desc+'</small><em>START PRACTICE →</em></span></button>').join('')+'</div><section class="packLinks"><div><h2>Past dives</h2><p>Take another dive and review your answers.</p></div>'+chip('/archive','ARCHIVE ⟲')+'<div><h2>Unlimited practice</h2><p>Start another seven-event dive.</p></div>'+chip('/unlimited/classic','UNLIMITED ∞')+'</section><div class="packReturn">'+chip('/','← TODAY’S DIVE')+'</div></div>';
  }else if(route==='/party'){
    app.innerHTML=partyPreview();
  }else{
    const completed=!endless&&read('daily-'+day,null);
-   app.innerHTML='<section class="hero"><h1 class="wordmark">SCIOLY DIVE</h1><h2>'+(endless?'THE ENDLESS DIVE':'THE DAILY DIVE')+'</h2><p>7 events · 25 seconds each · rarer answers sink deeper</p></section><section class="launch"><div class="disclosure">'+(endless?button('OPEN THE DIVE LOG ∞','log','logToggle'):'<details class="inlineHelp"><summary>HOW TO PLAY</summary><div class="helpCard"><p>'+help+'</p><ol class="helpSteps"><li>Read the event prompt.</li><li>Type one answer or skip the round.</li><li>Review examples and continue your descent.</li></ol></div></details>')+'<span class="depthLabel">0m · SURFACE ZONE</span></div><div class="launchNote">Sperm whales hunt giant squid in deep water below the surface zone.</div>'+(!endless?'<a class="partyLink" href="/party"><span role="img" aria-label="Pufferfish">🐡</span> PUFFER PARTY <small>PREVIEW</small></a>':'')+button(completed?'VIEW TODAY’S RESULTS':'▼ BEGIN DESCENT ▼',completed?'today-results':'start','action start')+'<div class="foot"><span>'+(endless?'ENDLESS PRACTICE':'2027 · DIVISION C')+'</span><ul class="links" aria-label="Practice modes"><li>'+chip('/archive','ARCHIVE ⟲')+'</li>'+(endless?'<li>'+chip('/','TODAY’S DIVE')+'</li>':'<li>'+chip('/packs','THEMED PACKS')+'</li><li>'+chip('/unlimited/classic','UNLIMITED ∞')+'</li>')+'</ul></div></section>';
+   app.innerHTML='<section class="hero"><h1 class="wordmark">SCIOLY DIVE</h1><h2>'+(endless?'THE ENDLESS DIVE':'THE DAILY DIVE')+'</h2><p>7 events · 25 seconds each · rarer answers sink deeper</p></section><section class="launch"><div class="disclosure">'+(endless?button('OPEN THE DIVE LOG ∞','log','logToggle'):'<details class="inlineHelp"><summary>HOW TO PLAY</summary><div class="helpCard"><p>'+help+'</p><ol class="helpSteps"><li>Read the event prompt.</li><li>Type one answer or skip the round.</li><li>Review examples and continue your descent.</li></ol></div></details>')+'<span class="depthLabel">0m · SURFACE ZONE</span></div><div class="launchNote">Sperm whales hunt giant squid in deep water below the surface zone.</div>'+(!endless?'<a class="partyLink" href="'+sitePath('/party')+'"><span role="img" aria-label="Pufferfish">🐡</span> PUFFER PARTY <small>PREVIEW</small></a>':'')+button(completed?'VIEW TODAY’S RESULTS':'▼ BEGIN DESCENT ▼',completed?'today-results':'start','action start')+'<div class="foot"><span>'+(endless?'ENDLESS PRACTICE':'2027 · DIVISION C')+'</span><ul class="links" aria-label="Practice modes"><li>'+chip('/archive','ARCHIVE ⟲')+'</li>'+(endless?'<li>'+chip('/','TODAY’S DIVE')+'</li>':'<li>'+chip('/packs','THEMED PACKS')+'</li><li>'+chip('/unlimited/classic','UNLIMITED ∞')+'</li>')+'</ul></div></section>';
 
  }
  draw();
@@ -121,7 +127,7 @@ function results(result){
  state='results'; document.body.classList.remove('surface');
  app.innerHTML='<section class="play"><div class="box"><p class="event">DIVE COMPLETE</p><h1>'+result.score+' meters deep</h1><p>'+result.answers.filter(a=>a.points).length+' of 7 answers scored</p>'+(result.streak?'<p>'+result.streak+'-day streak</p>':'')+'<p id="percentile" role="status">'+(result.global&&result.count>1?'Deeper than '+result.percentile+'% of today?s divers.':'')+'</p><ol class="review">'+result.answers.map(a=>'<li><strong>'+a.event+'</strong> · '+escapeText(a.answer||a.label||({valid:'Valid answer',invalid:'Not accepted',unverified:'Could not verify'}[a.status])||'Skipped')+' · '+a.points+'m<br>'+a.prompt+'</li>').join('')+'</ol><div class="row">'+button('SHARE RESULT','share')+chip('/unlimited/classic','UNLIMITED ∞')+chip('/','DAILY DIVE')+'</div><p id="shareStatus" role="status"></p></div></section>';
  app.querySelector('[data-action="share"]').onclick=async()=>{
-   const summary='Science Olympiad Dive | '+result.score+'m\n'+result.answers.map(a=>a.points?'🟦':'⬛').join('')+'\n'+location.origin;
+   const summary='Science Olympiad Dive | '+result.score+'m\n'+result.answers.map(a=>a.points?'🟦':'⬛').join('')+'\n'+siteRoot.href;
    const status=document.querySelector('#shareStatus');
    try{await navigator.clipboard.writeText(summary);status.textContent='Result copied.'}catch{status.textContent=summary}
  };
@@ -137,7 +143,7 @@ function panel(name){
  const menu=[['↓','DAILY DIVE','/'],['∞','UNLIMITED','/unlimited/classic'],['≈','PUFFER PARTY','/party'],['⟲','ARCHIVE','/archive'],['▦','THEMED PACKS','/packs'],['♟','WARDROBE','wardrobe'],['⚙','SETTINGS','settings'],['?','HOW TO PLAY','help'],['≋','DIVE LOG','log']];
  dialog.dataset.view=name;
  let content='';
- if(name==='menu')content='<div class="eyebrow">DIVE IN ─────────────</div><nav class="grid" aria-label="Main menu">'+menu.map(([icon,label,target])=>target.startsWith('/')?'<a class="tile '+(route===target?'active':'')+'" href="'+target+'"><span>'+icon+'</span>'+label+'</a>':'<button class="tile" data-panel="'+target+'"><span>'+icon+'</span>'+label+'</button>').join('')+'</nav>';
+ if(name==='menu')content='<div class="eyebrow">DIVE IN ─────────────</div><nav class="grid" aria-label="Main menu">'+menu.map(([icon,label,target])=>target.startsWith('/')?'<a class="tile '+(route===target?'active':'')+'" href="'+sitePath(target)+'"><span>'+icon+'</span>'+label+'</a>':'<button class="tile" data-panel="'+target+'"><span>'+icon+'</span>'+label+'</button>').join('')+'</nav>';
  if(name==='settings')content='<div class="options"><label><input type="checkbox" data-pref="sound" '+(preferences.sound?'checked':'')+'> Sound effects</label><label><input type="checkbox" data-pref="scan" '+(preferences.scan?'checked':'')+'> Scanlines</label></div>';
  if(name==='wardrobe')content='<p>Choose a color for your research vessel.</p><div class="grid">'+[['#4de3ff','Cyan'],['#ff5d8f','Pink'],['#ffe08a','Gold'],['#bfa7ff','Violet']].map(([color,label])=>'<button class="tile '+(preferences.color===color?'active':'')+'" data-color="'+color+'"><span style="color:'+color+'">◆</span>'+label+'</button>').join('')+'</div>';
  if(name==='help')content='<p>'+help+'</p><ol class="helpSteps"><li>Read the event prompt.</li><li>Type one answer or skip the round.</li><li>Review examples and continue your descent.</li></ol>';

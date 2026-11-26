@@ -9,3 +9,9 @@ Run npm run build and npm start from this folder, then open http://localhost:417
 | ANSWER_FAMILIARITY_JSON | Optional precomputed corpus counts per million, keyed by normalized canonical answer, for example {"parallax":3.2}. Editorial selections take precedence for the 15- and 100-point tiers. |
 
 Guest settings, completion, and streaks are saved on the device. The answer API stores a hash of a daily fallback guess with its verdict. It records normalized practice guesses and their outcomes for editorial review. Azure-validated answers initially receive 30 points and can receive a curated tier when added to the answer bank.
+
+## GitHub Pages
+
+[Play Science Olympiad Dive](https://lightningale23.github.io/scioly-dive/). Pushes to main automatically build and publish the guest game. Daily, Archive, Unlimited and packs use the curated answers and rarity tiers in the browser. Results and streaks are stored on the device. Azure judgments, account sync and global rankings require the Node or Vercel deployment described above.
+
+Run `node build.mjs --pages` to generate the static site in `pages-dist/`.

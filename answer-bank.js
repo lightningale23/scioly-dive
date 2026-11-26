@@ -1,4 +1,4 @@
-﻿import { events } from './prompts.js';
+import { events } from './prompts.js';
 
 export const tiers = [10, 15, 30, 60, 85, 100];
 export const tierNames = { 10: 'Common', 15: 'Too Clever', 30: 'Uncommon', 60: 'Rare', 85: 'Very Rare', 100: 'One in a Krillion' };
@@ -17,7 +17,7 @@ const editorial = [
 ];
 
 // Optional precomputed corpus data, expressed as occurrences per million.
-const familiarity = JSON.parse(process.env.ANSWER_FAMILIARITY_JSON || '{}');
+const familiarity = JSON.parse(globalThis.process?.env?.ANSWER_FAMILIARITY_JSON || '{}');
 
 export const questions = events.map(([event, entries], eventIndex) => [event, entries.map(([prompt, bank], questionIndex) => ({
   prompt,
