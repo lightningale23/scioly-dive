@@ -158,3 +158,33 @@ header button{background:#0b1526bf}
  .packs .card .art{height:164px}.packs .card:first-child .art{height:178px}
 }
 @media(max-height:690px){.disclosure{height:38px}}
+
+/* Dive instruments stay in place while the question and catch alternate. */
+.diveScreen{min-height:100vh;min-height:100dvh;display:grid;grid-template-rows:auto 1fr auto;padding:14px 16px max(15px,env(safe-area-inset-bottom));gap:14px}
+.diveHud{width:min(660px,calc(100% - 76px));margin:0 auto;display:flex;align-items:start;justify-content:space-between;gap:8px}
+.gauge{min-width:92px;padding:7px 12px;background:#0e192be8;border-top:1px solid #35465d;border-radius:5px}
+.gauge small,.roundTrack{font:10px/1.5 monospace;letter-spacing:.14em;color:#acbcd0}
+.gauge b{display:block;color:var(--cyan);font-size:23px;font-weight:400;line-height:1.1;font-variant-numeric:tabular-nums}
+.gauge:last-child{text-align:right}.gauge:last-child b{color:var(--pink)}
+.roundTrack{text-align:center}.roundTrack div{display:flex;gap:4px;justify-content:center;margin:7px 0}
+.roundTrack i{width:9px;height:9px;background:#29394c}.roundTrack .current{outline:1px solid var(--pink);outline-offset:1px}
+.promptStage,.revealStage{display:grid;justify-items:center;align-content:start;padding:clamp(16px,12vh,130px) 0 24px}
+.promptCard{width:min(460px,100%);padding:22px clamp(16px,3vw,28px);background:#111e31f2;border-radius:6px;box-shadow:0 8px 30px #02081266;border-top:1px solid #324657}
+.promptCard .event,.revealCard .event{font-size:14px;color:#ff8cb1}.promptCard h1{font-size:clamp(24px,3vw,33px);line-height:1.12;font-weight:400;margin:9px 0 0}
+.answerDock,.descendDock{width:min(590px,100%);margin:auto;display:flex;justify-content:center;align-items:center;gap:9px}
+.answerDock #clock{display:grid;place-items:center;border:2px solid #387088;border-radius:50%;width:44px;height:44px;flex:none;color:var(--cyan);background:#091723;font-variant-numeric:tabular-nums}
+.inputMeter{flex:1;position:relative;min-width:0}.inputMeter .answer{height:45px;background:#08131fee;border:1px solid #528695;font-size:20px}
+.inputMeter #fill{position:absolute;left:0;bottom:-4px;width:100%;height:2px;background:var(--cyan)}
+.diveSubmit,.descend{min-height:44px;letter-spacing:.1em;padding:8px 15px;border:1px solid #f487ad;background:#ff689f;color:#120c1d}
+.dockSkip{background:#0a1522;border:0;color:#b8c7da;text-decoration:underline;min-height:44px}
+.revealStage{align-content:center;padding:20px 0}.revealCard{text-align:center;width:min(480px,100%);overflow-wrap:anywhere;animation:catchRise .55s ease-out}
+.catchMark{font-size:54px;color:var(--rarity);text-shadow:0 0 22px var(--rarity);line-height:1}
+.revealCard .event{margin-top:14px;color:#a9bbcc}.revealCard h1{font-weight:400;text-transform:uppercase;letter-spacing:.13em;color:var(--rarity);margin:8px 0;font-size:clamp(28px,5vw,46px)}
+.catchAnswer{margin:8px 0;font-size:24px}.catchDistance{color:var(--rarity);font-size:21px}.catchDistance span{color:#a6b9cd}.catchExamples{color:#abbdcf;font-size:16px}
+.descend{background:#091522;border-color:var(--rarity);color:var(--foam);min-width:150px}
+.diveResults{padding-top:clamp(70px,10vh,110px)}.diveResults .box{border-top:2px solid var(--cyan)}.diveResults h1{font-size:48px;color:var(--cyan);margin-bottom:0}.finalPoints{color:#ff8cb1;margin:4px 0}.review li::marker{color:var(--cyan)}
+@keyframes catchRise{from{transform:translateY(-24px);opacity:0}to{transform:translateY(0);opacity:1}}
+@media(prefers-reduced-motion:reduce){.revealCard{animation:none}}
+@media(max-width:580px){.diveHud{width:calc(100% - 32px);margin-left:32px}.gauge{min-width:60px;padding:5px 7px}.gauge b{font-size:17px}.roundTrack{font-size:9px}.roundTrack i{width:7px;height:7px}.answerDock{gap:5px}.diveSubmit{padding:6px 9px}.answerDock #clock{width:36px;height:36px}.promptStage{padding-top:8vh}.diveScreen{padding-inline:10px}}
+@media(max-height:520px){.diveScreen{gap:6px}.promptStage,.revealStage{padding:6px 0}.catchMark{font-size:28px}.catchDistance,.catchExamples{margin:5px}}
+@media(max-width:580px){.diveHud{margin-left:42px;width:calc(100% - 42px)}}

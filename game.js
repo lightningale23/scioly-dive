@@ -84,12 +84,30 @@ function begin(diveSeed,kind,first){
  document.body.classList.remove('surface');
  play();
 }
+const tierColors={0:'#9aaac1',10:'#a8c3df',15:'#ffca77',30:'#57e3ee',60:'#ff709f',85:'#c1a2ff',100:'#ffe588'};
+
+function diveHud(){
+ const marks=session.map((_,i)=>{
+   const color=i<answers.length?tierColors[answers[i].points/10]:null;
+   return `<i class="${i===round?'current':''}" ${color?'style="background:'+color+'"':''}></i>`;
+ }).join('');
+ return `<div class="diveHud">
+   <div class="gauge"><small>DEPTH</small><b>${score.toLocaleString()} m</b></div>
+   <div class="roundTrack"><div aria-hidden="true">${marks}</div>ROUND ${round+1} OF 7</div>
+   <div class="gauge"><small>SCORE</small><b>${score/10}</b></div>
+ </div>`;
+}
+
 function play(){
  state='play';
  deadline=Date.now()+25000;
  const {event,prompt}=session[round];
- app.innerHTML='<section class="play"><div class="box"><div class="status"><span>ROUND '+(round+1)+' / 7</span><span>'+score+'m</span><span id="clock" role="timer">25s</span></div><div class="meter"><div id="fill"></div></div><p class="event">'+event+'</p><h1>'+prompt+'</h1><form><input class="answer" maxlength="100" required aria-label="Your answer" placeholder="type your answer…" autocomplete="off"><div class="row"><button class="small" type="submit">SUBMIT ↵</button>'+button('SKIP','skip')+'</div></form></div></section>';
- app.querySelector('[data-action="skip"]').type='button';
+ app.innerHTML=`<section class="diveScreen">${diveHud()}
+   <div class="promptStage"><article class="promptCard"><p class="event">${event}</p><h1>${prompt}</h1></article></div>
+   <form class="answerDock"><span id="clock" role="timer" aria-label="Seconds remaining">25s</span>
+     <div class="inputMeter"><input class="answer" maxlength="100" required aria-label="Your answer" placeholder="Type one answer…" autocomplete="off"><div id="fill"></div></div>
+     <button class="diveSubmit" type="submit">DIVE ↵</button><button class="dockSkip" type="button" data-action="skip">Skip</button>
+   </form></section>`;
  app.querySelector('form').onsubmit=e=>{e.preventDefault(); const answer=e.currentTarget.querySelector('input').value.trim(); if(answer)submit(answer)};
  const clock=document.querySelector('#clock'),fill=document.querySelector('#fill');
  timer=setInterval(()=>{const left=Math.max(0,deadline-Date.now());clock.textContent=Math.ceil(left/1000)+'s';fill.style.width=(left/250)+'%';if(!left)submit('')},100);
@@ -102,7 +120,7 @@ async function submit(answer){
  clearInterval(timer); state='checking';
  const question=session[round], activeDive=dive;
  const form=app.querySelector('form');
- form.innerHTML='<p role="status">Checking answer?</p>';
+ form.innerHTML='<p role="status">Checking answer…</p>';
  let verdict;
  try{
    verdict=await api({action:'validate',seed,round,mode,first:firstEvent,dive,answer});
@@ -116,16 +134,33 @@ async function submit(answer){
  receipts.push(verdict.receipt);
  answers.push({event:question.event,prompt:question.prompt,answer,points:meters,label:verdict.canonical,status:verdict.status});
  tone(meters>0?500:190);
- const outcome=meters?'? '+escapeText(answer)+' ? '+tierNames[verdict.points]+' ? +'+meters+'m'
-   :verdict.status==='unverified'?'Could not verify ? '+escapeText(answer)
-   :answer?'Not accepted ? '+escapeText(answer):'No answer recorded';
- app.innerHTML='<section class="play"><div class="box"><div class="status"><span>ROUND '+(round+1)+' / 7</span><span>'+score+'m</span></div><p class="event">'+question.event+'</p><h1>'+question.prompt+'</h1><p class="result" role="status">'+outcome+'</p>'+(verdict.examples.length?'<p>Examples: '+verdict.examples.map(escapeText).join(', ')+'</p>':'')+button(round===6?'SEE RESULTS ?':'NEXT ROUND ?','next')+'</div></section>';
+ const outcome=meters?tierNames[verdict.points]:verdict.status==='unverified'?'Could not verify':answer?'Not accepted':'Round skipped';
+ const examples=verdict.examples.map(escapeText).join(' · ');
+ app.innerHTML=`<section class="diveScreen" style="--rarity:${tierColors[verdict.points]}">${diveHud()}
+   <div class="revealStage"><div class="revealCard" role="status">
+     <div class="catchMark" aria-hidden="true">${meters?'✦':'◇'}</div>
+     <p class="event">${question.event}</p><h1>${outcome}</h1>
+     ${answer?`<p class="catchAnswer">“${escapeText(answer)}”</p>`:''}
+     <p class="catchDistance">+${verdict.points} pts <span>·</span> ${meters.toLocaleString()} m</p>
+     ${examples?`<p class="catchExamples">Examples · ${examples}</p>`:''}
+   </div></div>
+   <div class="descendDock">${button(round===6?'SURFACE FOR RESULTS ↑':'DESCEND ▼','next','descend')}</div></section>`;
  app.querySelector('button').focus();
- draw();
+ const began=performance.now(), previous=score-meters, completedRound=round;
+ function descendFrame(now){
+   if(state!=='reveal'||dive!==activeDive||round!==completedRound)return;
+   const progress=Math.min(1,(now-began)/650);
+   const depth=Math.round(previous+meters*(1-(1-progress)**2));
+   app.querySelector('.gauge b').textContent=depth.toLocaleString()+' m';
+   draw(depth);
+   if(progress<1)requestAnimationFrame(descendFrame);
+ }
+ if(meters&&!matchMedia('(prefers-reduced-motion: reduce)').matches)requestAnimationFrame(descendFrame);
+ else draw();
 }
 function results(result){
- state='results'; document.body.classList.remove('surface');
- app.innerHTML='<section class="play"><div class="box"><p class="event">DIVE COMPLETE</p><h1>'+result.score+' meters deep</h1><p>'+result.answers.filter(a=>a.points).length+' of 7 answers scored</p>'+(result.streak?'<p>'+result.streak+'-day streak</p>':'')+'<p id="percentile" role="status">'+(result.global&&result.count>1?'Deeper than '+result.percentile+'% of today?s divers.':'')+'</p><ol class="review">'+result.answers.map(a=>'<li><strong>'+a.event+'</strong> · '+escapeText(a.answer||a.label||({valid:'Valid answer',invalid:'Not accepted',unverified:'Could not verify'}[a.status])||'Skipped')+' · '+a.points+'m<br>'+a.prompt+'</li>').join('')+'</ol><div class="row">'+button('SHARE RESULT','share')+chip('/unlimited/classic','UNLIMITED ∞')+chip('/','DAILY DIVE')+'</div><p id="shareStatus" role="status"></p></div></section>';
+ state='results'; score=result.score; document.body.classList.remove('surface');
+ app.innerHTML='<section class="play diveResults"><div class="box"><p class="event">DIVE COMPLETE</p><h1>'+result.score.toLocaleString()+' m</h1><p class="finalPoints">'+result.score/10+' points</p><p>'+result.answers.filter(a=>a.points).length+' of 7 answers scored</p>'+(result.streak?'<p>'+result.streak+'-day streak</p>':'')+'<p id="percentile" role="status">'+(result.global&&result.count>1?'Deeper than '+result.percentile+'% of today’s divers.':'')+'</p><ol class="review">'+result.answers.map(a=>'<li><strong>'+a.event+'</strong> · '+escapeText(a.answer||a.label||({valid:'Valid answer',invalid:'Not accepted',unverified:'Could not verify'}[a.status])||'Skipped')+' · '+a.points+'m<br>'+a.prompt+'</li>').join('')+'</ol><div class="row">'+button('SHARE RESULT','share')+chip('/unlimited/classic','UNLIMITED ∞')+chip('/','DAILY DIVE')+'</div><p id="shareStatus" role="status"></p></div></section>';
  app.querySelector('[data-action="share"]').onclick=async()=>{
    const summary='Science Olympiad Dive | '+result.score+'m\n'+result.answers.map(a=>a.points?'🟦':'⬛').join('')+'\n'+siteRoot.href;
    const status=document.querySelector('#shareStatus');
@@ -197,7 +232,7 @@ async function finish(){
      Object.assign(saved,stats);
      save('daily-'+completedSeed,saved);
      const status=app.querySelector('#percentile');
-     if(dive===completedDive&&status&&stats.global&&stats.count>1)status.textContent='Deeper than '+stats.percentile+'% of today?s divers.';
+     if(dive===completedDive&&status&&stats.global&&stats.count>1)status.textContent='Deeper than '+stats.percentile+'% of today’s divers.';
    }
  }catch{}
 }
@@ -239,10 +274,11 @@ dialog.addEventListener('close',()=>{
 dialog.addEventListener('change',e=>{if(e.target.dataset.pref){preferences[e.target.dataset.pref]=e.target.checked;updatePrefs()}});
 dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
 
-function draw(){
+function draw(displayDepth=score){
  const canvas=document.querySelector('#scene');
  const w=innerWidth,h=innerHeight;
- canvas.width=w;canvas.height=h;
+ if(canvas.width!==w)canvas.width=w;
+ if(canvas.height!==h)canvas.height=h;
  const g=canvas.getContext('2d');
  const surface=document.body.classList.contains('surface');
  const water=h*(w<=540?.576:w<=768?.553:.545);
@@ -264,15 +300,44 @@ function draw(){
    g.strokeStyle='#7d93b84d';g.beginPath();const ruler=w-Math.max(14,(w-1052)/2+6);g.moveTo(ruler,water);g.lineTo(ruler,h*.9);for(let y=water;y<h*.9;y+=20){g.moveTo(ruler-6,y);g.lineTo(ruler,y)}g.stroke();
    g.font='11px monospace';g.fillStyle='#7d93b8';g.fillText('0m',ruler-30,water+2);
  }else{
-   g.fillStyle=gradient(0,h,[[0,'#0c1627'],[.7,'#060b14'],[1,'#050a14']]);g.fillRect(0,0,w,h);
+   const diving=state!=='home';
+   const depth=diving?displayDepth:0;
+   const shallow=diving && depth<200;
+   g.fillStyle=gradient(0,h,[[0,shallow?'#397491':depth>=1000?'#0b1829':'#102b41'],[.55,shallow?'#16405c':'#0b1827'],[1,'#050b16']]);g.fillRect(0,0,w,h);
+   if(diving){
+     // Layer angular rock faces at the edges, leaving the central play area open.
+     for(const side of [0,1]){
+       const edge=side?w:0, dir=side?-1:1;
+       for(let layer=0;layer<2;layer++){
+         const span=Math.min(w*.15,160)*(1-layer*.42);
+         const cliffHeight=h*(depth>=1000?.95:.44);
+         g.beginPath();g.moveTo(edge,h-cliffHeight);
+         for(let j=0;j<=16;j++){
+           const t=j/16, wave=.5+.5*Math.sin(j*1.7+side*2+layer);
+           g.lineTo(edge+dir*span*(.2+wave*.5+t*.3),h-(1-t)*cliffHeight);
+         }
+         g.lineTo(edge,h);g.fillStyle=layer?'#070c17':'#0b1524';g.fill();
+       }
+     }
+     const zero=Math.floor(depth/100)*100;
+     const step=Math.max(46,h*.12), marker=h*.42;
+     g.font='11px monospace';g.textAlign='right';
+     for(let i=-5;i<7;i++){
+       const value=zero+100*i,y=marker+(value-depth)*step/100;
+       if(value<0||y<65||y>h-60)continue;
+       rect(w-12,y,12,1,'#647e94');g.fillStyle='#93a8be';g.fillText(value+' m',w-17,y+3);
+     }
+     rect(w-14,marker,14,2,'#ff709f');
+     g.textAlign='left';
+   }
  }
  if(surface||state!=='home'){
    for(let i=0;i<115;i++){const x=((i*2333+92)%997)/997*w,y=(surface?water:0)+((i*2657+59)%991)/991*(surface?h-water:h);rect(x,y,i%5===0?2:1,i%5===0?2:1,i%7===0?'#78bce852':'#468bb52b')}
    if(surface){const x=w*.66,y=water+h*.11;rect(x,y,11,5,'#5d1938');rect(x+7,y+5,9,7,'#47152f');rect(x+6,y+12,8,4,'#421d38');rect(x,y+15,8,3,'#45142c')}
-   if(state!=='home'){const x=Math.max(26,w*.14),y=h*(.15+Math.min(score,7000)/9800);rect(x,y,28,9,preferences.color);rect(x+6,y-5,10,5,preferences.color);rect(x-5,y+2,5,5,preferences.color);rect(x+17,y+2,4,4,'#101d33')}
+   if(state!=='home'){const x=Math.max(26,w*.14),y=h*(.15+Math.min(displayDepth,7000)/9800);rect(x,y,28,9,preferences.color);rect(x+6,y-5,10,5,preferences.color);rect(x-5,y+2,5,5,preferences.color);rect(x+17,y+2,4,4,'#101d33')}
  }
 }
-window.addEventListener('resize',draw);
+window.addEventListener('resize',()=>draw());
 home();
 updatePrefs();
 
