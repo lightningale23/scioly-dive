@@ -1,0 +1,274 @@
+import {events,packs} from './prompts.js';
+
+const app=document.querySelector('#app');
+const dialog=document.querySelector('#panel');
+dialog.remove();
+const route=location.pathname.replace(/\/$/,'')||'/';
+const endless=route==='/unlimited/classic';
+const day=Math.floor(Date.now()/86400000);
+const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem('scioly-'+key))??fallback}catch{return fallback}};
+const save=(key,value)=>{try{localStorage.setItem('scioly-'+key,JSON.stringify(value))}catch{}};
+const preferences=read('settings',{sound:false,scan:true,color:'#4de3ff'});
+let seed, firstEvent, dive, receipts, profile, timer, round=0, score=0, answers=[], session=[], mode='', state='home', deadline=0;
+const chip=(url,label)=>'<a class="chip" href="'+url+'">'+label+'</a>';
+const button=(label,action,cls='small')=>'<button class="'+cls+'" data-action="'+action+'">'+label+'</button>';
+const help='Each dive visits seven different Division C events. Enter one answer per round in 25 seconds. Valid answers earn 10, 15, 30, 60, 85, or 100 points based on rarity. Each point adds 10 meters. Skip anytime and review examples after each round.';
+const escapeText=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+
+const tierNames={10:'Common',15:'Too Clever',30:'Uncommon',60:'Rare',85:'Very Rare',100:'One in a Krillion'};
+async function api(body){
+ const response=await fetch('/api/dive',body?{
+   method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),
+   signal:AbortSignal.timeout(18000)
+ }:{signal:AbortSignal.timeout(6000)});
+ const result=await response.json();
+ if(!response.ok)throw new Error(result.error);
+ return result;
+}
+
+const packScenes=['🌿','🪐','⚡','💧','💎'];
+const crew=['Puffer','Skate','Squid','Angler','Crab','Nautilus','Jelly','Ray','Isopod'];
+
+function partyPreview(){
+ const disabledButtons=labels=>labels.map(label=>'<button class="small" disabled>'+label+'</button>').join('');
+ return `<section class="partyPreview">
+   <div class="partyIntro"><div class="wordmark" aria-hidden="true">SCIOLY DIVE</div><h1>PUFFER PARTY</h1><p>Practice together in a future update.</p><p>Take turns naming an answer and passing the puffer before time runs out.</p><div class="partyFish" role="img" aria-label="Pufferfish">🐡</div></div>
+   <div class="partyLayout">
+    <div class="partyForms">
+     <section class="partyPanel"><div class="partyHeading"><h2>WHO'S PLAYING</h2><h3><button class="small" data-panel="party-help">HOW TO PLAY</button></h3></div>
+      <label for="partyName">YOUR NAME</label><input id="partyName" placeholder="Name your diver" disabled>
+      <ul class="crew">${crew.map((name,i)=>`<li><span aria-hidden="true">${['🐡','🐟','🦑','🐠','🦀','🐚','🪼','🌊','🦐'][i]}</span>${name}</li>`).join('')}</ul>
+     </section>
+     <section class="partyPanel"><h2>PLAY NOW</h2><div class="partyChoices">${disabledButtons(['1v1','3 players','4–6','8–10'])}</div></section>
+     <div class="partyChoices"><section class="partyPanel"><h2>HOST</h2><button class="small" disabled>Create lobby</button></section><section class="partyPanel"><h2>JOIN BY CODE</h2><button class="small" disabled>Join room</button></section></div>
+     <label for="roomCode">ROOM CODE</label><input id="roomCode" placeholder="Enter a code" disabled>
+    </div>
+    <section class="partyPanel publicRooms"><h2>PUBLIC ROOMS</h2><p>Public lobbies will appear here when multiplayer opens.</p>${chip('/','← TODAY’S DIVE')}</section>
+   </div>
+ </section>`;
+}
+
+function home(){
+ state='home';
+ document.body.classList.toggle('surface',route==='/'||endless);
+ if(route==='/archive'){
+   app.innerHTML='<section class="center archive"><div class="sigil" role="img" aria-label="Dive history">⟲</div><h1>THE DIVE ARCHIVE</h1><a class="action archiveAction" href="/unlimited/classic">OPEN UNLIMITED ∞</a><p>Practice across seven events in the ocean or revisit a past dive here on this device.</p><details><summary>Browse past dives</summary><ul>'+[1,2,3,4,5,6,7].map(i=>'<li>'+button(new Date((day-i)*86400000).toISOString().slice(0,10),'archive-'+i).replace('<button ', '<button aria-label="Start '+new Date((day-i)*86400000).toISOString().slice(0,10)+' dive" ')+'</li>').join('')+'</ul></details></section>';
+ }else if(route==='/packs'){
+   app.innerHTML='<div class="packs"><div class="packHeader"><h1 class="wordmark">SCIOLY DIVE</h1><p class="eyebrow">THEMED PACKS · BEYOND THE DAILY DIVE</p></div><div class="cards">'+packs.map(([title,desc,icon,color],i)=>'<button class="card" data-action="pack-'+i+'" style="--accent:'+color+'">'+(i===0?'<span class="packBanner">OPEN PRACTICE <small>Start here with the field notebook</small></span>':'')+'<span class="art art-'+i+'" role="img" aria-label="'+title+' illustration">'+packScenes[i]+'</span><span class="cardText"><strong>'+title+'</strong><small>'+desc+'</small><em>START PRACTICE →</em></span></button>').join('')+'</div><section class="packLinks"><div><h2>Past dives</h2><p>Take another dive and review your answers.</p></div>'+chip('/archive','ARCHIVE ⟲')+'<div><h2>Unlimited practice</h2><p>Start another seven-event dive.</p></div>'+chip('/unlimited/classic','UNLIMITED ∞')+'</section><div class="packReturn">'+chip('/','← TODAY’S DIVE')+'</div></div>';
+ }else if(route==='/party'){
+   app.innerHTML=partyPreview();
+ }else{
+   const completed=!endless&&read('daily-'+day,null);
+   app.innerHTML='<section class="hero"><h1 class="wordmark">SCIOLY DIVE</h1><h2>'+(endless?'THE ENDLESS DIVE':'THE DAILY DIVE')+'</h2><p>7 events · 25 seconds each · rarer answers sink deeper</p></section><section class="launch"><div class="disclosure">'+(endless?button('OPEN THE DIVE LOG ∞','log','logToggle'):'<details class="inlineHelp"><summary>HOW TO PLAY</summary><div class="helpCard"><p>'+help+'</p><ol class="helpSteps"><li>Read the event prompt.</li><li>Type one answer or skip the round.</li><li>Review examples and continue your descent.</li></ol></div></details>')+'<span class="depthLabel">0m · SURFACE ZONE</span></div><div class="launchNote">Sperm whales hunt giant squid in deep water below the surface zone.</div>'+(!endless?'<a class="partyLink" href="/party"><span role="img" aria-label="Pufferfish">🐡</span> PUFFER PARTY <small>PREVIEW</small></a>':'')+button(completed?'VIEW TODAY’S RESULTS':'▼ BEGIN DESCENT ▼',completed?'today-results':'start','action start')+'<div class="foot"><span>'+(endless?'ENDLESS PRACTICE':'2027 · DIVISION C')+'</span><ul class="links" aria-label="Practice modes"><li>'+chip('/archive','ARCHIVE ⟲')+'</li>'+(endless?'<li>'+chip('/','TODAY’S DIVE')+'</li>':'<li>'+chip('/packs','THEMED PACKS')+'</li><li>'+chip('/unlimited/classic','UNLIMITED ∞')+'</li>')+'</ul></div></section>';
+
+ }
+ draw();
+}
+
+function begin(diveSeed,kind,first){
+ clearInterval(timer);
+ state='play'; mode=kind; score=0; round=0; answers=[]; receipts=[];
+ seed=diveSeed; firstEvent=first; dive=crypto.randomUUID();
+ const start=first??((seed%7+7)%7);
+ session=Array.from({length:7},(_,i)=>{
+   const [event,questions]=events[(start+i)%7];
+   const index=((Math.floor(seed/7)+i)%questions.length+questions.length)%questions.length;
+   return {event,prompt:questions[index]};
+ });
+ document.body.classList.remove('surface');
+ play();
+}
+function play(){
+ state='play';
+ deadline=Date.now()+25000;
+ const {event,prompt}=session[round];
+ app.innerHTML='<section class="play"><div class="box"><div class="status"><span>ROUND '+(round+1)+' / 7</span><span>'+score+'m</span><span id="clock" role="timer">25s</span></div><div class="meter"><div id="fill"></div></div><p class="event">'+event+'</p><h1>'+prompt+'</h1><form><input class="answer" maxlength="100" required aria-label="Your answer" placeholder="type your answer…" autocomplete="off"><div class="row"><button class="small" type="submit">SUBMIT ↵</button>'+button('SKIP','skip')+'</div></form></div></section>';
+ app.querySelector('[data-action="skip"]').type='button';
+ app.querySelector('form').onsubmit=e=>{e.preventDefault(); const answer=e.currentTarget.querySelector('input').value.trim(); if(answer)submit(answer)};
+ const clock=document.querySelector('#clock'),fill=document.querySelector('#fill');
+ timer=setInterval(()=>{const left=Math.max(0,deadline-Date.now());clock.textContent=Math.ceil(left/1000)+'s';fill.style.width=(left/250)+'%';if(!left)submit('')},100);
+ if(matchMedia('(pointer:fine)').matches)app.querySelector('input').focus();
+ draw();
+}
+async function submit(answer){
+ if(state!=='play')return;
+ if(Date.now()>=deadline)answer='';
+ clearInterval(timer); state='checking';
+ const question=session[round], activeDive=dive;
+ const form=app.querySelector('form');
+ form.innerHTML='<p role="status">Checking answer?</p>';
+ let verdict;
+ try{
+   verdict=await api({action:'validate',seed,round,mode,first:firstEvent,dive,answer});
+ }catch{
+   verdict={status:answer?'unverified':'skipped',points:0,examples:[]};
+ }
+ if(dive!==activeDive||state!=='checking')return;
+ state='reveal';
+ const meters=verdict.points*10;
+ score+=meters;
+ receipts.push(verdict.receipt);
+ answers.push({event:question.event,prompt:question.prompt,answer,points:meters,label:verdict.canonical,status:verdict.status});
+ tone(meters>0?500:190);
+ const outcome=meters?'? '+escapeText(answer)+' ? '+tierNames[verdict.points]+' ? +'+meters+'m'
+   :verdict.status==='unverified'?'Could not verify ? '+escapeText(answer)
+   :answer?'Not accepted ? '+escapeText(answer):'No answer recorded';
+ app.innerHTML='<section class="play"><div class="box"><div class="status"><span>ROUND '+(round+1)+' / 7</span><span>'+score+'m</span></div><p class="event">'+question.event+'</p><h1>'+question.prompt+'</h1><p class="result" role="status">'+outcome+'</p>'+(verdict.examples.length?'<p>Examples: '+verdict.examples.map(escapeText).join(', ')+'</p>':'')+button(round===6?'SEE RESULTS ?':'NEXT ROUND ?','next')+'</div></section>';
+ app.querySelector('button').focus();
+ draw();
+}
+function results(result){
+ state='results'; document.body.classList.remove('surface');
+ app.innerHTML='<section class="play"><div class="box"><p class="event">DIVE COMPLETE</p><h1>'+result.score+' meters deep</h1><p>'+result.answers.filter(a=>a.points).length+' of 7 answers scored</p>'+(result.streak?'<p>'+result.streak+'-day streak</p>':'')+'<p id="percentile" role="status">'+(result.global&&result.count>1?'Deeper than '+result.percentile+'% of today?s divers.':'')+'</p><ol class="review">'+result.answers.map(a=>'<li><strong>'+a.event+'</strong> · '+escapeText(a.answer||a.label||({valid:'Valid answer',invalid:'Not accepted',unverified:'Could not verify'}[a.status])||'Skipped')+' · '+a.points+'m<br>'+a.prompt+'</li>').join('')+'</ol><div class="row">'+button('SHARE RESULT','share')+chip('/unlimited/classic','UNLIMITED ∞')+chip('/','DAILY DIVE')+'</div><p id="shareStatus" role="status"></p></div></section>';
+ app.querySelector('[data-action="share"]').onclick=async()=>{
+   const summary='Science Olympiad Dive | '+result.score+'m\n'+result.answers.map(a=>a.points?'🟦':'⬛').join('')+'\n'+location.origin;
+   const status=document.querySelector('#shareStatus');
+   try{await navigator.clipboard.writeText(summary);status.textContent='Result copied.'}catch{status.textContent=summary}
+ };
+ draw();
+}
+function tone(frequency){
+ if(!preferences.sound)return;
+ try{const context=new AudioContext(), osc=context.createOscillator(),gain=context.createGain();osc.frequency.value=frequency;gain.gain.value=.06;osc.connect(gain);gain.connect(context.destination);osc.start();osc.stop(context.currentTime+.13);osc.onended=()=>context.close()}catch{}
+}
+
+function panel(name){
+ document.querySelectorAll('header [aria-expanded]').forEach(control=>control.setAttribute('aria-expanded',String(control.dataset.panel===name)));
+ const menu=[['↓','DAILY DIVE','/'],['∞','UNLIMITED','/unlimited/classic'],['≈','PUFFER PARTY','/party'],['⟲','ARCHIVE','/archive'],['▦','THEMED PACKS','/packs'],['♟','WARDROBE','wardrobe'],['⚙','SETTINGS','settings'],['?','HOW TO PLAY','help'],['≋','DIVE LOG','log']];
+ dialog.dataset.view=name;
+ let content='';
+ if(name==='menu')content='<div class="eyebrow">DIVE IN ─────────────</div><nav class="grid" aria-label="Main menu">'+menu.map(([icon,label,target])=>target.startsWith('/')?'<a class="tile '+(route===target?'active':'')+'" href="'+target+'"><span>'+icon+'</span>'+label+'</a>':'<button class="tile" data-panel="'+target+'"><span>'+icon+'</span>'+label+'</button>').join('')+'</nav>';
+ if(name==='settings')content='<div class="options"><label><input type="checkbox" data-pref="sound" '+(preferences.sound?'checked':'')+'> Sound effects</label><label><input type="checkbox" data-pref="scan" '+(preferences.scan?'checked':'')+'> Scanlines</label></div>';
+ if(name==='wardrobe')content='<p>Choose a color for your research vessel.</p><div class="grid">'+[['#4de3ff','Cyan'],['#ff5d8f','Pink'],['#ffe08a','Gold'],['#bfa7ff','Violet']].map(([color,label])=>'<button class="tile '+(preferences.color===color?'active':'')+'" data-color="'+color+'"><span style="color:'+color+'">◆</span>'+label+'</button>').join('')+'</div>';
+ if(name==='help')content='<p>'+help+'</p><ol class="helpSteps"><li>Read the event prompt.</li><li>Type one answer or skip the round.</li><li>Review examples and continue your descent.</li></ol>';
+ if(name==='party-help')content='<p>Name an answer from the prompt, then pass the puffer to the next diver. Multiplayer is coming in a future update.</p>';
+ if(name==='log'){const log=read('log',[]);content=log.length?'<ol>'+log.map(item=>'<li>'+item.date+' · '+item.mode+' · '+item.score+'m</li>').join('')+'</ol>':'<p>Finished dives will appear here on this device.</p>'}
+ if(name==='account')content='<div id="accountStatus" role="status">Loading account?</div>';
+ dialog.innerHTML='<form method="dialog"><button class="small close" aria-label="Close dialog">×</button></form><div class="eyebrow">SCIOLY DIVE</div><h2 id="panelTitle">'+({'help':'HOW TO PLAY','party-help':'HOW TO PLAY','log':'DIVE LOG'}[name]||(name==='menu'?'Menu':name.toUpperCase()))+'</h2>'+content;
+ dialog.setAttribute('aria-labelledby','panelTitle');
+ if(!dialog.isConnected)document.body.append(dialog);
+ if(!dialog.open)dialog.showModal();
+ if(name==='account')showAccount();
+}
+async function showAccount(){
+ const target=dialog.querySelector('#accountStatus');
+ try{profile=await api()}catch{target.textContent='Account service unavailable.';return}
+ if(!target.isConnected)return;
+ if(profile.signedIn){
+   target.innerHTML='<p>Signed in</p>'+button('SIGN OUT','signout')+'<h3>Synced dives</h3><ul>'+profile.history.map(item=>'<li>'+escapeText(item.date)+' ? '+escapeText(item.mode)+' ? '+item.score+'m</li>').join('')+'</ul>'+(profile.packs.length?'<p>Unlocked packs: '+profile.packs.map(escapeText).join(', ')+'</p>':'');
+ }else if(profile.available){
+   target.innerHTML='<form id="accountForm"><label>Username <input name="username" autocomplete="username" required></label><label>Password <input name="password" type="password" minlength="12" maxlength="128" required></label><div class="row"><button class="small" value="signin">SIGN IN</button><button class="small" value="register">CREATE ACCOUNT</button></div></form><p id="accountError" role="status"></p>';
+   const form=target.querySelector('form');
+   form.onsubmit=async event=>{
+     event.preventDefault();
+     const {username,password}=Object.fromEntries(new FormData(form));
+     const action=event.submitter?.value||'signin';
+     for(const button of form.querySelectorAll('button'))button.disabled=true;
+     try{await api({action,username,password});showAccount()}
+     catch(error){
+       target.querySelector('#accountError').textContent=error.message;
+       for(const button of form.querySelectorAll('button'))button.disabled=false;
+     }
+   };
+ }else target.textContent='Guest play is available. Accounts are unavailable on this server.';
+}
+async function finish(){
+ const completedSeed=seed, completedDive=dive;
+ const result={score,answers,mode,date:new Date((mode==='Daily'?seed:Math.floor(Date.now()/86400000))*86400000).toISOString().slice(0,10)};
+ const saved={...result,answers:answers.map(({answer,...entry})=>entry)};
+ if(mode==='Daily'){
+   const previous=read('streak',null);
+   result.streak=saved.streak=previous?.day===seed?previous.count:previous?.day===seed-1?previous.count+1:1;
+   save('streak',{day:seed,count:result.streak});
+   save('daily-'+seed,saved);
+ }
+ save('log',[saved,...read('log',[])].slice(0,25));
+ results(result);
+ if(!receipts.every(Boolean))return;
+ try{
+   const stats=await api({action:'complete',receipts});
+   if(result.mode==='Daily'){
+     Object.assign(saved,stats);
+     save('daily-'+completedSeed,saved);
+     const status=app.querySelector('#percentile');
+     if(dive===completedDive&&status&&stats.global&&stats.count>1)status.textContent='Deeper than '+stats.percentile+'% of today?s divers.';
+   }
+ }catch{}
+}
+function updatePrefs(){
+ save('settings',preferences);
+ document.querySelector('.scan').hidden=!preferences.scan;
+ document.querySelector('#sound').textContent=preferences.sound?'◀))':'◀×';
+ document.querySelector('#sound').setAttribute('aria-pressed',preferences.sound);
+ draw();
+}
+document.addEventListener('click',e=>{
+ const control=e.target.closest('button');
+ if(!control)return;
+ if(control.dataset.panel)panel(control.dataset.panel);
+ if(control.dataset.color){preferences.color=control.dataset.color;updatePrefs();panel('wardrobe')}
+ if(control.id==='sound'){preferences.sound=!preferences.sound;updatePrefs();tone(480)}
+ const action=control.dataset.action;
+ if(!action)return;
+ if(action==='log')panel('log');
+ if(action==='start')begin(endless?Math.floor(Math.random()*980):day,endless?'Unlimited':'Daily');
+ if(action==='today-results'){const result=read('daily-'+day,null);if(result)results(result)}
+ if(action==='skip')submit('');
+ if(action==='signout'){
+   control.disabled=true;
+   api({action:'signout'}).then(showAccount).catch(()=>{control.disabled=false});
+ }
+ if(action.startsWith('archive-'))begin(day-Number(action.slice(8)),'Archive');
+ if(action.startsWith('pack-')){const i=Number(action.slice(5));begin(day+i,packs[i][0],packs[i][4])}
+ if(action==='next'&&state==='reveal'){
+   round++;
+   if(round<7){play();return}
+   finish();
+ }
+});
+dialog.addEventListener('close',()=>{
+ dialog.remove();
+ document.querySelectorAll('header [aria-expanded]').forEach(control=>control.setAttribute('aria-expanded','false'));
+});
+dialog.addEventListener('change',e=>{if(e.target.dataset.pref){preferences[e.target.dataset.pref]=e.target.checked;updatePrefs()}});
+dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
+
+function draw(){
+ const canvas=document.querySelector('#scene');
+ const w=innerWidth,h=innerHeight;
+ canvas.width=w;canvas.height=h;
+ const g=canvas.getContext('2d');
+ const surface=document.body.classList.contains('surface');
+ const water=h*(w<=540?.576:w<=768?.553:.545);
+ const rect=(x,y,a,b,color)=>{g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),Math.ceil(a),Math.ceil(b))};
+ const gradient=(top,bottom,stops)=>{const grad=g.createLinearGradient(0,top,0,bottom);for(const [point,color] of stops)grad.addColorStop(point,color);return grad};
+ if(surface){
+   g.fillStyle=gradient(0,water,[[0,w>768?'#93b9cf':'#54a5ce'],[.55,'#9ecfe0'],[1,'#e7f1ef']]);g.fillRect(0,0,w,water+8);
+   const pixel=w<=540?4:w<=768?7:10;
+   const sunX=w*.84,sunY=w<=540?h*.426:w<=768?h*.26:0;
+   for(let y=-7;y<=7;y++){const side=Math.floor(Math.sqrt(57-y*y));rect(sunX-side*pixel,sunY+y*pixel,(side*2+1)*pixel,pixel,'#f5db8f')}
+   const cloud=['       ###          ','     #######        ','   ###########      ','  ##############    ',' #################  ','####################','  #######   ######  '];
+   const positions=w<=540?[[.11,.26],[.72,.28],[.10,.41],[.53,.415],[.37,.46],[-.12,.46],[.84,.46]]:w<=768?[[.11,-.03],[.71,-.02],[.10,.23],[.40,.33],[-.09,.32],[.84,.32]]:[[.10,-.013],[.53,-.04],[.37,.105],[-.09,.105],[.85,.105]];
+   positions.forEach(([x,y],i)=>cloud.forEach((row,j)=>[...row].forEach((cell,k)=>{if(cell==='#')rect(w*x+k*pixel*(i%3===0?1.65:1.25),h*y+j*pixel,pixel*(i%3===0?1.65:1.25),pixel,j<4?'#f4f8f5':'#dde9e9')})));
+   const s=w<=540?2:w<=768?4:7,x=w*.25,y=water-16*s/2+5;
+   const boat=['          P         ','        ffP         ','      ffffP         ','       fffP         ','          P         ','          P         ','          P         ','       PPPPPPPP     ','        P b bP      ','        P b bP  PPPP',' PP     PPPPPPPPPPP ','PPPPPPPPPPPPPPPPPPP ',' PPPPPPPPPPPPPPPPP  '];
+   boat.forEach((line,j)=>[...line].forEach((c,k)=>{if(c!==' ')rect(x+k*s,y+(j-6)*s,s,s,c==='P'?'#101e2a':c==='f'?'#ff5d8f':'#7dabb9')}));
+   g.fillStyle=gradient(water-5,h,[[0,'#24577f'],[endless?.19:.08,'#12233d'],[endless?.34:.20,'#091423'],[1,'#09111c']]);
+   g.beginPath();g.moveTo(0,water);for(let a=0;a<=w+5;a+=5)g.lineTo(a,water+Math.sin(a/53)*2+Math.cos(a/93)*3);g.lineTo(w,h);g.lineTo(0,h);g.fill();
+   g.strokeStyle='#7d93b84d';g.beginPath();const ruler=w-Math.max(14,(w-1052)/2+6);g.moveTo(ruler,water);g.lineTo(ruler,h*.9);for(let y=water;y<h*.9;y+=20){g.moveTo(ruler-6,y);g.lineTo(ruler,y)}g.stroke();
+   g.font='11px monospace';g.fillStyle='#7d93b8';g.fillText('0m',ruler-30,water+2);
+ }else{
+   g.fillStyle=gradient(0,h,[[0,'#0c1627'],[.7,'#060b14'],[1,'#050a14']]);g.fillRect(0,0,w,h);
+ }
+ if(surface||state!=='home'){
+   for(let i=0;i<115;i++){const x=((i*2333+92)%997)/997*w,y=(surface?water:0)+((i*2657+59)%991)/991*(surface?h-water:h);rect(x,y,i%5===0?2:1,i%5===0?2:1,i%7===0?'#78bce852':'#468bb52b')}
+   if(surface){const x=w*.66,y=water+h*.11;rect(x,y,11,5,'#5d1938');rect(x+7,y+5,9,7,'#47152f');rect(x+6,y+12,8,4,'#421d38');rect(x,y+15,8,3,'#45142c')}
+   if(state!=='home'){const x=Math.max(26,w*.14),y=h*(.15+Math.min(score,7000)/9800);rect(x,y,28,9,preferences.color);rect(x+6,y-5,10,5,preferences.color);rect(x-5,y+2,5,5,preferences.color);rect(x+17,y+2,4,4,'#101d33')}
+ }
+}
+window.addEventListener('resize',draw);
+home();
+updatePrefs();
+
+
+
