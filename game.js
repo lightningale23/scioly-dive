@@ -1,3 +1,4 @@
+import {selection} from './selection.js';
 import {events,packs} from './prompts.js';
 
 const app=document.querySelector('#app');
@@ -14,7 +15,7 @@ const preferences=read('settings',{sound:false,scan:true,color:'#4de3ff'});
 let seed, firstEvent, dive, receipts, profile, timer, round=0, score=0, answers=[], session=[], mode='', state='home', deadline=0;
 const chip=(url,label)=>'<a class="chip" href="'+sitePath(url)+'">'+label+'</a>';
 const button=(label,action,cls='small')=>'<button class="'+cls+'" data-action="'+action+'">'+label+'</button>';
-const help='Each dive visits seven different Division C events. Enter one answer per round in 25 seconds. Valid answers earn 10, 15, 30, 60, 85, or 100 points based on rarity. Each point adds 10 meters. Skip anytime and review examples after each round.';
+const help='Each dive visits seven different Division C events. Find one accepted answer per round in 25 seconds. Retry missed guesses while the clock runs. Submit a suggested spelling again to confirm it. Valid answers earn 10, 15, 30, 60, 85, or 100 points based on rarity. Each point adds 10 meters. Skip anytime and review examples after each round.';
 const escapeText=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
 const tierNames={10:'Common',15:'Too Clever',30:'Uncommon',60:'Rare',85:'Very Rare',100:'One in a Krillion'};
@@ -75,10 +76,9 @@ function begin(diveSeed,kind,first){
  clearInterval(timer);
  state='play'; mode=kind; score=0; round=0; answers=[]; receipts=[];
  seed=diveSeed; firstEvent=first; dive=crypto.randomUUID();
- const start=first??((seed%7+7)%7);
  session=Array.from({length:7},(_,i)=>{
-   const [event,questions]=events[(start+i)%7];
-   const index=((Math.floor(seed/7)+i)%questions.length+questions.length)%questions.length;
+   const [eventIndex,index]=selection(events,seed,i,first,kind);
+   const [event,questions]=events[eventIndex];
    return {event,prompt:questions[index]};
  });
  document.body.classList.remove('surface');
@@ -104,30 +104,49 @@ function play(){
  const {event,prompt}=session[round];
  app.innerHTML=`<section class="diveScreen">${diveHud()}
    <div class="promptStage"><article class="promptCard"><p class="event">${event}</p><h1>${prompt}</h1></article></div>
-   <form class="answerDock"><span id="clock" role="timer" aria-label="Seconds remaining">25s</span>
+   <form class="answerDock"><output class="guessFeedback" aria-live="polite"></output><span id="clock" role="timer" aria-label="Seconds remaining">25s</span>
      <div class="inputMeter"><input class="answer" maxlength="100" required aria-label="Your answer" placeholder="Type one answer…" autocomplete="off"><div id="fill"></div></div>
      <button class="diveSubmit" type="submit">DIVE ↵</button><button class="dockSkip" type="button" data-action="skip">Skip</button>
    </form></section>`;
  app.querySelector('form').onsubmit=e=>{e.preventDefault(); const answer=e.currentTarget.querySelector('input').value.trim(); if(answer)submit(answer)};
  const clock=document.querySelector('#clock'),fill=document.querySelector('#fill');
- timer=setInterval(()=>{const left=Math.max(0,deadline-Date.now());clock.textContent=Math.ceil(left/1000)+'s';fill.style.width=(left/250)+'%';if(!left)submit('')},100);
+ timer=setInterval(()=>{const left=Math.max(0,deadline-Date.now());clock.textContent=Math.ceil(left/1000)+'s';fill.style.width=(left/250)+'%';if(!left && state!=='skipping')submit('')},100);
  if(matchMedia('(pointer:fine)').matches)app.querySelector('input').focus();
  draw();
 }
 async function submit(answer){
- if(state!=='play')return;
+ if(state!=='play' && !(state==='checking' && !answer))return;
  if(Date.now()>=deadline)answer='';
- clearInterval(timer); state='checking';
- const question=session[round], activeDive=dive;
- const form=app.querySelector('form');
- form.innerHTML='<p role="status">Checking answer…</p>';
+ const question=session[round], activeDive=dive, activeRound=round;
+ const form=app.querySelector('form'),input=form.querySelector('input'),feedback=form.querySelector('output');
+ state=answer?'checking':'skipping';
+ if(!answer)clearInterval(timer);
+ input.readOnly=true;
+ form.querySelector('[type=submit]').disabled=true;
+ feedback.textContent=answer?'Checking…':'';
  let verdict;
  try{
    verdict=await api({action:'validate',seed,round,mode,first:firstEvent,dive,answer});
  }catch{
    verdict={status:answer?'unverified':'skipped',points:0,examples:[]};
  }
- if(dive!==activeDive||state!=='checking')return;
+ if(dive!==activeDive || round!==activeRound || state!==(answer?'checking':'skipping'))return;
+ if(answer && verdict.status!=='valid'){
+   state='play';
+   if(Date.now()>=deadline){submit('');return;}
+   input.readOnly=false;
+   form.querySelector('[type=submit]').disabled=false;
+   if(verdict.suggestion){
+     feedback.textContent='“'+answer+'” → “'+verdict.suggestion+'” · Submit again to confirm, or edit.';
+     input.value=verdict.suggestion;
+   }else{
+     feedback.textContent=verdict.status==='unverified'?'Could not verify that answer. Try another.':'Answer not accepted. Try again.';
+     input.select();
+   }
+   input.focus();
+   return;
+ }
+ clearInterval(timer);
  state='reveal';
  const meters=verdict.points*10;
  score+=meters;
@@ -252,7 +271,7 @@ document.addEventListener('click',e=>{
  const action=control.dataset.action;
  if(!action)return;
  if(action==='log')panel('log');
- if(action==='start')begin(endless?Math.floor(Math.random()*980):day,endless?'Unlimited':'Daily');
+ if(action==='start')begin(endless?Math.floor(Math.random()*100001):day,endless?'Unlimited':'Daily');
  if(action==='today-results'){const result=read('daily-'+day,null);if(result)results(result)}
  if(action==='skip')submit('');
  if(action==='signout'){

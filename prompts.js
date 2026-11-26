@@ -1,4 +1,5 @@
-﻿export const events = [
+﻿import { expandCatalog } from './expand-catalog.js';
+export const events = [
  ['Circuit Lab', [
  ['Name a law that helps solve an electrical circuit.', 'Ohm law|Ohms law|Ohm|V=IR; Kirchhoff current law|KCL|junction rule|Kirchhoffs current law; Kirchhoff voltage law|KVL|loop rule|Kirchhoffs voltage law; Joule law|Joules law; Coulomb law|Coulombs law'],
  ['Name a logic gate you could find on a circuit diagram.', 'AND; OR; NOT|inverter; XOR|exclusive or; NAND; NOR; XNOR|exclusive nor; buffer']
@@ -28,6 +29,8 @@
  ['Name a phase change that can happen as a substance heats up or cools down.', 'melting|fusion; freezing|solidification; evaporation|vaporization|vaporisation|boiling; condensation; sublimation; deposition|desublimation']
  ]]
 ];
+
+expandCatalog(events);
 
 export const packs = [
  ['Field Notebook','Plants, rocks, and the water cycle','✿','#769cff',2],

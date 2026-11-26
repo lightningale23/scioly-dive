@@ -15,3 +15,11 @@ Guest settings, completion, and streaks are saved on the device. The answer API 
 [Play Science Olympiad Dive](https://lightningale23.github.io/scioly-dive/). Pushes to main automatically build and publish the guest game. Daily, Archive, Unlimited and packs use the curated answers and rarity tiers in the browser. Results and streaks are stored on the device. Azure judgments, account sync and global rankings require the Node or Vercel deployment described above.
 
 Run `node build.mjs --pages` to generate the static site in `pages-dist/`.
+
+## Question catalog and timed guesses
+
+The catalog spans 23 Division C events and three trial events. Topic banks feed subject prompts, cross-event questions, and spelling variants. A letter constraint applies to the spelling submitted, including aliases. Numerical challenges have explicit bounds and accept all solutions within those bounds. Open-ended topic lists are curated and can grow as additional valid answers are found.
+
+Players can retry during the original 25-second round. A unique close spelling appears in the input for confirmation or editing. Only an accepted answer, a skip, or the deadline ends the round. The Pages build judges locally; the Node server also supports the optional Azure fallback for off-bank guesses.
+
+Run `npm test` to check catalog coverage, accepted spellings, typo handling and client/server schedule alignment before building.

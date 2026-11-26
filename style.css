@@ -188,3 +188,4 @@ header button{background:#0b1526bf}
 @media(max-width:580px){.diveHud{width:calc(100% - 32px);margin-left:32px}.gauge{min-width:60px;padding:5px 7px}.gauge b{font-size:17px}.roundTrack{font-size:9px}.roundTrack i{width:7px;height:7px}.answerDock{gap:5px}.diveSubmit{padding:6px 9px}.answerDock #clock{width:36px;height:36px}.promptStage{padding-top:8vh}.diveScreen{padding-inline:10px}}
 @media(max-height:520px){.diveScreen{gap:6px}.promptStage,.revealStage{padding:6px 0}.catchMark{font-size:28px}.catchDistance,.catchExamples{margin:5px}}
 @media(max-width:580px){.diveHud{margin-left:42px;width:calc(100% - 42px)}}
+.answerDock{position:relative}.guessFeedback:not(:empty){position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);width:max-content;max-width:100%;padding:8px 12px;background:#0c1b2e;border:1px solid #38536b;color:#c7e5ee;font-size:16px;text-align:center;overflow-wrap:anywhere}

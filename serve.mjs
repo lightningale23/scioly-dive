@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import handler from './api/dive.js';
 
 const pages = new Set(['/', '/unlimited/classic', '/archive', '/packs', '/party']);
-const assets = new Map([['/style.css', 'text/css'], ['/game.js', 'text/javascript'], ['/prompts.js', 'text/javascript'], ['/vt323.woff2', 'font/woff2']]);
+const assets = new Map([['/style.css', 'text/css'], ['/selection.js','text/javascript'], ['/game.js', 'text/javascript'], ['/prompts.js', 'text/javascript'], ['/vt323.woff2', 'font/woff2']]);
 createServer(async (req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname.replace(/\/$/, '') || '/';
   if (path === '/api/dive') {

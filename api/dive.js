@@ -1,3 +1,4 @@
+import {matchAnswer} from '../matching.js';
 import { normalize, questionFor } from '../answer-bank.js';
 import { packs } from '../prompts.js';
 import { account, data, durable, equal, hash, passwordHash, salt, sign, today, verify } from '../dive-storage.js';
@@ -35,13 +36,14 @@ async function validate(body) {
       (mode === 'Daily' && (seed !== today() || first != null)) ||
       (first != null && (!Number.isInteger(first) || first < 0 || first > 6))) return null;
 
-  const { prompt, bank } = questionFor(seed, round, first);
+  const { prompt, bank } = questionFor(seed, round, first, mode);
   const normalized = normalize(answer);
-  const match = normalized && bank.find(entry => [entry.canonical, ...entry.aliases].some(alias => normalize(alias) === normalized));
+  const {match,suggestion}=matchAnswer(bank,answer);
+  if(suggestion)return {status:'suggestion',suggestion};
   let points = match?.points ?? 0;
   let status = answer ? 'invalid' : 'skipped';
   if (match) status = 'valid';
-  else if (normalized) {
+  else if (normalized && !/^\d+$/.test(bank[0].canonical)) {
     const key = 'judgment:' + hash(JSON.stringify([prompt, normalized]));
     try {
       let verdict = await data('GET', key);
@@ -62,6 +64,7 @@ async function validate(body) {
     await data('SET', 'practice:' + hash(JSON.stringify([prompt, normalized])),
       JSON.stringify({ prompt, answer: normalized, status, points })).catch(() => {});
   }
+  if(answer && status!=='valid')return {status};
   return {
     points, status, canonical: match?.canonical,
     examples: bank.filter(entry => entry !== match).slice(0, 3).map(entry => entry.canonical),

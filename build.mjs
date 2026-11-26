@@ -19,7 +19,7 @@ for (const page of pages) {
   await writeFile(dir + '/index.html', pageHtml);
 }
 
-for (const file of ['style.css', 'game.js', 'vt323.woff2']) {
+for (const file of ['style.css', 'game.js', 'selection.js', 'vt323.woff2']) {
   try { await copyFile(file, output + '/' + file); }
   catch (error) { if (file !== 'vt323.woff2' || error.code !== 'ENOENT') throw error; }
 }
@@ -29,7 +29,7 @@ await writeFile(output + '/prompts.js', 'export const events = ' + JSON.stringif
 
 if (staticGame) {
   await mkdir(output + '/catalog', {recursive: true});
-  for (const file of ['prompts.js', 'answer-bank.js']) {
+  for (const file of ['prompts.js', 'answer-bank.js','selection.js','expand-catalog.js','topics.js','measurements.js','numerical-prompts.js','matching.js']) {
     await copyFile(file, output + '/catalog/' + file);
   }
   await copyFile('guest-api.js', output + '/guest-api.js');
