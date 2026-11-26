@@ -16,6 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: actions/configure-pages@v5
+      - run: npm ci
       - run: npm test
       - run: node build.mjs --pages
       - uses: actions/upload-pages-artifact@v4

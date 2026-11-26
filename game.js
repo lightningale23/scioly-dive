@@ -1,5 +1,5 @@
 import {selection} from './selection.js';
-import {events,packs} from './prompts.js';
+import {events,packs} from './client-catalog.js';
 
 const app=document.querySelector('#app');
 const dialog=document.querySelector('#panel');
@@ -22,7 +22,7 @@ const tierNames={10:'Plankton',15:'Too Clever',30:'Schooler',60:'Rare',85:'Deep 
 async function api(body){
  if(document.documentElement.hasAttribute('data-static-game')){
    const {guestApi}=await import('./guest-api.js');
-   return guestApi(body);
+   return guestApi(body,session?.[round]);
  }
  const response=await fetch('/api/dive',body?{
    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),
@@ -79,7 +79,8 @@ function begin(diveSeed,kind,first){
  session=Array.from({length:7},(_,i)=>{
    const [eventIndex,index]=selection(events,seed,i,first,kind);
    const [event,questions]=events[eventIndex];
-   return {event,prompt:questions[index]};
+   const item=questions[index];
+   return typeof item==='string'?{event,prompt:item}:{event,...item};
  });
  document.body.classList.remove('surface');
  play();
@@ -159,11 +160,18 @@ async function submit(answer){
  feedback.textContent=answer?'Checking…':'';
  let verdict;
  try{
-   verdict=await api({action:'validate',seed,round,mode,first:firstEvent,dive,answer});
+   verdict=await api({action:'validate',seed,round,mode,first:firstEvent,dive,answer,prompt:question.prompt});
  }catch{
    verdict={status:answer?'unverified':'skipped',points:0,examples:[]};
  }
  if(dive!==activeDive || round!==activeRound || state!==(answer?'checking':'skipping'))return;
+ if(verdict.status==='catalog_changed'){
+   clearInterval(timer);
+   state='outdated';
+   form.innerHTML='<p role="status">The questions have been updated. Reload to start this dive with the current set.</p><button class="diveSubmit" type="button">Reload dive</button>';
+   form.querySelector('button').onclick=()=>location.reload();
+   return;
+ }
  if(answer && verdict.status!=='valid'){
    state='play';
    if(Date.now()>=deadline){submit('');return;}

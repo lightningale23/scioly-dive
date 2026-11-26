@@ -2,10 +2,10 @@
 export const events = [
  ['Circuit Lab', [
  ['Name a law that helps solve an electrical circuit.', 'Ohm law|Ohms law|Ohm|V=IR; Kirchhoff current law|KCL|junction rule|Kirchhoffs current law; Kirchhoff voltage law|KVL|loop rule|Kirchhoffs voltage law; Joule law|Joules law; Coulomb law|Coulombs law'],
- ['Name a logic gate you could find on a circuit diagram.', 'AND; OR; NOT|inverter; XOR|exclusive or; NAND; NOR; XNOR|exclusive nor; buffer']
+ ['Name a logic gate you could find on a circuit diagram.', 'AND|AND gate; OR|OR gate; NOT|NOT gate|inverter; XOR|XOR gate|exclusive or|exclusive or gate; NAND|NAND gate; NOR|NOR gate; XNOR|XNOR gate|exclusive nor|exclusive nor gate; buffer|buffer gate']
  ]],
  ['Astronomy', [
- ['Your telescope needs a distance estimate. Name a method you could use.', 'parallax|trigonometric parallax; Cepheid|Cepheid variables|period luminosity; distance modulus; Type Ia supernova|SN Ia; Hubble law|Hubbles law|redshift; Tully Fisher|Tully Fisher relation; RR Lyrae; spectroscopic parallax|main sequence fitting'],
+ ['Name a way astronomers estimate the distance to a star or galaxy.', 'parallax|trigonometric parallax; Cepheid|Cepheid variables|period luminosity; distance modulus; Type Ia supernova|SN Ia; Hubble law|Hubbles law|redshift; Tully Fisher|Tully Fisher relation; RR Lyrae; spectroscopic parallax|main sequence fitting'],
  ['Name a galaxy from the stellar evolution event.', 'Andromeda|Andromeda Galaxy|M31; Sombrero|Sombrero Galaxy|M104; Whirlpool|Whirlpool Galaxy|M51; Cigar Galaxy|M82; Antennae|Antennae Galaxies; Cartwheel|Cartwheel Galaxy; NGC 1569; NGC 4536; Arp 143; Arp 147; MCG+07-33-027']
  ]],
  ['Botany', [
@@ -18,7 +18,7 @@ export const events = [
  ]],
  ['Dynamic Planet', [
  ['A river is winding across a floodplain. Name a feature its flow can create.', 'oxbow lake|oxbow; meander; point bar; cut bank|cutbank; natural levee|levee; meander scar; scroll bar; cutoff channel|cutoff; backswamp'],
- ['Name a path water can take through the hydrologic cycle.', 'evaporation; precipitation; condensation; runoff|surface runoff; infiltration; transpiration; percolation; sublimation; groundwater flow; evapotranspiration']
+ ['Name a process that moves water or changes its state in the water cycle.', 'evaporation; precipitation; condensation; runoff|surface runoff; infiltration; transpiration; percolation; sublimation; groundwater flow; evapotranspiration']
  ]],
  ['Rocks & Minerals', [
  ['Name an observation that helps identify a mystery mineral.', 'color|colour; hardness; streak; luster|lustre; cleavage; fracture; density|specific gravity|heft; crystal habit|habit|crystal shape; magnetism|magnetic; fluorescence; acid reaction|effervescence; transparency|diaphaneity; tenacity; double refraction|birefringence'],

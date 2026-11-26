@@ -37,6 +37,7 @@ async function validate(body) {
       (first != null && (!Number.isInteger(first) || first < 0 || first > 6))) return null;
 
   const { prompt, bank } = questionFor(seed, round, first, mode);
+  if (body.prompt!==undefined && body.prompt!==prompt) return {status:'catalog_changed'};
   const normalized = normalize(answer);
   const {match,suggestion}=matchAnswer(bank,answer);
   if(suggestion)return {status:'suggestion',suggestion};

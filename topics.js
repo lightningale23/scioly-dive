@@ -7,7 +7,7 @@ export const topics = [
         "femur; tibia; fibula; patella; humerus; radius; ulna; clavicle; scapula; sternum; rib; mandible; maxilla; frontal bone; parietal bone; occipital bone; temporal bone; sphenoid; ethmoid; zygomatic bone; nasal bone; lacrimal bone; palatine bone; vomer; hyoid; sacrum; coccyx; ilium; ischium; pubis; atlas; axis; scaphoid; lunate; triquetrum; pisiform; trapezium; trapezoid; capitate; hamate; talus; calcaneus; navicular; cuboid; medial cuneiform; intermediate cuneiform; lateral cuneiform; metatarsal; metacarpal; phalanx; malleus; incus; stapes; inferior nasal concha"
       ],
       [
-        "What does light encounter on its way through the eye?",
+        "Name a part of the eye that admits, focuses, absorbs, or detects light.",
         "cornea; pupil; lens; aqueous humor|aqueous humour; vitreous humor|vitreous humour; retina; iris; rod; cone; fovea; macula; photoreceptor; retinal pigment epithelium"
       ],
       [
@@ -15,7 +15,7 @@ export const topics = [
         "olfactory|olfactory nerve; optic|optic nerve; oculomotor|oculomotor nerve; trochlear|trochlear nerve; trigeminal|trigeminal nerve; abducens|abducens nerve; facial|facial nerve; vestibulocochlear|auditory nerve|vestibulocochlear nerve; glossopharyngeal|glossopharyngeal nerve; vagus|vagus nerve; accessory|spinal accessory|accessory nerve; hypoglossal|hypoglossal nerve"
       ],
       [
-        "Which part of the human brain can you name?",
+        "Name a part of the human brain.",
         "cerebrum; cerebellum; brainstem; midbrain; pons; medulla oblongata; thalamus; hypothalamus; hippocampus; amygdala; corpus callosum; frontal lobe; parietal lobe; temporal lobe; occipital lobe; insula; basal ganglia; caudate nucleus; putamen; globus pallidus; substantia nigra; superior colliculus; inferior colliculus; cingulate gyrus; precentral gyrus; postcentral gyrus"
       ]
     ]
@@ -71,7 +71,7 @@ export const topics = [
         "cohort study; case control study; cross sectional study; ecological study; randomized trial; prospective study; retrospective study; case series; case report; incidence; prevalence; risk ratio|relative risk; odds ratio; risk difference; confidence interval; confounding; selection bias; recall bias; misclassification; stratification; matching; randomization; blinding; sample size; person time; denominator; numerator; median; mean; standard deviation; sensitivity; specificity; positive predictive value; negative predictive value; standardization"
       ],
       [
-        "Name a way to summarize the distribution of a numerical variable.",
+        "Name a statistic or a graph that summarizes a set of numbers.",
         "mean; median; mode; range; minimum; maximum; quartile; percentile; variance; standard deviation; interquartile range; skewness; kurtosis; histogram; box plot; median absolute deviation; frequency distribution"
       ]
     ]
@@ -144,7 +144,7 @@ export const topics = [
     "Forensics",
     [
       [
-        "You’re comparing two handwritten notes. What feature would you look at?",
+        "Name a feature you could compare in two documents. Handwriting and print both count.",
         "baseline; slant; spacing; word spacing; letter spacing; size; proportion; alignment; pen pressure; stroke width; line quality; pen lift; connecting stroke; entry stroke; exit stroke; loop; ascender; descender; crossbar; dot placement; capitalization; punctuation; letter formation; margin; indentation; typeface; serif; kerning; ligature"
       ],
       [
@@ -157,7 +157,7 @@ export const topics = [
     "Hovercraft",
     [
       [
-        "What fluid-mechanics term helps explain how a hovercraft stays up?",
+        "Name a force, measurement, or fluid-flow term used to describe a hovercraft.",
         "pressure; gauge pressure; absolute pressure; atmospheric pressure; pressure difference; force; lift; weight; area; density; volume; flow rate; mass flow rate; velocity; viscosity; drag; thrust; leakage; turbulence; laminar flow; Reynolds number; continuity; pressure gradient; fan power; static pressure; dynamic pressure; buoyancy"
       ],
       [
@@ -200,7 +200,7 @@ export const topics = [
         "alanine; arginine; asparagine; aspartic acid|aspartate; cysteine; glutamic acid|glutamate; glutamine; glycine; histidine; isoleucine; leucine; lysine; methionine; phenylalanine; proline; serine; threonine; tryptophan; tyrosine; valine"
       ],
       [
-        "What term could help you describe a protein’s shape or draw its model?",
+        "Name a structural feature, bond, or model used to describe a protein.",
         "alpha helix; beta sheet; beta strand; turn; loop; coil; backbone; side chain; domain; motif; subunit; primary structure; secondary structure; tertiary structure; quaternary structure; amino terminus; carboxyl terminus; peptide bond; hydrogen bond; disulfide bond; salt bridge; hydrophobic core; ribbon diagram; space filling model; ball and stick model; Ramachandran plot"
       ],
       [
@@ -299,7 +299,7 @@ export const topics = [
     "Hydraulics",
     [
       [
-        "What part or measurement might you see on a hydraulic system diagram?",
+        "Name a hydraulic component or a quantity measured in a hydraulic system.",
         "piston; cylinder; seal; gasket; hose; tube; fitting; elbow; tee; coupling; manifold; reservoir; pump; valve; check valve; relief valve; needle valve; flow control valve; actuator; filter; pressure gauge; flow meter; syringe; plunger; bore; stroke; pressure; force; area; displacement; flow rate; viscosity; head loss"
       ],
       [

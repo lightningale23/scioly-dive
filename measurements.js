@@ -31,7 +31,7 @@ export const measurements = [
   ['Dynamic Planet','Name an SI energy unit for work done by flowing water.','joule'],
   ['Anatomy & Physiology','Give a pressure unit in the pascal family for a pressure difference in the body.','pascal'],
 ];
-const prefixes = ['','quetta','ronna','yotta','zetta','exa','peta','tera','giga','mega','kilo','hecto','deca','deci','centi','milli','micro','nano','pico','femto','atto','zepto','yocto','ronto','quecto'];
+const prefixes = ['','milli','micro','kilo','quetta','ronna','yotta','zetta','exa','peta','tera','giga','mega','hecto','deca','deci','centi','nano','pico','femto','atto','zepto','yocto','ronto','quecto'];
 export function measurementBank(unit){
   return prefixes.map(prefix=>unit.split('|').flatMap(noun=>{
     const name=prefix+noun;

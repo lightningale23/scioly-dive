@@ -1,10 +1,10 @@
-import {matchAnswer} from './catalog/matching.js';
-import { questionFor } from './catalog/answer-bank.js';
+import {matchAnswer} from './matching.js';
 
-export function guestApi(body) {
+export function guestApi(body,question) {
   if (!body) return { signedIn: false, available: false };
   if (body.action !== 'validate') throw new Error('This feature needs the game server.');
-  const { bank } = questionFor(body.seed, body.round, body.first, body.mode);
+  if (!question || question.prompt !== body.prompt) return {status:'catalog_changed'};
+  const {bank}=question;
   const {match,suggestion}=matchAnswer(bank,body.answer);
   if(suggestion)return {status:'suggestion',suggestion};
   if(body.answer&&!match)return {status:'invalid'};

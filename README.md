@@ -14,7 +14,7 @@ Guest settings, completion, and streaks are saved on the device. The answer API 
 
 [Play Science Olympiad Dive](https://lightningale23.github.io/scioly-dive/). Pushes to main automatically build and publish the guest game. Daily, Archive, Unlimited and packs use the curated answers and rarity tiers in the browser. Results and streaks are stored on the device. Azure judgments, account sync and global rankings require the Node or Vercel deployment described above.
 
-Run `node build.mjs --pages` to generate the static site in `pages-dist/`.
+Run `npm ci` and then `node build.mjs --pages` to generate the static site in `pages-dist/`.
 
 ## Question catalog and timed guesses
 
