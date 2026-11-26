@@ -5,7 +5,7 @@ export function guestApi(body,question) {
   if (body.action !== 'validate') throw new Error('This feature needs the game server.');
   if (!question || question.prompt !== body.prompt) return {status:'catalog_changed'};
   const {bank}=question;
-  const {match,suggestion}=matchAnswer(bank,body.answer);
+  const {match,suggestion}=matchAnswer(bank,body.answer,question.prompt);
   if(suggestion)return {status:'suggestion',suggestion};
   if(body.answer&&!match)return {status:'invalid'};
   return {

@@ -182,6 +182,7 @@ async function submit(answer){
      input.value=verdict.suggestion;
    }else{
      feedback.textContent=verdict.status==='unverified'?'Could not verify that answer. Try another.':'Answer not accepted. Try again.';
+     (question.misses??=new Set()).add(answer);
      feedback.classList.add('miss');
      input.select();
    }
@@ -205,6 +206,10 @@ async function submit(answer){
      ${answer?`<p class="catchAnswer">“${escapeText(answer)}”</p>`:''}
      <p class="catchDistance">+${verdict.points} PTS <span>·</span> sink ${meters.toLocaleString()} m</p>
      ${examples?`<details class="catchExamples"><summary>Example answers</summary>${examples}</details>`:''}
+     ${question.misses?.size?`<details class="missedGuess"><summary>Suggest a missing answer</summary><p>Open a GitHub draft to review and send.</p>${[...question.misses].map(guess=>{
+       const query=new URLSearchParams({title:'Missing answer: '+guess,body:'Event: '+question.event+'\nPrompt: '+question.prompt+'\nAnswer to review: '+guess});
+       return '<a class="chip" target="_blank" rel="noopener noreferrer" href="https://github.com/lightningale23/scioly-dive/issues/new?'+escapeText(query.toString())+'">'+escapeText(guess)+' ↗</a>';
+     }).join(' ')}</details>`:''}
    </div></div>
    <div class="descendDock">${button(round===6?'SURFACE FOR RESULTS ↑':'DESCEND ▼','next','descend')}</div></section>`;
  app.querySelector('[data-action=next]').focus();
@@ -240,7 +245,8 @@ function renderCatch(rounds){
      if(status==='valid'&&answer&&!label&&!rows.some(row=>row.canonical===answer)){
        rows.push({canonical:answer,aliases:[],points:scored});
      }
-     rows.sort((a,b)=>b.points-a.points||a.canonical.localeCompare(b.canonical,'en',{numeric:true}));
+     const order=new Intl.Collator('en',{numeric:true});
+     rows.sort((a,b)=>b.points-a.points||order.compare(a.canonical,b.canonical));
      const tiers=[...new Set(rows.map(row=>row.points))].sort((a,b)=>b-a);
      panel.innerHTML=`<div class="catchTabs" role="group" aria-label="Filter by rarity"><button type="button" data-tier="all" aria-pressed="true">All ${rows.length}</button>${tiers.map(n=>`<button type="button" data-tier="${n}" aria-pressed="false" style="--ink:${tierColors[n]}">${tierNames[n]} ${rows.filter(row=>row.points===n).length}</button>`).join('')}</div>
        <input type="search" aria-label="Search answers for prompt ${index+1}" placeholder="Search all answers…">
@@ -248,13 +254,19 @@ function renderCatch(rounds){
      const input=panel.querySelector('input'),results=panel.querySelector('ul'),count=panel.lastElementChild;
      let tier='all';
      const fold=text=>text.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').trim();
+     let matches=[],shown=0;
+     function appendPage(){
+       const page=matches.slice(shown,shown+100);
+       results.insertAdjacentHTML('beforeend',page.map(row=>`<li style="--ink:${tierColors[row.points]}"><span>${escapeText(row.canonical)}${row.canonical===(label||answer)?'<em>Your catch</em>':''}</span><b>+${row.points}</b></li>`).join(''));
+       shown+=page.length;
+       count.textContent=matches.length?shown+' of '+matches.length+' matches'+(shown<matches.length?' · Scroll for more':''):'No matching answers';
+     }
      function filter(){
        const find=fold(input.value);
-       const matches=rows.filter(row=>(tier==='all'||row.points===Number(tier))&&[row.canonical,...row.aliases].some(name=>fold(name).includes(find)));
-       results.innerHTML=matches.map(row=>`<li style="--ink:${tierColors[row.points]}"><span>${escapeText(row.canonical)}${row.canonical===(label||answer)?'<em>Your catch</em>':''}</span><b>+${row.points}</b></li>`).join('');
-       results.scrollTop=0;
-       count.textContent=matches.length?matches.length+' of '+rows.length+' answers':'No matching answers';
+       matches=rows.filter(row=>(tier==='all'||row.points===Number(tier))&&[row.canonical,...row.aliases].some(name=>fold(name).includes(find)));
+       shown=0;results.replaceChildren();results.scrollTop=0;appendPage();
      }
+     results.onscroll=()=>{if(shown<matches.length&&results.scrollTop+results.clientHeight>=results.scrollHeight-24)appendPage()};
      panel.querySelector('.catchTabs').onclick=e=>{
        const button=e.target.closest('button');if(!button)return;
        tier=button.dataset.tier;
@@ -350,7 +362,7 @@ async function showAccount(){
 async function finish(){
  const completedSeed=seed, completedDive=dive;
  const result={score,answers,mode,date:new Date((mode==='Daily'?seed:Math.floor(Date.now()/86400000))*86400000).toISOString().slice(0,10)};
- const saved={...result,answers:answers.map(({answer,...entry})=>entry)};
+ const saved={...result,answers:answers.map(({answer,bank,...entry})=>document.documentElement.hasAttribute('data-static-game')?entry:{...entry,bank})};
  if(mode==='Daily'){
    const previous=read('streak',null);
    result.streak=saved.streak=previous?.day===seed?previous.count:previous?.day===seed-1?previous.count+1:1;

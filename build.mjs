@@ -12,6 +12,7 @@ if(staticGame){
     outdir:output,entryNames:'game-[hash]',metafile:true,minify:true,
   });
   gameFile=Object.keys(bundle.metafile.outputs)[0].split('/').pop();
+  await copyFile('catalog-data/SOURCES.md',output+'/catalog-sources.txt');
   // Old cached HTML still requests this entry point.
   await copyFile(output+'/'+gameFile,output+'/game.js');
 }

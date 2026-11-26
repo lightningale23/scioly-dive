@@ -3,6 +3,7 @@ import { measurements, measurementBank } from './measurements.js';
 import { topics } from './topics.js';
 
 // Keep the original seven events and their first two entries in place for archived dives.
+export const combinedSources=new Map();
 export function expandCatalog(events) {
   for (const [event, entries] of topics) {
     let section = events.find(([name]) => name === event);
@@ -26,7 +27,9 @@ export function expandCatalog(events) {
     ['Botany', 'a flowering plant family or a freshwater organism', ['Botany','Water Quality']],
   ];
   for (const [event, subject, members] of combinations) {
-    const groups = topics.filter(([name]) => members.includes(name)).flatMap(([name, entries]) => entries.slice(0, name === "Protein Modeling" || name === "Boomilever" ? 2 : 1).flatMap(([,bank]) => bank.split('; ')));
+    const sources=topics.filter(([name])=>members.includes(name)).flatMap(([name,entries])=>entries.slice(0,name==="Protein Modeling"||name==="Boomilever"?2:1));
+    combinedSources.set('Name '+subject+'.',sources.map(([prompt])=>prompt));
+    const groups=sources.flatMap(([,bank])=>bank.split('; '));
     events.find(([name]) => name === event)[1].push(['Name '+subject+'.', [...new Set(groups)].join('; ')]);
   }
 
@@ -38,8 +41,9 @@ export function expandCatalog(events) {
     ['biology and freshwater ecology',['Anatomy & Physiology','Botany','Water Quality','Designer Genes','Protein Modeling']],
   ];
   for(const [domain,members] of domains){
-    const groups=topics.filter(([event])=>members.includes(event))
-      .flatMap(([,rows])=>rows.flatMap(([,bank])=>bank.split('; ')));
+    const sources=topics.filter(([name])=>members.includes(name)).flatMap(([,rows])=>rows);
+    combinedSources.set('What term might you hear in '+domain+'?',sources.map(([prompt])=>prompt));
+    const groups=sources.flatMap(([,bank])=>bank.split('; '));
     const merged=new Map();
     for(const group of groups){
       const [term,...aliases]=group.split('|');
@@ -71,7 +75,7 @@ export function expandCatalog(events) {
     }
   }
   for(const [event,prompt,unit] of measurements){
-    events.find(([name])=>name===event)[1].push([prompt+' Write the full name. Prefixes count.',measurementBank(unit)]);
+    events.find(([name])=>name===event)[1].push([prompt+' Unit names and symbols both count.',measurementBank(unit)]);
   }
   addNumericalPrompts(events);
 }

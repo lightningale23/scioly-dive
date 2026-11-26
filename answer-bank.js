@@ -1,3 +1,4 @@
+import {expandedGroups} from './coverage.js';
 import {selection} from './selection.js';
 import { events } from './prompts.js';
 
@@ -33,17 +34,51 @@ for(const [points,words] of [
 // Optional precomputed corpus data, expressed as occurrences per million.
 const familiarity = JSON.parse(globalThis.process?.env?.ANSWER_FAMILIARITY_JSON || '{}');
 
-export const questions = events.map(([event, entries], eventIndex) => [event, entries.map(([prompt, bank], questionIndex) => ({
-  prompt,
-  bank: bank.split(';').map((group, index) => {
-    const [canonical, ...aliases] = group.trim().split('|');
-    const curated = editorial[eventIndex]?.[questionIndex]?.[index] ?? ratings.get(normalize(canonical)) ?? 30;
-    const frequency = familiarity[normalize(canonical)];
-    const points = !Number.isFinite(frequency) || curated === 15 || curated === 100 ? curated
-      : frequency >= 50 ? 10 : frequency >= 5 ? 30 : frequency >= 0.5 ? 60 : 85;
-    return {canonical, aliases, points};
-  }),
-}))]);
+// Prefer memorable, subject-specific discoveries whenever a filtered bank contains one.
+const featured=new Set(('Geneva drive|Callirrhoe|knickpoint|pistil|quicksort|coccyx|hyoid|scytale|Wernicke’s area|Daphnia|trie|Scotch yoke|isothermal|triple point|spinneret|corundum|tuff|cretaceous|turn|gore|Dysnomia|pollen|gutta percha|sublimation|pycnometer|brocken spectre|neutral axis|spill hole|winglet|cepheid|bias|odds ratio|ball and stick model|friction factor|yardang|spiral|pentagram|42|64|128|256').split('|').map(normalize));
+function chooseFeatured(bank,prompt){
+  let hash=2166136261;
+  for(const c of prompt)hash=Math.imul(hash^c.charCodeAt(0),16777619)>>>0;
+  const priority=entry=>entry.points===100?1000:featured.has(normalize(entry.canonical))?500:entry.points===15?0:entry.points;
+  const best=bank.reduce((n,entry)=>Math.max(n,priority(entry)),-1);
+  const candidates=bank.filter(entry=>priority(entry)===best);
+  const winner=candidates[hash%candidates.length];
+  return bank.map(entry=>entry===winner?{...entry,points:100}:entry.points===100?{...entry,points:85}:entry);
+}
+
+export const questions=events.map(([event,entries],eventIndex)=>{
+  const bases=new Map();
+  const rows=entries.map(([prompt,raw],questionIndex)=>{
+    const [base,rule]=prompt.split('\n');
+    let groups=bases.get(base);
+    if(!groups){
+      groups=expandedGroups(base,raw);
+      bases.set(base,groups);
+    }
+    const bank=[];
+    for(const [index,names] of groups.entries()){
+      let allowed=names;
+      if(rule){
+        const letter=rule.at(-2).toLowerCase();
+        allowed=names.filter(name=>{
+          const spelling=normalize(name);
+          if(rule.startsWith('Start'))return spelling.startsWith(letter);
+          if(rule.startsWith('End'))return spelling.endsWith(letter);
+          return spelling.includes(letter);
+        });
+      }
+      if(!allowed.length)continue;
+      const [canonical,...aliases]=allowed;
+      const curated=editorial[eventIndex]?.[questionIndex]?.[index]??ratings.get(normalize(canonical))??30;
+      const frequency=familiarity[normalize(canonical)];
+      const points=!Number.isFinite(frequency)||curated===15||curated===100?curated
+        :frequency>=50?10:frequency>=5?30:frequency>=0.5?60:85;
+      bank.push({canonical,aliases,points});
+    }
+    return {prompt,bank:chooseFeatured(bank,prompt)};
+  });
+  return [event,rows];
+});
 
 export function questionFor(seed, round, first, mode) {
   const [event,index]=selection(questions,seed,round,first,mode);

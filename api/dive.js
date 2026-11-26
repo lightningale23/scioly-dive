@@ -39,7 +39,7 @@ async function validate(body) {
   const { prompt, bank } = questionFor(seed, round, first, mode);
   if (body.prompt!==undefined && body.prompt!==prompt) return {status:'catalog_changed'};
   const normalized = normalize(answer);
-  const {match,suggestion}=matchAnswer(bank,answer);
+  const {match,suggestion}=matchAnswer(bank,answer,prompt);
   if(suggestion)return {status:'suggestion',suggestion};
   let points = match?.points ?? 0;
   let status = answer ? 'invalid' : 'skipped';

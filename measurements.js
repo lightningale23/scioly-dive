@@ -35,6 +35,10 @@ const prefixes = ['','milli','micro','kilo','quetta','ronna','yotta','zetta','ex
 export function measurementBank(unit){
   return prefixes.map(prefix=>unit.split('|').flatMap(noun=>{
     const name=prefix+noun;
-    return [name,noun==='henry'?prefix+'henries':noun==='siemens'||noun==='hertz'?name:name+'s'];
+    const forms=[name,noun==='henry'?prefix+'henries':noun==='siemens'||noun==='hertz'?name:name+'s'];
+    if(noun==='ampere')forms.push(prefix+'amp',prefix+'amps');
+    if(noun==='ohm' && prefix==='mega')forms.push('megohm','megohms');
+    if(noun==='metre' && prefix==='micro')forms.push('micron','microns');
+    return forms;
   }).filter((s,i,a)=>a.indexOf(s)===i).join('|')).join('; ');
 }
