@@ -1,4 +1,4 @@
-@font-face{font-family:VT323;src:url('https://krillion.io/_next/static/media/0c8c4ded07fff55c-s.p.2tcyrya9o07vu.woff2') format('woff2');font-display:swap}
+@font-face{font-family:VT323;src:url('./vt323.ttf') format('truetype');font-display:swap}
 :root{--abyss:#050a14;--panel:#101d33;--line:#1b2c47;--foam:#e8f1ff;--muted:#7d93b8;--cyan:#4de3ff;--pink:#ff5d8f;--night:#0b1526;--column:600px;--water:54.5svh;--rim:0 0 0 3px var(--abyss),0 0 0 6px var(--cyan),0 6px 0 6px #123048}
 *{box-sizing:border-box}body{margin:0;min-height:100svh;background:var(--abyss);color:var(--foam);font:17px VT323,monospace}button,input,a{font:inherit}button,a{color:inherit}a{text-decoration:none}button{cursor:pointer}button,a,input{touch-action:manipulation}button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 #scene,.scan{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}.scan{z-index:9;background:repeating-linear-gradient(0deg,#050a141e 0 1px,transparent 1px 3px)}
@@ -189,3 +189,42 @@ header button{background:#0b1526bf}
 @media(max-height:520px){.diveScreen{gap:6px}.promptStage,.revealStage{padding:6px 0}.catchMark{font-size:28px}.catchDistance,.catchExamples{margin:5px}}
 @media(max-width:580px){.diveHud{margin-left:42px;width:calc(100% - 42px)}}
 .answerDock{position:relative}.guessFeedback:not(:empty){position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);width:max-content;max-width:100%;padding:8px 12px;background:#0c1b2e;border:1px solid #38536b;color:#c7e5ee;font-size:16px;text-align:center;overflow-wrap:anywhere}
+
+/* The warning follows the round clock and disappears with the prompt. */
+.diveScreen.urgent::after{content:"";position:fixed;inset:0;z-index:8;pointer-events:none;box-shadow:inset 0 0 clamp(22px,5vw,68px) #ff39652e,inset 0 0 3px #ff608557}
+.urgent .answerDock #clock{color:#ff81a1;border-color:#ac4865;background:#261725}
+.urgent .inputMeter .answer{border-color:#e85e89;outline-color:#e85e89}
+.urgent .inputMeter #fill{background:#ff689a}
+.diveScreen [hidden]{display:none}
+.arrivalNotice{justify-self:center;align-self:end;border-radius:16px;background:#0b1424e8;color:#aeccdf;padding:8px 15px;font-size:15px;letter-spacing:.06em}
+.promptCard{border-radius:3px 9px 3px 9px}.promptCard small{display:block;margin-top:13px;color:#a3b5cc;letter-spacing:.09em}
+.wordRule{color:#ffc8da;margin:8px 0}.promptStage{animation:promptArrival .45s ease-out}
+@keyframes promptArrival{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+.guessFeedback strong{color:#5ae6ef}.guessFeedback small{display:block;font-size:.85em;color:#a7bed4}.guessFeedback.miss{border-color:#c05b7d;animation:missNudge .25s ease-out}
+@keyframes missNudge{25%{margin-left:-4px}75%{margin-left:4px}}
+.seaLife{position:fixed;inset:0;pointer-events:none;overflow:hidden}.seaLife i{position:absolute;left:6%;top:58%;height:7px;width:17px;opacity:.4;background:#547f92;clip-path:polygon(0 0,27% 33%,45% 5%,75% 5%,100% 50%,75% 95%,45% 95%,27% 67%,0 100%);animation:shoal 14s linear infinite alternate}
+.seaLife i:nth-child(2){top:60%;left:9%;animation-delay:-3s}.seaLife i:nth-child(3){top:57%;left:13%;animation-delay:-7s}
+@keyframes shoal{to{transform:translate(23vw,-3vh)}}
+.catchMark{position:relative;width:80px;margin:auto}.catchMark span{display:inline-block;font-size:38px;animation:catchBob 2s ease-in-out infinite alternate}
+.catchMark i{position:absolute;width:6px;height:6px;border:1px solid var(--rarity);border-radius:50%;left:53%;top:20%;animation:rise 1.8s linear infinite}
+.catchMark i:nth-of-type(2){left:33%;animation-delay:-.6s}.catchMark i:nth-of-type(3){left:72%;animation-delay:-1.2s}
+@keyframes rise{from{transform:translateY(8px);opacity:.8}to{transform:translate(5px,-42px);opacity:0}}
+@keyframes catchBob{to{transform:translateY(-4px)}}
+.catchExamples summary,.report summary{cursor:pointer}.diveScreen .descend{border-color:#63dfee}
+body:has(.diveScreen) #tools{display:block;margin-top:50px}body:has(.diveScreen) #tools [data-panel]{display:none}
+.report{position:relative;width:min(510px,calc(100% - 44px));margin:auto;padding:50px 0 65px}.reportHead,.axisLabels{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.reportHead b{font-size:22px;letter-spacing:.07em;text-shadow:-2px 1px #c44a7e,2px -1px #419ba7}.reportHead span,.report h2,.axisLabels{font:11px/1.6 monospace;letter-spacing:.11em;color:#b3c0d3}
+.report h1{font-size:clamp(48px,9vw,74px);color:var(--foam);margin:20px 0 0}.report h1 small{font-size:20px;color:var(--cyan)}.report>p{color:#abc2d0}.report h2{margin:36px 0 12px}.report h2 small{color:#8797ae;margin-left:8px}
+.localScores{height:84px;position:relative;border-bottom:1px solid #56b9c4;display:flex;align-items:end;gap:2px}.localScores i{flex:1;background:linear-gradient(#458893,#16313f)}.localScores b{position:absolute;height:100%;bottom:0;border-left:2px solid var(--pink)}
+.axisLabels{font-size:10px;margin:6px 0}.logChart{height:150px;display:flex;padding:0 12px;margin:15px 0 50px;background:repeating-linear-gradient(to bottom,#34516980 0 1px,transparent 1px 25%);border-bottom:1px solid #34516980}
+.logCast{flex:1;position:relative}.logCast i{position:absolute;left:50%;height:var(--drop);border-left:1px solid var(--ink)}.logCast i::after{content:"";position:absolute;bottom:-3px;left:-3px;width:5px;height:5px;border-radius:50%;background:var(--ink);box-shadow:0 0 8px var(--ink)}.logCast small{position:absolute;top:104%;width:100%;text-align:center;color:#a7b8c9}
+.bearings{padding:0;list-style:none}.bearings li{display:flex;gap:22px;border-top:1px solid #203249;padding:9px;color:#9aa9bb}.bearings li small{width:65px}.bearings .earned{color:#ff9cbb;background:#192038}.reportActions{margin:20px 0}.reportActions button:first-child{flex:1}.report .chip{color:#bcd5e2}.report #shareStatus{overflow-wrap:anywhere}
+@media(prefers-reduced-motion:reduce){.seaLife i,.catchMark span,.catchMark i,.promptStage,.guessFeedback.miss{animation:none}}
+.answerDock #clock{border:0;background:radial-gradient(circle,#0b1b2a 58%,transparent 60%),conic-gradient(var(--cyan) var(--remaining,100%),#243c50 0);box-shadow:0 0 0 3px #122330}
+.urgent .answerDock #clock{background:radial-gradient(circle,#211522 58%,transparent 60%),conic-gradient(#ff719e var(--remaining),#602c42 0)}
+.logChart{position:relative;margin-left:24px}.chartTicks{position:absolute;right:calc(100% + 6px);height:100%;display:flex;flex-direction:column;justify-content:space-between;font:9px/1 monospace;color:#8799af}
+.sinkingGuess{pointer-events:none;position:fixed;top:42%;left:50%;max-width:86%;overflow-wrap:anywhere;padding:7px 14px;background:#111f30;color:var(--rarity);border-radius:4px;animation:sinkGuess .72s ease-in both}
+@keyframes sinkGuess{0%{opacity:0;transform:translate(-50%,-45px)}20%{opacity:1}85%{opacity:1}100%{opacity:0;transform:translate(-50%,38px)}}
+.sinkingGuess+.revealStage .revealCard{animation-delay:.64s;animation-fill-mode:both}
+.surfaceNotice{position:fixed;inset:0;display:grid;place-items:center;background:#050b16cf;color:#bed0df;letter-spacing:.12em;animation:promptArrival .45s ease-out}
+@media(prefers-reduced-motion:reduce){.sinkingGuess{display:none}.surfaceNotice{animation:none}}

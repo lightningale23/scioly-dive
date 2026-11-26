@@ -19,9 +19,8 @@ for (const page of pages) {
   await writeFile(dir + '/index.html', pageHtml);
 }
 
-for (const file of ['style.css', 'game.js', 'selection.js', 'vt323.woff2']) {
-  try { await copyFile(file, output + '/' + file); }
-  catch (error) { if (file !== 'vt323.woff2' || error.code !== 'ENOENT') throw error; }
+for (const file of ['style.css', 'game.js', 'selection.js', 'vt323.ttf', 'VT323-LICENSE.txt']) {
+  await copyFile(file, output + '/' + file);
 }
 
 const publicEvents = events.map(([event, entries]) => [event, entries.map(([prompt]) => prompt)]);

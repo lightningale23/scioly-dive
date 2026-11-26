@@ -18,7 +18,7 @@ const button=(label,action,cls='small')=>'<button class="'+cls+'" data-action="'
 const help='Each dive visits seven different Division C events. Find one accepted answer per round in 25 seconds. Retry missed guesses while the clock runs. Submit a suggested spelling again to confirm it. Valid answers earn 10, 15, 30, 60, 85, or 100 points based on rarity. Each point adds 10 meters. Skip anytime and review examples after each round.';
 const escapeText=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
-const tierNames={10:'Common',15:'Too Clever',30:'Uncommon',60:'Rare',85:'Very Rare',100:'One in a Krillion'};
+const tierNames={10:'Plankton',15:'Too Clever',30:'Schooler',60:'Rare',85:'Deep Cut',100:'One in a Krillion'};
 async function api(body){
  if(document.documentElement.hasAttribute('data-static-game')){
    const {guestApi}=await import('./guest-api.js');
@@ -93,26 +93,58 @@ function diveHud(){
  }).join('');
  return `<div class="diveHud">
    <div class="gauge"><small>DEPTH</small><b>${score.toLocaleString()} m</b></div>
-   <div class="roundTrack"><div aria-hidden="true">${marks}</div>ROUND ${round+1} OF 7</div>
+   <div class="roundTrack"><div aria-hidden="true">${marks}</div>PROMPT ${round+1} OF 7</div>
    <div class="gauge"><small>SCORE</small><b>${score/10}</b></div>
  </div>`;
 }
 
 function play(){
- state='play';
- deadline=Date.now()+25000;
+ const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const arrival=reduced?0:round===0?1800:1100;
+ const readyAt=Date.now()+arrival;
+ state=arrival?'descending':'play';
+ deadline=readyAt+25000;
  const {event,prompt}=session[round];
- app.innerHTML=`<section class="diveScreen">${diveHud()}
-   <div class="promptStage"><article class="promptCard"><p class="event">${event}</p><h1>${prompt}</h1></article></div>
-   <form class="answerDock"><output class="guessFeedback" aria-live="polite"></output><span id="clock" role="timer" aria-label="Seconds remaining">25s</span>
+ const [question,wordRule]=prompt.split('\n');
+ app.innerHTML=`<section class="diveScreen playing">${diveHud()}
+   <div class="seaLife" aria-hidden="true"><i></i><i></i><i></i></div>
+   <div class="promptStage"><article class="promptCard"><p class="event">PROMPT ${round+1} OF 7 · ${event}</p><h1>${question}</h1>
+   ${wordRule?`<p class="wordRule">${wordRule}</p>`:''}<small>▼ rarer answers sink deeper ▼</small></article></div>
+   <span class="srOnly timeWarning" aria-live="polite"></span>
+   <div class="arrivalNotice" role="status" ${arrival?'':'hidden'}></div>
+   <form class="answerDock" ${arrival?'hidden':''}><output class="guessFeedback" aria-live="polite"></output><span id="clock" role="timer" aria-label="Seconds remaining">25</span>
      <div class="inputMeter"><input class="answer" maxlength="100" required aria-label="Your answer" placeholder="Type one answer…" autocomplete="off"><div id="fill"></div></div>
-     <button class="diveSubmit" type="submit">DIVE ↵</button><button class="dockSkip" type="button" data-action="skip">Skip</button>
+     <button class="diveSubmit" type="submit">DIVE</button><button class="dockSkip" type="button" data-action="skip">Skip</button>
    </form></section>`;
  app.querySelector('form').onsubmit=e=>{e.preventDefault(); const answer=e.currentTarget.querySelector('input').value.trim(); if(answer)submit(answer)};
  const clock=document.querySelector('#clock'),fill=document.querySelector('#fill');
- timer=setInterval(()=>{const left=Math.max(0,deadline-Date.now());clock.textContent=Math.ceil(left/1000)+'s';fill.style.width=(left/250)+'%';if(!left && state!=='skipping')submit('')},100);
- if(matchMedia('(pointer:fine)').matches)app.querySelector('input').focus();
+ const screen=app.querySelector('.diveScreen'),notice=app.querySelector('.arrivalNotice');
+ function tick(){
+   const now=Date.now();
+   if(state==='descending'){
+     if(now<readyAt){
+       notice.textContent='Descending · the clock starts in '+Math.ceil((readyAt-now)/1000);
+       draw(score,round===0?(readyAt-now)/arrival:0);
+       return;
+     }
+     state='play';notice.hidden=true;app.querySelector('form').hidden=false;
+     if(matchMedia('(pointer:fine)').matches)app.querySelector('input').focus();
+     draw();
+   }
+   const left=Math.max(0,deadline-now);
+   if(left<=5000 && !screen.classList.contains('urgent')){
+     screen.classList.add('urgent');
+     screen.querySelector('.timeWarning').textContent='Five seconds left';
+   }
+   clock.textContent=Math.ceil(left/1000);
+   clock.style.setProperty('--remaining',left/250+'%');
+   fill.style.width=left/250+'%';
+   if(!left && state!=='skipping')submit('');
+ }
+ timer=setInterval(tick,75);
+ if(!arrival && matchMedia('(pointer:fine)').matches)app.querySelector('input').focus();
  draw();
+ tick();
 }
 async function submit(answer){
  if(state!=='play' && !(state==='checking' && !answer))return;
@@ -123,6 +155,7 @@ async function submit(answer){
  if(!answer)clearInterval(timer);
  input.readOnly=true;
  form.querySelector('[type=submit]').disabled=true;
+ feedback.className='guessFeedback';
  feedback.textContent=answer?'Checking…':'';
  let verdict;
  try{
@@ -137,10 +170,11 @@ async function submit(answer){
    input.readOnly=false;
    form.querySelector('[type=submit]').disabled=false;
    if(verdict.suggestion){
-     feedback.textContent='“'+answer+'” → “'+verdict.suggestion+'” · Submit again to confirm, or edit.';
+     feedback.innerHTML='<s>'+escapeText(answer)+'</s> → <strong>'+escapeText(verdict.suggestion)+'</strong><small>submit again to confirm · or edit</small>';
      input.value=verdict.suggestion;
    }else{
      feedback.textContent=verdict.status==='unverified'?'Could not verify that answer. Try another.':'Answer not accepted. Try again.';
+     feedback.classList.add('miss');
      input.select();
    }
    input.focus();
@@ -153,25 +187,26 @@ async function submit(answer){
  receipts.push(verdict.receipt);
  answers.push({event:question.event,prompt:question.prompt,answer,points:meters,label:verdict.canonical,status:verdict.status});
  tone(meters>0?500:190);
- const outcome=meters?tierNames[verdict.points]:verdict.status==='unverified'?'Could not verify':answer?'Not accepted':'Round skipped';
+ const outcome=meters?tierNames[verdict.points]:verdict.status==='unverified'?'Could not verify':answer?'Not accepted':Date.now()>=deadline?'Time’s up':'Round skipped';
  const examples=verdict.examples.map(escapeText).join(' · ');
  app.innerHTML=`<section class="diveScreen" style="--rarity:${tierColors[verdict.points]}">${diveHud()}
+   ${meters?`<div class="sinkingGuess" aria-hidden="true">${escapeText(answer)}</div>`:''}
    <div class="revealStage"><div class="revealCard" role="status">
-     <div class="catchMark" aria-hidden="true">${meters?'✦':'◇'}</div>
+     <div class="catchMark" aria-hidden="true"><span>${({10:'✧',15:'✶',30:'🐟',60:'🪸',85:'🐙',100:'🦐'})[verdict.points]||'◇'}</span><i></i><i></i><i></i></div>
      <p class="event">${question.event}</p><h1>${outcome}</h1>
      ${answer?`<p class="catchAnswer">“${escapeText(answer)}”</p>`:''}
-     <p class="catchDistance">+${verdict.points} pts <span>·</span> ${meters.toLocaleString()} m</p>
-     ${examples?`<p class="catchExamples">Examples · ${examples}</p>`:''}
+     <p class="catchDistance">+${verdict.points} PTS <span>·</span> sink ${meters.toLocaleString()} m</p>
+     ${examples?`<details class="catchExamples"><summary>Example answers</summary>${examples}</details>`:''}
    </div></div>
    <div class="descendDock">${button(round===6?'SURFACE FOR RESULTS ↑':'DESCEND ▼','next','descend')}</div></section>`;
- app.querySelector('button').focus();
+ app.querySelector('[data-action=next]').focus();
  const began=performance.now(), previous=score-meters, completedRound=round;
  function descendFrame(now){
    if(state!=='reveal'||dive!==activeDive||round!==completedRound)return;
-   const progress=Math.min(1,(now-began)/650);
+   const progress=Math.min(1,(now-began)/950);
    const depth=Math.round(previous+meters*(1-(1-progress)**2));
    app.querySelector('.gauge b').textContent=depth.toLocaleString()+' m';
-   draw(depth);
+   draw(depth,0,progress<1?previous:null);
    if(progress<1)requestAnimationFrame(descendFrame);
  }
  if(meters&&!matchMedia('(prefers-reduced-motion: reduce)').matches)requestAnimationFrame(descendFrame);
@@ -179,11 +214,36 @@ async function submit(answer){
 }
 function results(result){
  state='results'; score=result.score; document.body.classList.remove('surface');
- app.innerHTML='<section class="play diveResults"><div class="box"><p class="event">DIVE COMPLETE</p><h1>'+result.score.toLocaleString()+' m</h1><p class="finalPoints">'+result.score/10+' points</p><p>'+result.answers.filter(a=>a.points).length+' of 7 answers scored</p>'+(result.streak?'<p>'+result.streak+'-day streak</p>':'')+'<p id="percentile" role="status">'+(result.global&&result.count>1?'Deeper than '+result.percentile+'% of today’s divers.':'')+'</p><ol class="review">'+result.answers.map(a=>'<li><strong>'+a.event+'</strong> · '+escapeText(a.answer||a.label||({valid:'Valid answer',invalid:'Not accepted',unverified:'Could not verify'}[a.status])||'Skipped')+' · '+a.points+'m<br>'+a.prompt+'</li>').join('')+'</ol><div class="row">'+button('SHARE RESULT','share')+chip('/unlimited/classic','UNLIMITED ∞')+chip('/','DAILY DIVE')+'</div><p id="shareStatus" role="status"></p></div></section>';
- app.querySelector('[data-action="share"]').onclick=async()=>{
-   const summary='Science Olympiad Dive | '+result.score+'m\n'+result.answers.map(a=>a.points?'🟦':'⬛').join('')+'\n'+siteRoot.href;
-   const status=document.querySelector('#shareStatus');
-   try{await navigator.clipboard.writeText(summary);status.textContent='Result copied.'}catch{status.textContent=summary}
+ const points=result.score/10;
+ const bands=[[0,150,'Plankton'],[151,250,'Schooler'],[251,350,'Rare'],[351,449,'Deep Cut'],[450,700,'One in a Krillion']];
+ const marks=result.answers.map((entry,i)=>{
+   const pts=entry.points/10;
+   return `<div class="logCast" title="${escapeText(entry.event)} · ${pts} points" style="--drop:${pts}%;--ink:${tierColors[pts]||tierColors[0]}"><i></i><small>${i+1}</small><span class="srOnly">Prompt ${i+1}: ${pts} points</span></div>`;
+ }).join('');
+ const savedScores=read('log',[]).map(entry=>entry.score/10);
+ const bins=Array.from({length:14},()=>0);
+ for(const n of savedScores)if(Number.isFinite(n)&&n>=0&&n<=700)bins[Math.min(13,Math.floor(n/50))]++;
+ const peak=Math.max(1,...bins);
+ app.innerHTML=`<section class="diveResults report"><div class="reportHead"><b>SCIOLY DIVE</b><span>${escapeText(result.mode)} · DIVE COMPLETE</span></div>
+   <h1>${points} <small>−${result.score.toLocaleString()} m</small></h1>
+   <p>${result.answers.filter(a=>a.points).length} of 7 scored${result.streak?' · '+result.streak+'-day streak':''}</p>
+   <div class="localScores" role="img" aria-label="Your last ${savedScores.length} scores on this device. This dive scored ${points} out of 700.">
+     ${bins.map(count=>`<i style="height:${count/peak*85}%"></i>`).join('')}
+     <b style="left:${points/7}%"></b></div><div class="axisLabels"><span>0</span>YOUR RECENT DIVES<span>700 PTS</span></div>
+   <p id="percentile" role="status">${result.global&&result.count>1?'Deeper than '+result.percentile+'% of today’s divers.':''}</p>
+   <h2>DIVE LOG <small>DEEPER = RARER</small></h2><div class="logChart"><div class="chartTicks" aria-hidden="true"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>${marks}</div>
+   <h2>THE BEARING</h2><ul class="bearings">${bands.map(([lo,hi,name])=>`<li class="${points>=lo&&points<=hi?'earned':''}"><small>${hi===700?'450+':lo+'–'+hi}</small>${name}</li>`).join('')}</ul>
+   <div class="row reportActions">${button('COPY RESULT','copy','diveSubmit')}${button('SHARE…','share')}</div>
+   <p id="shareStatus" role="status"></p>
+   <details><summary>Review answers</summary><ol class="review">${result.answers.map(a=>'<li><strong>'+escapeText(a.event)+'</strong> · '+escapeText(a.answer||a.label||({valid:'Valid answer',invalid:'Not accepted',unverified:'Could not verify'}[a.status])||'Skipped')+' · '+a.points+' m<br>'+escapeText(a.prompt)+'</li>').join('')}</ol></details>
+   <div class="row reportActions">${chip('/unlimited/classic','KEEP DIVING →')}${chip('/archive','ARCHIVE ⟲')}${chip('/','DAILY DIVE')}</div></section>`;
+ const summary='Science Olympiad Dive | '+points+' pts · '+result.score+' m\n'+result.answers.map(a=>a.points?'🟦':'⬛').join('')+'\n'+siteRoot.href;
+ const status=document.querySelector('#shareStatus');
+ const copy=async()=>{try{await navigator.clipboard.writeText(summary);status.textContent='Result copied.'}catch{status.textContent=summary}};
+ app.querySelector('[data-action=copy]').onclick=copy;
+ app.querySelector('[data-action=share]').onclick=async()=>{
+   if(!navigator.share){await copy();return}
+   try{await navigator.share({text:summary})}catch(error){if(error.name!=='AbortError')await copy()}
  };
  draw();
 }
@@ -243,6 +303,11 @@ async function finish(){
    save('daily-'+seed,saved);
  }
  save('log',[saved,...read('log',[])].slice(0,25));
+ if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+   state='surfacing';
+   app.innerHTML='<div class="surfaceNotice" role="status">Surfacing with your results…</div>';
+   await new Promise(resolve=>setTimeout(resolve,650));
+ }
  results(result);
  if(!receipts.every(Boolean))return;
  try{
@@ -293,14 +358,20 @@ dialog.addEventListener('close',()=>{
 dialog.addEventListener('change',e=>{if(e.target.dataset.pref){preferences[e.target.dataset.pref]=e.target.checked;updatePrefs()}});
 dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
 
-function draw(displayDepth=score){
+function draw(displayDepth=score,arrival=0,descentStart=null){
  const canvas=document.querySelector('#scene');
  const w=innerWidth,h=innerHeight;
  if(canvas.width!==w)canvas.width=w;
  if(canvas.height!==h)canvas.height=h;
  const g=canvas.getContext('2d');
- const surface=document.body.classList.contains('surface');
- const water=h*(w<=540?.576:w<=768?.553:.545);
+ const homeSurface=document.body.classList.contains('surface');
+ const atBoat=state!=='home' && state!=='results' && displayDepth<80;
+ if(state==='results'){
+   g.fillStyle='#060b16';g.fillRect(0,0,w,h);
+   return;
+ }
+ const surface=homeSurface||atBoat||arrival>0;
+ const water=h*(w<=540?.576:w<=768?.553:.545)*(homeSurface?1:Math.max(0,1-displayDepth/80)*.36+arrival*.64);
  const rect=(x,y,a,b,color)=>{g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),Math.ceil(a),Math.ceil(b))};
  const gradient=(top,bottom,stops)=>{const grad=g.createLinearGradient(0,top,0,bottom);for(const [point,color] of stops)grad.addColorStop(point,color);return grad};
  if(surface){
@@ -324,19 +395,29 @@ function draw(displayDepth=score){
    const shallow=diving && depth<200;
    g.fillStyle=gradient(0,h,[[0,shallow?'#397491':depth>=1000?'#0b1829':'#102b41'],[.55,shallow?'#16405c':'#0b1827'],[1,'#050b16']]);g.fillRect(0,0,w,h);
    if(diving){
-     // Layer angular rock faces at the edges, leaving the central play area open.
+     // Overlapping polygonal shelves darken as the sub moves below the shelf.
      for(const side of [0,1]){
        const edge=side?w:0, dir=side?-1:1;
-       for(let layer=0;layer<2;layer++){
-         const span=Math.min(w*.15,160)*(1-layer*.42);
-         const cliffHeight=h*(depth>=1000?.95:.44);
-         g.beginPath();g.moveTo(edge,h-cliffHeight);
-         for(let j=0;j<=16;j++){
-           const t=j/16, wave=.5+.5*Math.sin(j*1.7+side*2+layer);
-           g.lineTo(edge+dir*span*(.2+wave*.5+t*.3),h-(1-t)*cliffHeight);
+       const height=h*(depth<200?.29:Math.min(1,.5+depth/4900));
+       const count=9, pitch=height/count,span=Math.min(w*.18,210);
+       for(let j=0;j<count;j++){
+         const y=h-height+j*pitch,curve=.5+.5*Math.sin(side*4+j*2.4);
+         const reach=span*(.12+.55*j/count+.35*curve);
+         const facet=(vertices,color)=>{
+           g.beginPath();vertices.forEach(([x,v],i)=>g[i?'lineTo':'moveTo'](edge+dir*x,y+v*pitch));
+           g.closePath();g.fillStyle=color;g.fill();
+         };
+         facet([[0,-.4],[reach*.6,-.25],[reach,.06],[reach*.86,.72],[reach*.37,1.08],[0,1.2]],j%2?'#101c2c':'#122031');
+         facet([[0,-.4],[reach*.6,-.25],[reach,.06],[reach*.54,-.06],[0,-.19]],'#1a2938');
+         facet([[reach,.06],[reach*.86,.72],[reach*.37,1.08],[reach*.64,.53]],'#0a1320');
+         if(depth>=2400 && j%3===side){
+           rect(edge+dir*reach*.42,y+pitch*.35,4,4,j%2?'#377783':'#6b3957');
          }
-         g.lineTo(edge,h);g.fillStyle=layer?'#070c17':'#0b1524';g.fill();
        }
+     }
+     if(depth>=200){
+       g.font='11px monospace';g.fillStyle='#608495';
+       g.fillText(depth>=4000?'ABYSSAL ZONE':depth>=1000?'MIDNIGHT ZONE':'TWILIGHT ZONE',Math.min(w*.08,54),h*.62);
      }
      const zero=Math.floor(depth/100)*100;
      const step=Math.max(46,h*.12), marker=h*.42;
@@ -345,6 +426,17 @@ function draw(displayDepth=score){
        const value=zero+100*i,y=marker+(value-depth)*step/100;
        if(value<0||y<65||y>h-60)continue;
        rect(w-12,y,12,1,'#647e94');g.fillStyle='#93a8be';g.fillText(value+' m',w-17,y+3);
+     }
+     if(descentStart!==null){
+       g.save();
+       for(const [points,label] of Object.entries(tierNames)){
+         const y=marker+(descentStart+Number(points)*10-depth)*step/100;
+         if(y<70||y>h-75)continue;
+         g.strokeStyle=tierColors[points];g.globalAlpha=.55;g.setLineDash([3,5]);
+         g.beginPath();g.moveTo(w*.17,y);g.lineTo(w*.83,y);g.stroke();
+         g.fillStyle=tierColors[points];g.fillText(label.toUpperCase()+' · '+points,w*.83,y-5);
+       }
+       g.restore();
      }
      rect(w-14,marker,14,2,'#ff709f');
      g.textAlign='left';

@@ -23,14 +23,14 @@ test('public prompts and scored banks agree across modes and historical seeds',(
 
 test('all canonical answers and aliases match and respect their letter constraint',()=>{
   for(const [,rows] of questions)for(const {prompt,bank} of rows){
-    const rule=prompt.match(/Your answer (starts with|ends with|contains) “(.)”/);
+    const rule=prompt.match(/\n(Start with|End with|Include) the letter ([A-Z])\./);
     for(const entry of bank){
       assert(tiers.includes(entry.points));
       for(const word of [entry.canonical,...entry.aliases]){
         assert(matchAnswer(bank,word).match,prompt+' '+word);
         if(rule){
           const spelling=normalize(word),letter=rule[2].toLowerCase();
-          assert(rule[1]==='contains'?spelling.includes(letter):rule[1]==='starts with'?spelling.startsWith(letter):spelling.endsWith(letter));
+          assert(rule[1]==='Include'?spelling.includes(letter):rule[1]==='Start with'?spelling.startsWith(letter):spelling.endsWith(letter));
         }
       }
     }
@@ -45,4 +45,15 @@ test('corrections require a unique close spelling, and numeric punctuation matte
   assert.equal(matchAnswer(bank,'iron').suggestion,undefined);
   assert.equal(matchAnswer([{canonical:'12',aliases:[]}],'-12').match,undefined);
   assert.equal(matchAnswer([{canonical:'12',aliases:[]}],'1.2').match,undefined);
+});
+test('a dive can have zero or one spelling challenge across seven different events',()=>{
+  const counts=new Set();
+  for(let seed=0;seed<500;seed++){
+    const selected=Array.from({length:7},(_,r)=>selection(events,seed,r,undefined,'Unlimited'));
+    assert.equal(new Set(selected.map(([event])=>event)).size,7);
+    const count=selected.filter(([event,index])=>events[event][1][index][0].includes('\n')).length;
+    assert(count<=1);
+    counts.add(count);
+  }
+  assert.deepEqual([...counts].sort(),[0,1]);
 });

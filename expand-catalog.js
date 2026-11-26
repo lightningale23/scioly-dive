@@ -48,7 +48,7 @@ export function expandCatalog(events) {
       merged.set(term.toLowerCase(),names);
     }
     const bank=[...merged.values()].map(names=>[...names].join('|')).join('; ');
-    events.find(([event])=>event===members[0])[1].push(['Across events: name a term used in '+domain+'.',bank]);
+    events.find(([event])=>event===members[0])[1].push(['What term might you hear in '+domain+'?',bank]);
   }
 
   const letters = word => word.toLowerCase().normalize('NFKD').replace(/[^a-z]/g,'');
@@ -65,13 +65,13 @@ export function expandCatalog(events) {
           const matches = groups.map(names=>names.filter(n=>test(letters(n),c))).filter(names=>names.length);
           // Keep a meaningful choice of answers and discard nearly redundant constraints.
           if (matches.length < 8 || matches.length >= groups.length*.9) continue;
-          entries.push([prompt+' Your answer '+phrase+' “'+c.toUpperCase()+'”.', matches.map(names=>names.join('|')).join('; ')]);
+          entries.push([prompt+'\n'+({'starts with':'Start with','ends with':'End with','contains':'Include'}[phrase])+' the letter '+c.toUpperCase()+'.', matches.map(names=>names.join('|')).join('; ')]);
         }
       }
     }
   }
   for(const [event,prompt,unit] of measurements){
-    events.find(([name])=>name===event)[1].push([prompt+' Spell out the unit name; SI prefixes are allowed.',measurementBank(unit)]);
+    events.find(([name])=>name===event)[1].push([prompt+' Write the full name. Prefixes count.',measurementBank(unit)]);
   }
   addNumericalPrompts(events);
 }

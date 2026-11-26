@@ -18,7 +18,7 @@ Run `node build.mjs --pages` to generate the static site in `pages-dist/`.
 
 ## Question catalog and timed guesses
 
-The catalog spans 23 Division C events and three trial events. Topic banks feed subject prompts, cross-event questions, and spelling variants. A letter constraint applies to the spelling submitted, including aliases. Numerical challenges have explicit bounds and accept all solutions within those bounds. Open-ended topic lists are curated and can grow as additional valid answers are found.
+The catalog spans 23 Division C events and three trial events. Topic banks feed subject prompts, cross-event questions, and spelling variants. A seven-prompt dive includes at most one letter challenge. The letter rule appears beneath the question and applies to the spelling submitted, including aliases. Numerical challenges have explicit bounds and accept all solutions within those bounds. Open-ended topic lists are curated and can grow as additional valid answers are found.
 
 Players can retry during the original 25-second round. A unique close spelling appears in the input for confirmation or editing. Only an accepted answer, a skip, or the deadline ends the round. The Pages build judges locally; the Node server also supports the optional Azure fallback for off-bank guesses.
 

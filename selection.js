@@ -17,10 +17,15 @@ export function selection(events, seed, round, first, mode) {
     [order[i], order[j]] = [order[j], order[i]];
   }
   const event = order[round];
+  // One optional word challenge per dive. A roll of seven or higher skips it.
+  const wordRound=pick(12);
   for(let i=0;i<round;i++)pick(1);
   const entries=events[event][1];
-  const plain=entries.map((entry,i)=>[Array.isArray(entry)?entry[0]:entry.prompt??entry,i])
-    .filter(([prompt])=>!prompt.includes(' Your answer '));
-  if(pick(3)===0)return [event,plain[pick(plain.length)][1]];
-  return [event,pick(entries.length)];
+  const ordinary=[],wordplay=[];
+  entries.forEach((entry,index)=>{
+    const prompt=Array.isArray(entry)?entry[0]:entry.prompt??entry;
+    (prompt.includes('\n')?wordplay:ordinary).push(index);
+  });
+  const pool=round===wordRound && wordplay.length?wordplay:ordinary;
+  return [event,pool[pick(pool.length)]];
 }

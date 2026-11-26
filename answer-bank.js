@@ -2,7 +2,7 @@ import {selection} from './selection.js';
 import { events } from './prompts.js';
 
 export const tiers = [10, 15, 30, 60, 85, 100];
-export const tierNames = { 10: 'Common', 15: 'Too Clever', 30: 'Uncommon', 60: 'Rare', 85: 'Very Rare', 100: 'One in a Krillion' };
+export const tierNames = { 10: 'Plankton', 15: 'Too Clever', 30: 'Schooler', 60: 'Rare', 85: 'Deep Cut', 100: 'One in a Krillion' };
 import { normalize } from './matching.js';
 export { normalize };
 
