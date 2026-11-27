@@ -21,10 +21,10 @@ const instructions = 'You judge answers in a Science Olympiad trivia game. The u
 
 async function gemini(prompt, answer) {
   const model = process.env.GEMINI_MODEL || 'gemini-flash-lite-latest';
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+  const request = () => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY},
-    signal: AbortSignal.timeout(8000),
+    signal: AbortSignal.timeout(4000),
     body: JSON.stringify({
       systemInstruction: {parts: [{text: instructions}]},
       contents: [{role: 'user', parts: [{text: JSON.stringify({prompt, answer})}]}],
@@ -35,6 +35,13 @@ async function gemini(prompt, answer) {
       },
     }),
   });
+  // Gemini sometimes answers 503 ("high demand") or 429; try up to three times, briefly apart.
+  let response;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) await new Promise(done => setTimeout(done, 600 * attempt));
+    response = await request();
+    if (![429, 500, 503].includes(response.status)) break;
+  }
   if (!response.ok) throw new Error('Gemini request failed: ' + response.status + ' ' + (await response.text()).slice(0, 160));
   const candidate = (await response.json()).candidates?.[0];
   // Skip any reasoning ("thought") parts and read the first JSON object in the answer text.

@@ -5,7 +5,7 @@ import {isClosedList} from './catalog-data/closed-lists.js';
 // An answer missing from the list goes to the AI judge when one is configured (features.js judgeUrl).
 async function askJudge(prompt,answer){
   try{
-    const response=await fetch(judgeUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,answer}),signal:AbortSignal.timeout(9000)});
+    const response=await fetch(judgeUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,answer}),signal:AbortSignal.timeout(15000)});
     return response.ok?await response.json():{status:'unverified'};
   }catch{return {status:'unverified'}}
 }
