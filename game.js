@@ -343,7 +343,8 @@ function results(result){
    <div class="row reportActions">${dailyOnly?'':chip('/unlimited/classic','KEEP DIVING →')+chip('/archive','ARCHIVE ⟲')}${chip('/','DAILY DIVE')}</div></section>`;
  renderCatch(result.answers);
  // One square per round, colored by rarity tier, so a shared result shows how deep each catch was.
- const tierSquares={0:'⬛',10:'🟦',15:'🟪',30:'🟩',60:'🟨',85:'🟧',100:'🟥'};
+ // It matches the site's tier colors. Emoji has no gray square, so Plankton uses the light one.
+ const tierSquares={0:'⬛',10:'⬜',15:'🟧',30:'🟦',60:'🟥',85:'🟪',100:'🟨'};
  const summary='SciOly Dive · '+dailyLabel.replace(' · ',' Dive · ')+'\n'+medalFor(points)[2]+' '+points+' pts · '+result.score.toLocaleString()+' m deep\n'+result.answers.map(a=>tierSquares[a.points/10]??'⬛').join('')+'\n'+siteRoot.href;
  const status=document.querySelector('#shareStatus');
  const copy=async()=>{try{await navigator.clipboard.writeText(summary);status.textContent='Result copied.'}catch{status.textContent=summary}};
