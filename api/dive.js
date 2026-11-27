@@ -68,7 +68,7 @@ async function validate(body) {
   }
   if(answer && status!=='valid')return {status};
   return {
-    points, status, canonical: match?.canonical,
+    points, status, canonical: match?.canonical, fact: match?.points === 100 ? match.fact : undefined,
     bank,
     examples: bank.filter(entry => entry !== match).slice(0, 3).map(entry => entry.canonical),
     receipt: sign({ type: 'round', seed, round, mode, points, dive }),

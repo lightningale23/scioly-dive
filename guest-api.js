@@ -12,6 +12,7 @@ export function guestApi(body,question) {
     status: match ? 'valid' : body.answer ? 'unverified' : 'skipped',
     points: match?.points ?? 0,
     canonical: match?.canonical,
+    fact: match?.points === 100 ? match.fact : undefined,
     examples: bank.filter(entry => entry !== match).slice(0, 3).map(entry => entry.canonical)
   };
 }

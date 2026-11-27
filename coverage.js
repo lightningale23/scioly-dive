@@ -2,6 +2,7 @@ import {combinedSources} from './expand-catalog.js';
 import { minerals } from './catalog-data/minerals.js';
 import { moons } from './catalog-data/moons.js';
 import { curatedAnswers } from './catalog-data/curated-answers.js';
+import { normalize } from './matching.js';
 
 const additions=[
   ['Name a mineral, mineral group',[...minerals,...'feldspar;plagioclase;mica;biotite;amphibole;pyroxene;garnet;olivine;tourmaline;apatite;chlorite;hornblende;serpentine;zeolite;chalcedony;agate;jasper;amethyst;citrine;rose quartz;smoky quartz;milky quartz;ruby;sapphire;emerald;aquamarine;peridot;tiger’s eye;moonstone;labradorite;nephrite'.split(';')]],
@@ -56,12 +57,15 @@ export function expandedGroups(prompt,original){
  const sources=combinedSources.get(base)??[base];
  const extra=additions.filter(([start])=>sources.some(source=>source.startsWith(start))).flatMap(([,names])=>typeof names==='string'?names.split(';'):names);
  for(const source of sources)if(curatedAnswers[source])extra.push(...curatedAnswers[source].split(';'));
- const merged=new Map();
+ // A group that shares any spelling with an earlier answer joins that answer, so one answer never
+ // appears twice (e.g. "font|typeface" added where "typeface" already exists).
+ const groups=[], owner=new Map();
  for(const group of [...original.split(';').map(s=>s.trim()),...extra.map(s=>s.trim())]){
-   const [canonical,...other]=group.split('|'),key=canonical.toLowerCase();
-   const names=merged.get(key)??new Set([canonical]);
-   for(const alias of [...other,...(Object.hasOwn(aliases,canonical)?aliases[canonical]:'').split('|')])if(alias)names.add(alias);
-   merged.set(key,names);
+   const [canonical,...other]=group.split('|');
+   const spellings=[canonical,...other,...(Object.hasOwn(aliases,canonical)?aliases[canonical]:'').split('|')].filter(Boolean);
+   let names=spellings.map(name=>owner.get(normalize(name))).find(Boolean);
+   if(!names){names=new Set();groups.push(names)}
+   for(const name of spellings){names.add(name);if(!owner.has(normalize(name)))owner.set(normalize(name),names)}
  }
- return [...merged.values()].map(names=>[...names]);
+ return groups.map(names=>[...names]);
 }

@@ -1,6 +1,7 @@
 import { addNumericalPrompts } from './numerical-prompts.js';
 import { measurements, measurementBank } from './measurements.js';
 import { topics } from './topics.js';
+import { broadPrompts } from './catalog-data/broad-prompts.js';
 
 // Keep the original seven events and their first two entries in place for archived dives.
 export const combinedSources=new Map();
@@ -55,9 +56,14 @@ export function expandCatalog(events) {
     events.find(([event])=>event===members[0])[1].push(['What term might you hear in '+domain+'?',bank]);
   }
 
+  // Broad prompts carry the first Daily day that may draw them (third element).
+  for(const [event,prompt,bank,firstDay] of broadPrompts){
+    events.find(([name])=>name===event)[1].push([prompt,bank,firstDay]);
+  }
+
   const letters = word => word.toLowerCase().normalize('NFKD').replace(/[^a-z]/g,'');
   for (const [,entries] of events) {
-    for (const [prompt,bank] of [...entries]) {
+    for (const [prompt,bank,firstDay] of [...entries]) {
       const groups = bank.split('; ').map(item => item.split('|'));
       if (groups.length < 18) continue;
       for (const [phrase,test] of [
@@ -69,7 +75,8 @@ export function expandCatalog(events) {
           const matches = groups.map(names=>names.filter(n=>test(letters(n),c))).filter(names=>names.length);
           // Keep a meaningful choice of answers and discard nearly redundant constraints.
           if (matches.length < 8 || matches.length >= groups.length*.9) continue;
-          entries.push([prompt+'\n'+({'starts with':'Start with','ends with':'End with','contains':'Include'}[phrase])+' the letter '+c.toUpperCase()+'.', matches.map(names=>names.join('|')).join('; ')]);
+          const variant=[prompt+'\n'+({'starts with':'Start with','ends with':'End with','contains':'Include'}[phrase])+' the letter '+c.toUpperCase()+'.', matches.map(names=>names.join('|')).join('; ')];
+          entries.push(firstDay?[...variant,firstDay]:variant);
         }
       }
     }

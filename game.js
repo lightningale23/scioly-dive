@@ -94,6 +94,9 @@ function begin(diveSeed,kind,first){
  document.body.classList.remove('surface');
  play();
 }
+// One line of color for each tier on the reveal card and the results key.
+const tierLines={10:'The whole ocean thought of this one.',15:'A sideways answer that still counts.',30:'Swimming with the crowd.',60:'Few divers make it down this far.',85:'Barely any light reaches here.',100:'The answer hidden at the very bottom.'};
+const tierDepth={10:24,15:34,30:44,60:56,85:68,100:80};
 const tierColors={0:'#9aaac1',10:'#a8c3df',15:'#ffca77',30:'#57e3ee',60:'#ff709f',85:'#c1a2ff',100:'#ffe588'};
 
 function diveHud(){
@@ -190,7 +193,7 @@ async function submit(answer){
      feedback.innerHTML='<s>'+escapeText(answer)+'</s> → <strong>'+escapeText(verdict.suggestion)+'</strong><small>submit again to confirm · or edit</small>';
      input.value=verdict.suggestion;
    }else{
-     feedback.textContent=verdict.status==='unverified'?'Could not verify that answer. Try another.':'Answer not accepted. Try again.';
+     feedback.textContent=verdict.status==='unverified'?'Could not verify that answer. Try another.':'No echo on the sonar. Try another answer.';
      (question.misses??=new Set()).add(answer);
      feedback.classList.add('miss');
      input.select();
@@ -208,12 +211,14 @@ async function submit(answer){
  const outcome=meters?tierNames[verdict.points]:verdict.status==='unverified'?'Could not verify':answer?'Not accepted':Date.now()>=deadline?'Time’s up':'Round skipped';
  const examples=verdict.examples.map(escapeText).join(' · ');
  app.innerHTML=`<section class="diveScreen" style="--rarity:${tierColors[verdict.points]}">${diveHud()}
-   ${meters?`<div class="sinkingGuess" aria-hidden="true">${escapeText(answer)}</div>`:''}
+   ${meters?`<div class="sinkingGuess" aria-hidden="true" style="--stop:${tierDepth[verdict.points]}%">${escapeText(answer)}</div>`:''}
    <div class="revealStage"><div class="revealCard" role="status">
      <div class="catchMark" aria-hidden="true"><span>${({10:'✧',15:'✶',30:'🐟',60:'🪸',85:'🐙',100:'🦐'})[verdict.points]||'◇'}</span><i></i><i></i><i></i></div>
      <p class="event">${question.event}</p><h1>${outcome}</h1>
      ${answer?`<p class="catchAnswer">“${escapeText(answer)}”</p>`:''}
      <p class="catchDistance">+${verdict.points} PTS <span>·</span> sink ${meters.toLocaleString()} m</p>
+     ${meters?`<p class="catchLine">${tierLines[verdict.points]}</p>`:''}
+     ${verdict.fact?`<p class="catchFact"><b>Fun fact</b>${escapeText(verdict.fact)}</p>`:''}
      ${examples?`<details class="catchExamples"><summary>Example answers</summary>${examples}</details>`:''}
      ${question.misses?.size?`<details class="missedGuess"><summary>Suggest a missing answer</summary><p>Open a GitHub draft to review and send.</p>${[...question.misses].map(guess=>{
        const query=new URLSearchParams({title:'Missing answer: '+guess,body:'Event: '+question.event+'\nPrompt: '+question.prompt+'\nAnswer to review: '+guess});
@@ -257,7 +262,8 @@ function renderCatch(rounds){
      const order=new Intl.Collator('en',{numeric:true});
      rows.sort((a,b)=>b.points-a.points||order.compare(a.canonical,b.canonical));
      const tiers=[...new Set(rows.map(row=>row.points))].sort((a,b)=>b-a);
-     panel.innerHTML=`<div class="catchTabs" role="group" aria-label="Filter by rarity"><button type="button" data-tier="all" aria-pressed="true">All ${rows.length}</button>${tiers.map(n=>`<button type="button" data-tier="${n}" aria-pressed="false" style="--ink:${tierColors[n]}">${tierNames[n]} ${rows.filter(row=>row.points===n).length}</button>`).join('')}</div>
+     const krill=rows.find(row=>row.points===100);
+     panel.innerHTML=`${krill?`<p class="catchFact"><b>One in a Krillion: ${escapeText(krill.canonical)}</b>${krill.fact?escapeText(krill.fact):''}</p>`:''}<div class="catchTabs" role="group" aria-label="Filter by rarity"><button type="button" data-tier="all" aria-pressed="true">All ${rows.length}</button>${tiers.map(n=>`<button type="button" data-tier="${n}" aria-pressed="false" style="--ink:${tierColors[n]}">${tierNames[n]} ${rows.filter(row=>row.points===n).length}</button>`).join('')}</div>
        <input type="search" aria-label="Search answers for prompt ${index+1}" placeholder="Search all answers…">
        <ul class="catchList" tabindex="0" aria-label="Accepted answers"></ul><small role="status"></small>`;
      const input=panel.querySelector('input'),results=panel.querySelector('ul'),count=panel.lastElementChild;
@@ -291,7 +297,7 @@ function results(result){
  const dailyLabel=result.mode==='Daily'&&result.date?'Daily · '+diveDate(Date.parse(result.date+'T00:00:00Z')/86400000):result.mode;
  state='results'; score=result.score; document.body.classList.remove('surface');
  const points=result.score/10;
- const bands=[[0,150,'Plankton'],[151,250,'Schooler'],[251,350,'Rare'],[351,449,'Deep Cut'],[450,700,'One in a Krillion']];
+ const bands=[[0,150,'Plankton','Still in the sunlit shallows.'],[151,250,'Schooler','Cruising with the school.'],[251,350,'Rare','Into the twilight zone.'],[351,449,'Deep Cut','Down in the midnight zone.'],[450,700,'One in a Krillion','Scraping the abyssal floor.']];
  const marks=result.answers.map((entry,i)=>{
    const pts=entry.points/10;
    return `<div class="logCast" title="${escapeText(entry.event)} · ${pts} points" style="--drop:${pts}%;--ink:${tierColors[pts]||tierColors[0]}"><i></i><small>${i+1}</small><span class="srOnly">Prompt ${i+1}: ${pts} points</span></div>`;
@@ -308,7 +314,7 @@ function results(result){
      <b style="left:${points/7}%"></b></div><div class="axisLabels"><span>0</span>YOUR RECENT DIVES<span>700 PTS</span></div>
    <p id="percentile" role="status">${result.global&&result.count>1?'Deeper than '+result.percentile+'% of today’s divers.':''}</p>
    <h2>DIVE LOG <small>DEEPER = RARER</small></h2><div class="logChart"><div class="chartTicks" aria-hidden="true"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>${marks}</div>
-   <h2>THE BEARING</h2><ul class="bearings">${bands.map(([lo,hi,name])=>`<li class="${points>=lo&&points<=hi?'earned':''}"><small>${hi===700?'450+':lo+'–'+hi}</small>${name}</li>`).join('')}</ul>
+   <h2>THE BEARING</h2><ul class="bearings">${bands.map(([lo,hi,name,line])=>`<li class="${points>=lo&&points<=hi?'earned':''}"><small>${hi===700?'450+':lo+'–'+hi}</small><span>${name}. <i>${line}</i></span></li>`).join('')}</ul>
    <div class="row reportActions">${button('COPY RESULT','copy','diveSubmit')}${button('SHARE…','share')}</div>
    <p id="shareStatus" role="status"></p>${result.mode==='Daily'?countdown():''}
    <section class="catchBook"><h2>THE CATCH <small>Tap a prompt for every answer</small></h2><div id="catches"></div></section>

@@ -24,6 +24,9 @@ export function selection(events, seed, round, first, mode) {
   const ordinary=[],wordplay=[];
   entries.forEach((entry,index)=>{
     const prompt=Array.isArray(entry)?entry[0]:entry.prompt??entry;
+    // A prompt with a first day joins the pool from that day on, so adding one never changes a live Daily.
+    const since=Array.isArray(entry)?entry[2]:entry.since;
+    if(since>seed)return;
     (prompt.includes('\n')?wordplay:ordinary).push(index);
   });
   const pool=round===wordRound && wordplay.length?wordplay:ordinary;

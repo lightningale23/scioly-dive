@@ -36,7 +36,7 @@ const assets=['style.css','vt323.ttf','VT323-LICENSE.txt'];
 if(!staticGame) assets.push('game.js','selection.js','features.js');
 for(const file of assets) await copyFile(file,output+'/'+file);
 if(!staticGame){
-  const publicEvents=events.map(([event,entries])=>[event,entries.map(([prompt])=>prompt)]);
+  const publicEvents=events.map(([event,entries])=>[event,entries.map(([prompt,,since])=>since?{prompt,since}:prompt)]);
   await writeFile(output+'/client-catalog.js',"export {events,packs} from './prompts.js';\n");
   await writeFile(output+'/prompts.js','export const events = '+JSON.stringify(publicEvents)+';\nexport const packs = '+JSON.stringify(packs)+';\n');
 }

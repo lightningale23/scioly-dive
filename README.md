@@ -6,7 +6,6 @@ Run npm ci, npm run build and npm start from this folder, then open http://local
 | --- | --- |
 | AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_DEPLOYMENT | Azure fallback for guesses outside the curated answer bank. Choose a deployment that supports Chat Completions JSON mode. |
 | UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN, DIVE_SECRET | Persistent judgments and practice data, account sign-in and sync, and global daily percentiles. Use a stable random signing secret shared by every server instance. |
-| ANSWER_FAMILIARITY_JSON | Optional precomputed corpus counts per million, keyed by normalized canonical answer, for example {"parallax":3.2}. Editorial selections take precedence for the 15- and 100-point tiers. |
 
 Guest settings, completion, and streaks are saved on the device. The answer API stores a hash of a daily fallback guess with its verdict. It records normalized practice guesses and their outcomes for editorial review. Azure-validated answers initially receive 30 points and can receive a curated tier when added to the answer bank.
 
@@ -31,3 +30,15 @@ Each prompt has exactly one canonical 100-point answer. Existing editorial picks
 `features.js` sets `dailyOnly = true`, so the site offers only the Daily Dive while the answer lists are filled in. Old Unlimited, Archive, Packs and Party links open the Daily Dive, and the server refuses those modes. Set it to `false` to bring them back.
 
 Run `npm run upcoming -- 7` to print the next seven days of Daily prompts with their current answers. Add missing answers to `catalog-data/curated-answers.js`, keyed by the exact prompt. `npm test` checks that every key matches a prompt and every spelling is accepted.
+
+## How rarity is decided
+
+Like Krillion, an answer's tier is fixed before anyone plays. In order of precedence:
+
+1. Hand-set tiers in `answer-bank.js` (the original prompts' editorial picks and the `ratings` list).
+2. A prompt's short list of obvious answers in `catalog-data/obvious-answers.js`, which become Plankton and Schooler.
+3. Familiarity from the wordfreq corpus in `catalog-data/familiarity.js`. Without an obvious list, the most familiar ~1% of a prompt's answers are Plankton and the next ~5% Schoolers. Everything else is Rare if the word is reasonably common in English, otherwise Deep Cut.
+
+Each prompt's One in a Krillion prefers an answer with a fun fact from `catalog-data/krillion-facts.js`, and the fact appears when a player lands it. After adding answers, run `pip install wordfreq` and then `npm run familiarity` to score the new spellings. Unscored answers count as Deep Cuts.
+
+Broad prompts in `catalog-data/broad-prompts.js` carry the first Daily day that may draw them. The day must be after the deploy date, so a live Daily never changes.

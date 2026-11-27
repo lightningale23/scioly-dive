@@ -1,0 +1,35 @@
+// The short list of obvious answers per base prompt: what most players type first.
+// [Plankton answers, Schooler answers], written as canonical names. When a prompt has a
+// list, word frequency can rate its other answers Rare at most, so homonyms such as the
+// languages "Go" or "Red" never pass for obvious. Letter-rule variants use their base list.
+export const obviousAnswers = {
+  'Name a chemical element.': ['hydrogen; oxygen; carbon; gold; iron', 'helium; nitrogen; sodium; silver; copper; lead; mercury; calcium; uranium; neon; aluminium; chlorine'],
+  'Name a substance that is a liquid at room temperature.': ['water; milk; mercury', 'ethanol; gasoline; olive oil; juice; vinegar; honey; coffee; blood'],
+  'Name a constellation.': ['Orion; Ursa Major', 'Ursa Minor; Cassiopeia; Leo; Scorpius; Gemini; Taurus; Cygnus; Andromeda'],
+  'Name a star other than the Sun.': ['Polaris; Sirius', 'Betelgeuse; Alpha Centauri; Proxima Centauri; Vega; Rigel; Arcturus; Antares'],
+  'Name a muscle in the human body.': ['biceps; triceps; quadriceps', 'deltoid; pectoralis major; rectus abdominis; hamstrings; gastrocnemius; gluteus maximus; diaphragm; myocardium; latissimus dorsi; trapezius'],
+  'Name an infectious disease.': ['influenza; COVID-19; common cold', 'measles; chickenpox; malaria; tuberculosis; HIV; strep throat; pneumonia; Ebola; mumps; polio; plague'],
+  'Name a river that is at least 80 km (50 miles) long.': ['Nile; Amazon; Mississippi', 'Yangtze; Thames; Danube; Ganges; Missouri; Rhine; Colorado River; Mekong; Congo; Hudson'],
+  'Name a freshwater lake.': ['Lake Superior; Lake Michigan', 'Lake Erie; Lake Huron; Lake Ontario; Lake Tahoe; Lake Baikal; Lake Victoria; Loch Ness; Lake Titicaca'],
+  'Name a programming language.': ['Python; Java; JavaScript', 'C; C++; C#; Ruby; Swift; Rust; Go; Scratch; PHP; TypeScript; SQL'],
+  'Name a protein or enzyme.': ['hemoglobin; insulin; collagen', 'keratin; amylase; pepsin; actin; myosin; lactase; antibody; DNA polymerase; lipase'],
+  'Name a human genetic disorder.': ['Down syndrome; cystic fibrosis', 'sickle cell disease; hemophilia; Huntington disease; color blindness; Turner syndrome; Klinefelter syndrome; Tay Sachs disease; albinism'],
+  'Name an electronic component.': ['resistor; capacitor', 'transistor; diode; light emitting diode; battery; inductor; switch; integrated circuit; transformer; wire'],
+  'Name an Earth-observing satellite, mission, or instrument.': ['Landsat', 'Terra; Aqua; GOES; MODIS; Sentinel-2; GRACE; Suomi NPP'],
+  'Name an animal that lives on a coral reef.': ['clownfish; shark', 'sea turtle; parrotfish; octopus; starfish; sea urchin; moray eel; blue tang; jellyfish; coral; seahorse; stingray'],
+  'Name a fiber or fabric.': ['cotton; wool; silk', 'polyester; nylon; linen; denim; leather; velvet; spandex; rayon'],
+  'Name a kind of tree.': ['oak; pine; maple', 'birch; palm; willow; apple; cherry; redwood; spruce; cedar; elm; fir'],
+  'Name a type of aircraft.': ['airplane; helicopter; jet', 'glider; drone; hot air balloon; blimp; biplane; fighter; airliner; seaplane'],
+  'Name a famous codebreaker or cryptographer.': ['Alan Turing', 'Julius Caesar; Joan Clarke; Marian Rejewski; William Friedman; Claude Shannon'],
+  'Name a type of battery or battery chemistry.': ['alkaline battery; lithium ion', 'AA; AAA; 9 volt battery; car battery; lead acid; nickel metal hydride; D cell; button cell'],
+  'Name a bone in the human skeleton.': ['femur; skull', 'rib; tibia; humerus; patella; pelvis; sternum; clavicle; radius'],
+  'Name a part of the human brain.': ['cerebrum; cerebellum', 'brainstem; frontal lobe; hippocampus; amygdala; hypothalamus; thalamus; medulla oblongata'],
+  'Name a law that helps solve an electrical circuit.': ['Ohm law', 'Kirchhoff current law; Kirchhoff voltage law'],
+  'Name a gas law you might use to predict what happens in a sealed syringe.': ['Boyle law; ideal gas law', 'Charles law'],
+  'Name a structure a botanist could point to on a flower.': ['petal', 'stamen; pistil; sepal; anther; stigma; pollen grain'],
+  'Name one of the twenty standard amino acids by its full name.': ['glycine', 'alanine; lysine; leucine'],
+  'Name a commonly taught sorting algorithm.': ['bubble sort', 'merge sort; quick sort; insertion sort; selection sort'],
+  'Which classical cipher could a puzzle setter use?': ['Caesar cipher', 'Vigenère cipher; Atbash; Playfair cipher'],
+  'Name a mineral, mineral group, or mineral variety.': ['quartz; diamond', 'calcite; feldspar; mica; gypsum; talc; pyrite; graphite; halite; topaz; fluorite'],
+  'Name a moon in our Solar System.': ['Moon', 'Titan; Europa; Ganymede; Io; Callisto; Phobos; Deimos; Triton; Enceladus; Charon'],
+};

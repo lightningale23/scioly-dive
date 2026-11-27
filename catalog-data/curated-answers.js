@@ -61,7 +61,7 @@ export const curatedAnswers = {
 
   // Anatomy & Physiology
   'Name a bone in the human skeleton.':
-    'vertebra; cervical vertebra; thoracic vertebra; lumbar vertebra; sesamoid bone; hip bone|os coxae|innominate bone|coxal bone; carpal|carpal bone; tarsal|tarsal bone; proximal phalanx; middle phalanx; distal phalanx; true rib; false rib; floating rib; manubrium; fabella; skull|cranium',
+    'vertebra; cervical vertebra; thoracic vertebra; lumbar vertebra; sesamoid bone; hip bone|os coxae|innominate bone|coxal bone; carpal|carpal bone; tarsal|tarsal bone; proximal phalanx; middle phalanx; distal phalanx; true rib; false rib; floating rib; manubrium; fabella; skull|cranium; pelvis|pelvic girdle',
   'Name a part of the eye that admits, focuses, absorbs, or detects light.':
     'ciliary body; ciliary muscle; zonule|zonular fibers|suspensory ligament; tear film; lens capsule; lens fiber; anterior chamber; posterior chamber; intrinsically photosensitive retinal ganglion cell|ipRGC; S cone|blue cone|short wavelength cone; M cone|green cone|medium wavelength cone; L cone|red cone|long wavelength cone; foveola; fovea|fovea centralis; outer segment; rhodopsin; photopsin; melanin; pigment epithelium',
   'Name a part of the human brain.':
