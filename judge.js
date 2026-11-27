@@ -33,7 +33,7 @@ async function gemini(prompt, answer) {
       },
     }),
   });
-  if (!response.ok) throw new Error('Gemini request failed: ' + response.status);
+  if (!response.ok) throw new Error('Gemini request failed: ' + response.status + ' ' + (await response.text()).slice(0, 160));
   const result = await response.json();
   return JSON.parse(result.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}');
 }

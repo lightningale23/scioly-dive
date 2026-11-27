@@ -9,7 +9,7 @@
 // limits live in memory and reset when the function restarts.
 import {matchAnswer} from '../matching.js';
 import {normalize, questionFor} from '../answer-bank.js';
-import {data, hash, today} from '../dive-storage.js';
+import {data, durable, hash, today} from '../dive-storage.js';
 import {cachedPoints, judgeAnswer, judgeConfigured} from '../judge.js';
 
 const origins = (process.env.ALLOWED_ORIGINS || 'https://lightningale23.github.io').split(',').map(origin => origin.trim());
@@ -52,6 +52,15 @@ export default async function handler(req, res) {
   };
   if (req.method === 'OPTIONS') { res.statusCode = 204; return res.end(); }
   try {
+    if (req.method === 'GET' && new URL(req.url, 'http://local').searchParams.has('health')) {
+      // Says whether judging can run, without revealing any key. ?health=deep also makes one test call.
+      const health = {configured: judgeConfigured(), provider: process.env.GEMINI_API_KEY ? 'gemini' : judgeConfigured() ? 'azure' : null,
+        model: process.env.GEMINI_API_KEY ? process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite' : undefined, durableStorage: durable};
+      if (new URL(req.url, 'http://local').searchParams.get('health') === 'deep' && health.configured) {
+        try { health.testJudgment = await judgeAnswer('Name a noble gas.', 'neon'); } catch (error) { health.error = String(error.message).slice(0, 200); }
+      }
+      return reply(200, health);
+    }
     if (req.method === 'GET') {
       // Accepted-answer log for review: GET /api/judge?day=20784 with Authorization: Bearer REVIEW_TOKEN.
       const token = process.env.REVIEW_TOKEN;
@@ -86,7 +95,8 @@ export default async function handler(req, res) {
     }
     const points = cachedPoints(verdict);
     return reply(200, points ? {status: 'valid', points, judged: true} : {status: 'invalid'});
-  } catch {
+  } catch (error) {
+    console.error('AI judge failed:', error.message);
     return reply(200, {status: 'unverified'});
   }
 }
