@@ -6,6 +6,19 @@ import { normalize } from '../matching.js';
 // game prefers it as the 100-point answer and shows the fact when someone lands it: the
 // Krillion should be a delightful find, not just the most obscure word on the list.
 const facts = {
+  // Obscure Krillions for prompts that lacked a fact or had an obvious Krillion (2026-11-27)
+  'Euler buckling': ['Leonhard Euler worked out the buckling load of a slender column in 1744; doubling a column\u2019s length cuts that load to a quarter.', 'boomilever'],
+  'chiasma': ['Frans Alfons Janssens named the chiasma in 1909 for its X shape, after the Greek letter chi, and guessed it marked where chromosomes swap pieces.', 'mendelian'],
+  'yazoo stream': ['A yazoo stream runs alongside a bigger river for miles because the natural levee blocks it from joining; it is named for Mississippi\u2019s Yazoo River.', 'freshwater'],
+  'spotface': ['A spotface is a very shallow counterbore that only smooths a flat seat for a bolt head or washer on a rough casting.', 'annotation'],
+  'medullary index': ['The medullary index (medulla width over hair width) is usually under 1/3 for human hair but over 1/2 for most animal hair.', 'hair, fiber'],
+  'pascal': ['One pascal is tiny: roughly the pressure of a sheet of printer paper lying flat on a table.', 'hovercraft'],
+  'block and tackle': ['Plutarch wrote that Archimedes, using compound pulleys, single-handedly hauled a fully loaded ship onto dry land.', 'simple machine'],
+  'tryptophan': ['Tryptophan is the rarest of the 20 amino acids in most proteins, only about 1 in every 100 residues.', 'amino acid'],
+  'crown-of-thorns starfish': ['A crown-of-thorns starfish pushes its stomach out through its mouth to digest coral in place; outbreaks can strip whole reefs.', 'coral reef'],
+  'microfilm': ['Indoor fliers once covered wings in microfilm, a lacquer poured onto water and lifted off so thin that it shimmers with rainbow colors.', 'model plane'],
+  'weathercocking': ['Weathercocking turns a stable rocket into the wind, because crosswind pushes harder on the fins at the back than on the nose.', 'design parameter'],
+  'Wheatstone bridge': ['Samuel Hunter Christie invented the Wheatstone bridge in 1833; Charles Wheatstone only popularized it about ten years later.', 'dc circuit'],
   // Prompts added 2026-11-27 (scoped to a word in their prompt)
   'third-angle projection': ['US drawings use third-angle projection while much of Europe and Asia uses first-angle; a small truncated-cone symbol in the title block tells you which.', 'onshape'],
   'Kasiski examination': ['Friedrich Kasiski published his attack on the Vigen\u00e8re cipher in 1863, ending its reputation as \u201cthe indecipherable cipher\u201d.', 'codebusters'],
