@@ -1,6 +1,7 @@
 import {matchAnswer} from '../matching.js';
 import { normalize, questionFor } from '../answer-bank.js';
 import { packs } from '../prompts.js';
+import { modeAllowed } from '../features.js';
 import { account, data, durable, equal, hash, passwordHash, salt, sign, today, verify } from '../dive-storage.js';
 
 async function judge(prompt, answer) {
@@ -32,7 +33,7 @@ async function validate(body) {
       !Number.isInteger(round) || round < 0 || round > 6 ||
       typeof dive !== 'string' || !/^[\da-f-]{36}$/.test(dive) ||
       typeof answer !== 'string' || answer.length > 100 ||
-      !['Daily', 'Archive', 'Unlimited', ...packs.map(pack => pack[0])].includes(mode) ||
+      !['Daily', 'Archive', 'Unlimited', ...packs.map(pack => pack[0])].includes(mode) || !modeAllowed(mode) ||
       (mode === 'Daily' && (seed !== today() || first != null)) ||
       (first != null && (!Number.isInteger(first) || first < 0 || first > 6))) return null;
 

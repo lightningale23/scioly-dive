@@ -1,4 +1,4 @@
-﻿# Science Olympiad Dive
+# Science Olympiad Dive
 
 Run npm ci, npm run build and npm start from this folder, then open http://localhost:4173. This serves both the built pages and the answer API. On Vercel, use this folder as the project root.
 
@@ -25,3 +25,9 @@ Players can retry during the original 25-second round. A unique close spelling a
 Run `npm test` to check catalog coverage, accepted spellings, typo handling and client/server schedule alignment before building.
 
 Each prompt has exactly one canonical 100-point answer. Existing editorial picks take precedence; when several qualify, a stable prompt-based tie-break picks one. Prompts without a prior pick use a featured term or a highest-rated eligible answer. Aliases of the winner earn the same points. These are game-design choices, not measured player frequencies. See the [catalog sources](catalog-data/SOURCES.md) for the mineral and satellite lists.
+
+## Daily-only mode and adding answers
+
+`features.js` sets `dailyOnly = true`, so the site offers only the Daily Dive while the answer lists are filled in. Old Unlimited, Archive, Packs and Party links open the Daily Dive, and the server refuses those modes. Set it to `false` to bring them back.
+
+Run `npm run upcoming -- 7` to print the next seven days of Daily prompts with their current answers. Add missing answers to `catalog-data/curated-answers.js`, keyed by the exact prompt. `npm test` checks that every key matches a prompt and every spelling is accepted.

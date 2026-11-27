@@ -33,7 +33,7 @@ for (const page of pages) {
 }
 
 const assets=['style.css','vt323.ttf','VT323-LICENSE.txt'];
-if(!staticGame) assets.push('game.js','selection.js');
+if(!staticGame) assets.push('game.js','selection.js','features.js');
 for(const file of assets) await copyFile(file,output+'/'+file);
 if(!staticGame){
   const publicEvents=events.map(([event,entries])=>[event,entries.map(([prompt])=>prompt)]);

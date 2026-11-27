@@ -1,12 +1,15 @@
 import {selection} from './selection.js';
 import {events,packs} from './client-catalog.js';
+import {dailyOnly,modeAllowed} from './features.js';
 
 const app=document.querySelector('#app');
 const dialog=document.querySelector('#panel');
 dialog.remove();
 const siteRoot=new URL('./',import.meta.url);
 const sitePath=path=>new URL(path.slice(1),siteRoot).pathname;
-const route=('/'+location.pathname.slice(siteRoot.pathname.length)).replace(/\/$/,'')||'/';
+const requestedRoute=('/'+location.pathname.slice(siteRoot.pathname.length)).replace(/\/$/,'')||'/';
+// Old Unlimited, Archive, Packs and Party links open the Daily Dive while those modes are paused.
+const route=dailyOnly?'/':requestedRoute;
 const endless=route==='/unlimited/classic';
 const day=Math.floor(Date.now()/86400000);
 const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem('scioly-'+key))??fallback}catch{return fallback}};
@@ -73,6 +76,7 @@ function home(){
 }
 
 function begin(diveSeed,kind,first){
+ if(!modeAllowed(kind))return;
  clearInterval(timer);
  state='play'; mode=kind; score=0; round=0; answers=[]; receipts=[];
  seed=diveSeed; firstEvent=first; dive=crypto.randomUUID();
@@ -302,7 +306,7 @@ function results(result){
    <div class="row reportActions">${button('COPY RESULT','copy','diveSubmit')}${button('SHARE…','share')}</div>
    <p id="shareStatus" role="status"></p>
    <section class="catchBook"><h2>THE CATCH <small>Tap a prompt for every answer</small></h2><div id="catches"></div></section>
-   <div class="row reportActions">${chip('/unlimited/classic','KEEP DIVING →')}${chip('/archive','ARCHIVE ⟲')}${chip('/','DAILY DIVE')}</div></section>`;
+   <div class="row reportActions">${dailyOnly?'':chip('/unlimited/classic','KEEP DIVING →')+chip('/archive','ARCHIVE ⟲')}${chip('/','DAILY DIVE')}</div></section>`;
  renderCatch(result.answers);
  const summary='Science Olympiad Dive | '+points+' pts · '+result.score+' m\n'+result.answers.map(a=>a.points?'🟦':'⬛').join('')+'\n'+siteRoot.href;
  const status=document.querySelector('#shareStatus');
@@ -321,7 +325,8 @@ function tone(frequency){
 
 function panel(name){
  document.querySelectorAll('header [aria-expanded]').forEach(control=>control.setAttribute('aria-expanded',String(control.dataset.panel===name)));
- const menu=[['↓','DAILY DIVE','/'],['∞','UNLIMITED','/unlimited/classic'],['≈','PUFFER PARTY','/party'],['⟲','ARCHIVE','/archive'],['▦','THEMED PACKS','/packs'],['♟','WARDROBE','wardrobe'],['⚙','SETTINGS','settings'],['?','HOW TO PLAY','help'],['≋','DIVE LOG','log']];
+ const allMenu=[['↓','DAILY DIVE','/'],['∞','UNLIMITED','/unlimited/classic'],['≈','PUFFER PARTY','/party'],['⟲','ARCHIVE','/archive'],['▦','THEMED PACKS','/packs'],['♟','WARDROBE','wardrobe'],['⚙','SETTINGS','settings'],['?','HOW TO PLAY','help'],['≋','DIVE LOG','log']];
+ const menu=allMenu.filter(([,,target])=>!dailyOnly||!target.startsWith('/')||target==='/');
  dialog.dataset.view=name;
  let content='';
  if(name==='menu')content='<div class="eyebrow">DIVE IN ─────────────</div><nav class="grid" aria-label="Main menu">'+menu.map(([icon,label,target])=>target.startsWith('/')?'<a class="tile '+(route===target?'active':'')+'" href="'+sitePath(target)+'"><span>'+icon+'</span>'+label+'</a>':'<button class="tile" data-panel="'+target+'"><span>'+icon+'</span>'+label+'</button>').join('')+'</nav>';
