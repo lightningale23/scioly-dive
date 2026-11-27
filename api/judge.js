@@ -5,7 +5,8 @@
 // Environment: GEMINI_API_KEY (see judge.js), ALLOWED_ORIGINS (comma-separated; defaults to the
 // GitHub Pages origin), JUDGE_DAILY_LIMIT (default 900 new judgments a day), JUDGE_VISITOR_LIMIT
 // (default 60 a day), REVIEW_TOKEN (lets scripts/accepted-answers.mjs read the accepted log).
-// Durable caching needs Upstash Redis (UPSTASH_REDIS_REST_URL and _TOKEN); without it, the cache and
+// Durable caching needs Upstash Redis (KV_REST_API_URL and _TOKEN from Vercel's integration, or
+// UPSTASH_REDIS_REST_URL and _TOKEN); without it, the cache and
 // limits live in memory and reset when the function restarts.
 import {matchAnswer} from '../matching.js';
 import {normalize, questionFor} from '../answer-bank.js';
@@ -56,7 +57,8 @@ export default async function handler(req, res) {
     if (req.method === 'GET' && new URL(req.url, 'http://local').searchParams.has('health')) {
       // Says whether judging can run, without revealing any key. ?health=deep also makes one test call.
       const health = {configured: judgeConfigured(), provider: process.env.GEMINI_API_KEY ? 'gemini' : judgeConfigured() ? 'azure' : null,
-        model: process.env.GEMINI_API_KEY ? process.env.GEMINI_MODEL || 'gemini-flash-lite-latest' : undefined, durableStorage: durable};
+        model: process.env.GEMINI_API_KEY ? process.env.GEMINI_MODEL || 'gemini-flash-lite-latest' : undefined, durableStorage: durable,
+        storageVariables: Object.keys(process.env).filter(name => /^(KV_|UPSTASH_|REDIS_)/.test(name)).sort(), reviewTokenSet: Boolean(process.env.REVIEW_TOKEN)};
       if (new URL(req.url, 'http://local').searchParams.get('health') === 'deep' && health.configured) {
         try { health.testJudgment = await judgeAnswer('Name a noble gas.', 'neon'); } catch (error) { health.error = String(error.message).slice(0, 200); }
       }

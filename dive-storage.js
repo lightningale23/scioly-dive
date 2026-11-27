@@ -22,13 +22,17 @@ export function account(req) {
   return session?.type === 'account' && session.expires > Date.now() ? session.id : null;
 }
 
-export const durable = Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+// Upstash Redis over REST. Vercel's Upstash integration names the variables KV_REST_API_URL and
+// KV_REST_API_TOKEN; a database created on Upstash directly uses UPSTASH_REDIS_REST_URL and _TOKEN.
+const redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+export const durable = Boolean(redisUrl && redisToken);
 const memory = new Map();
 export async function data(command, key, ...args) {
   key = 'scioly:v1:' + key;
   if (durable) {
-    const response = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
-      method: 'POST', headers: { Authorization: 'Bearer ' + process.env.UPSTASH_REDIS_REST_TOKEN, 'Content-Type': 'application/json' },
+    const response = await fetch(redisUrl, {
+      method: 'POST', headers: { Authorization: 'Bearer ' + redisToken, 'Content-Type': 'application/json' },
       body: JSON.stringify([command, key, ...args]), signal: AbortSignal.timeout(3000),
     });
     const result = await response.json();
