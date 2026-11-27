@@ -71,7 +71,7 @@ Most upkeep runs without Claude. Spend Claude sessions on writing new prompts an
 
 ## Pinning Dailies
 
-The Daily seed is the UTC day number (`Math.floor(Date.now() / 86400000)`; 2026-11-27 is 20784). `featuredDailies[day]` lists seven `[event, exact prompt]` pairs in round order, each from a different event. Pinned days so far: 20784–20798 (Nov 27 – Dec 11, 2026; Nov 28 repeats Nov 27; Dec 3 onward planned by `npm run plan-dailies`). Unpinned days rotate through all eligible prompts.
+The Daily seed is the UTC day number (`Math.floor(Date.now() / 86400000)`; 2026-11-27 is 20784). `featuredDailies[day]` lists seven `[event, exact prompt]` pairs in round order, each from a different event. Pinned days so far: 20784–20798 (Nov 27 – Dec 11, 2026; Dec 2 onward planned by `npm run plan-dailies`). Unpinned days rotate through all eligible prompts.
 
 When preparing new days:
 
