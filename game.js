@@ -27,9 +27,20 @@ const countdown=()=>'<p class="nextDive">NEXT DIVE IN <b data-countdown>'+untilN
 const escapeText=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
 const tierNames={10:'Plankton',15:'Too Clever',30:'Schooler',60:'Rare',85:'Deep Cut',100:'One in a Krillion'};
+// The Pages build ships prompts only; each row names a JSON file with its scored answers, fetched once
+// when a dive starts (or when old results are reviewed). Rows that already carry a bank are used as is.
+const decodeBank=rows=>rows.map(([canonical,aliases,points,fact])=>({canonical,aliases,points,...(fact&&{fact})}));
+function loadBank(item){
+ if(!item||item.bank)return Promise.resolve(item?.bank);
+ if(!item.file)return Promise.resolve();
+ return item.loading??=fetch(new URL(item.file,import.meta.url)).then(response=>{
+   if(!response.ok)throw new Error('Answer list unavailable');
+   return response.json();
+ }).then(rows=>item.bank=decodeBank(rows)).catch(error=>{item.loading=undefined;throw error});
+}
 async function api(body){
  if(document.documentElement.hasAttribute('data-static-game')){
-   const {guestApi}=await import('./guest-api.js');
+   const [{guestApi}]=await Promise.all([import('./guest-api.js'),loadBank(session?.[round])]);
    return guestApi(body,session?.[round]);
  }
  const response=await fetch('/api/dive',body?{
@@ -91,6 +102,8 @@ function begin(diveSeed,kind,first){
    const item=questions[index];
    return typeof item==='string'?{event,prompt:item}:{event,...item};
  });
+ // Start fetching all seven answer lists now, so judging an answer never waits on the network.
+ for(const item of session)loadBank(item).catch(()=>{});
  document.body.classList.remove('surface');
  play();
 }
@@ -271,11 +284,13 @@ function renderCatch(rounds){
    const shown=answer||label||(status==='valid'?'Accepted answer':status==='unverified'?'Unverified':'Skipped');
    item.innerHTML=`<summary style="--ink:${tierColors[scored]||tierColors[0]}"><span>${index+1}</span><span><small>${escapeText(event)} · ${escapeText(prompt)}</small><b>${escapeText(shown)}</b></span><strong>${scored} pts</strong></summary>`;
    list.append(item);
-   item.addEventListener('toggle',()=>{
+   item.addEventListener('toggle',async()=>{
      if(!item.open||item.querySelector('.catchPanel'))return;
      const panel=document.createElement('div');panel.className='catchPanel';item.append(panel);
      const catalog=events.find(([name])=>name===event)?.[1];
-     const bank=roundResult.bank??catalog?.find(row=>row.prompt===prompt)?.bank;
+     const row=catalog?.find(entry=>entry.prompt===prompt);
+     let bank=roundResult.bank;
+     if(!bank){panel.textContent='Loading answers…';bank=await loadBank(row).catch(()=>undefined)}
      if(!bank){panel.textContent='The answer list for this saved version is unavailable.';return}
      const rows=[...bank];
      if(status==='valid'&&answer&&!label&&!rows.some(row=>row.canonical===answer)){

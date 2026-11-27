@@ -9,11 +9,20 @@ await rm(output,{recursive:true,force:true});
 if(staticGame){
   // One immutable module owns the view, schedule, validator and catalog for the whole dive.
   const {build}=await import('esbuild');
+  // The bundle carries only prompts; each prompt's answers are a separate file fetched during the dive.
+  const {pagesCatalog}=await import('./pages-catalog.mjs');
+  const catalog=pagesCatalog();
+  const promptOnly={name:'prompt-only-catalog',setup(b){
+    b.onResolve({filter:/\/client-catalog\.js$/},()=>({path:'client-catalog',namespace:'pages-catalog'}));
+    b.onLoad({filter:/.*/,namespace:'pages-catalog'},()=>({contents:catalog.source,loader:'js'}));
+  }};
   const bundle=await build({
     entryPoints:['game.js'],bundle:true,format:'esm',platform:'browser',target:'es2022',
-    outdir:output,entryNames:'game-[hash]',metafile:true,minify:true,
+    outdir:output,entryNames:'game-[hash]',metafile:true,minify:true,plugins:[promptOnly],
   });
-  gameFile=Object.keys(bundle.metafile.outputs)[0].split('/').pop();
+  await mkdir(output+'/banks',{recursive:true});
+  for(const [file,json] of catalog.files)await writeFile(output+'/'+file,json);
+  gameFile=Object.keys(bundle.metafile.outputs).find(file=>file.endsWith('.js')).split('/').pop();
   await copyFile('catalog-data/SOURCES.md',output+'/catalog-sources.txt');
   // Old cached HTML still requests this entry point.
   await copyFile(output+'/'+gameFile,output+'/game.js');

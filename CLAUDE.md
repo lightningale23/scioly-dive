@@ -30,6 +30,7 @@ Every prompt must be a **specialist prompt** written from its event's 2027 Divis
 | `features.js` | Switches: `dailyOnly` (only the Daily is offered), `pausedEvents`, and `featuredDailies` (hand-pinned Dailies by UTC day number). |
 | `game.js`, `style.css`, `index.html` | Client UI: canvas ocean scene, round flow, results. |
 | `guest-api.js` | Judges answers in the browser for the Pages build. |
+| `pages-catalog.mjs` | Pages build only: the game bundle gets a prompt-only catalog, and each prompt’s scored answers become `banks/<hash>.json`, fetched by `loadBank` in `game.js` when a dive starts. Keeps the bundle small however long the lists get. |
 | `api/dive.js`, `serve.mjs`, `dive-storage.js` | Optional server with an Azure judging fallback, accounts and global stats. |
 
 ## Rarity tiers
@@ -78,7 +79,7 @@ npm start
 ```
 
 - `npm test` must pass before pushing. It checks matching, Krillion uniqueness, obvious and fact references, and client/server schedule agreement.
-- `node build.mjs --pages` builds the static site into `pages-dist/`.
+- `node build.mjs --pages` builds the static site into `pages-dist/` (bundle plus one answer file per prompt in `banks/`).
 - `npm run build` builds the server version into `dist/`.
 - `npm start` serves the server version locally at http://localhost:4173.
 
