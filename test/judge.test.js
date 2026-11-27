@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {questionFor} from '../answer-bank.js';
 import {today} from '../dive-storage.js';
+import {isClosedList} from '../catalog-data/closed-lists.js';
 
 // Calls api/judge.js the way Vercel would, with Gemini's HTTP API replaced by a stub.
 async function call(handler, body, origin = 'https://lightningale23.github.io') {
@@ -22,26 +23,35 @@ test('the AI judge only rules on unlisted answers to current Dailies, once per a
   };
   try {
     const {default: handler} = await import('../api/judge.js');
-    const question = questionFor(today(), 0, undefined, 'Daily');
-    const listed = question.bank.find(entry => entry.points === 85);
+    const rounds = [0, 1, 2, 3, 4, 5, 6].map(round => questionFor(today(), round, undefined, 'Daily'));
+    const question = rounds.find(q => isClosedList(q.prompt)) ?? rounds[0];
+    const open = rounds.find(q => !isClosedList(q.prompt));
+    const listed = open.bank.find(entry => entry.points === 85);
 
-    const inList = await call(handler, {prompt: question.prompt, answer: listed.canonical});
+    const inList = await call(handler, {prompt: open.prompt, answer: listed.canonical});
     assert.deepEqual([inList.json.status, inList.json.points], ['valid', 85]);
     assert.equal(inList.headers['Access-Control-Allow-Origin'], 'https://lightningale23.github.io');
 
-    const first = await call(handler, {prompt: question.prompt, answer: 'bronchogenic cyst'});
-    const again = await call(handler, {prompt: question.prompt, answer: 'Bronchogenic Cyst'});
+    const first = await call(handler, {prompt: open.prompt, answer: 'bronchogenic cyst'});
+    const again = await call(handler, {prompt: open.prompt, answer: 'Bronchogenic Cyst'});
     assert.deepEqual([first.json.status, first.json.points, first.json.judged], ['valid', 85, true], 'Deep Cut unless the AI says rare');
     assert.deepEqual([again.json.status, again.json.points], ['valid', 85]);
-    const rare = await call(handler, {prompt: question.prompt, answer: 'pumice stone'});
+    const rare = await call(handler, {prompt: open.prompt, answer: 'pumice stone'});
     assert.deepEqual([rare.json.status, rare.json.points], ['valid', 60]);
-    const rejected = await call(handler, {prompt: question.prompt, answer: 'pizza'});
+    const rejected = await call(handler, {prompt: open.prompt, answer: 'pizza'});
     assert.equal(rejected.json.status, 'invalid');
     assert.deepEqual(asked, ['bronchogenic cyst', 'pumice stone', 'pizza'], 'listed answers and repeat answers never reach the AI');
 
+    // A closed list (fixed official answers) never reaches the AI. Checked on days that have one.
+    if (isClosedList(question.prompt)) {
+      const closed = await call(handler, {prompt: question.prompt, answer: 'moonstone'});
+      assert.equal(closed.json.status, 'invalid');
+      assert(!asked.includes('moonstone'), 'closed lists never reach the AI');
+    }
+
     const stranger = await call(handler, {prompt: 'Name a country.', answer: 'France'});
     assert.equal(stranger.status, 400);
-    const otherSite = await call(handler, {prompt: question.prompt, answer: listed.canonical}, 'https://example.com');
+    const otherSite = await call(handler, {prompt: open.prompt, answer: listed.canonical}, 'https://example.com');
     assert.equal(otherSite.headers['Access-Control-Allow-Origin'], undefined);
   } finally {
     globalThis.fetch = realFetch;

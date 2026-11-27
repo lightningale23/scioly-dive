@@ -25,6 +25,10 @@ test('Pages uses the painted question for examples, acceptance and corrections',
   try{
     assert.equal((await guestApi({action:'validate',prompt:logic.prompt,answer:'tibia'},logic)).status,'invalid');
     assert.deepEqual(asked,judgeUrl?['tibia']:[]);
+    // Closed lists (fixed official answers) are never sent to the judge.
+    const rocks=rows.find(q=>q.prompt==='Name a rock or mineral on the 2027 National Rocks and Minerals List.');
+    assert.equal(guestApi({action:'validate',prompt:rocks.prompt,answer:'moonstone'},rocks).status,'invalid');
+    assert.deepEqual(asked,judgeUrl?['tibia']:[]);
   }finally{globalThis.fetch=realFetch}
 });
 test('Node refuses a different displayed prompt before grading even a correct scheduled answer',async()=>{

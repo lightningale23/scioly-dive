@@ -4,6 +4,7 @@ import { packs } from '../prompts.js';
 import { modeAllowed } from '../features.js';
 import { account, data, durable, equal, hash, passwordHash, salt, sign, today, verify } from '../dive-storage.js';
 import { cachedPoints, judgeAnswer } from '../judge.js';
+import { isClosedList } from '../catalog-data/closed-lists.js';
 
 async function validate(body) {
   const { seed, round, mode, answer, first, dive } = body;
@@ -23,7 +24,7 @@ async function validate(body) {
   let points = match?.points ?? 0;
   let status = answer ? 'invalid' : 'skipped';
   if (match) status = 'valid';
-  else if (normalized && !/^\d+$/.test(bank[0].canonical)) {
+  else if (normalized && !/^\d+$/.test(bank[0].canonical) && !isClosedList(prompt)) {
     const key = 'judgment:' + hash(JSON.stringify([prompt, normalized]));
     try {
       let verdict = await data('GET', key);

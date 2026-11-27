@@ -11,6 +11,7 @@ import {matchAnswer} from '../matching.js';
 import {normalize, questionFor} from '../answer-bank.js';
 import {data, durable, hash, today} from '../dive-storage.js';
 import {cachedPoints, judgeAnswer, judgeConfigured} from '../judge.js';
+import {isClosedList} from '../catalog-data/closed-lists.js';
 
 const origins = (process.env.ALLOWED_ORIGINS || 'https://lightningale23.github.io').split(',').map(origin => origin.trim());
 const dailyLimit = Number(process.env.JUDGE_DAILY_LIMIT || 900);
@@ -82,7 +83,7 @@ export default async function handler(req, res) {
     if (!question) return reply(400, {error: 'Not a current Daily prompt'});
     const {match} = matchAnswer(question.bank, answer, prompt);
     if (match) return reply(200, {status: 'valid', points: match.points, canonical: match.canonical});
-    if (!fitsLetterRule(prompt, answer)) return reply(200, {status: 'invalid'});
+    if (!fitsLetterRule(prompt, answer) || isClosedList(prompt)) return reply(200, {status: 'invalid'});
     if (!judgeConfigured()) return reply(200, {status: 'unverified'});
 
     const normalized = normalize(answer);

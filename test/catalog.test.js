@@ -88,3 +88,9 @@ test('every obvious answer is an accepted canonical answer of its prompt, and ev
   const spellings=new Set(rows.flatMap(r=>r.bank.flatMap(e=>[e.canonical,...e.aliases].map(normalize))));
   for(const answer of factAnswers)assert(spellings.has(normalize(answer)),'No answer for fact: '+answer);
 });
+
+test('every closed list names a real base prompt', async () => {
+  const {closedLists} = await import('../catalog-data/closed-lists.js');
+  const prompts = new Set(questions.flatMap(([, rows]) => rows.map(row => row.prompt)));
+  for (const prompt of closedLists) assert(prompts.has(prompt), 'closed list is not a prompt: ' + prompt);
+});
