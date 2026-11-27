@@ -56,8 +56,8 @@ function familiarityTiers(entries,bank,obvious){
 }
 
 function chooseFeatured(bank,prompt){
-  // Obvious answers never become the Krillion, even when they have a fun fact.
-  const factFor=entry=>entry.points>15?factLookup([entry.canonical,...entry.aliases],prompt):undefined;
+  // Obvious (Plankton and Schooler) answers never become the Krillion, even when they have a fun fact.
+  const factFor=entry=>entry.points>30?factLookup([entry.canonical,...entry.aliases],prompt):undefined;
   let hash=2166136261;
   for(const c of prompt)hash=Math.imul(hash^c.charCodeAt(0),16777619)>>>0;
   // A One in a Krillion should be a fun fact, not merely the most obscure word on the list.

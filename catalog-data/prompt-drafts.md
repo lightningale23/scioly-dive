@@ -19,7 +19,6 @@ Live prompts these drafts avoid: see `specialist-prompts.js`, `specialist-prompt
 | --- | --- | --- | --- |
 | Name a structure of the respiratory tract or lungs. | 3.a.i, 3.a.iii | 70 | Nasal cavity through alveoli, cell types (type I/II pneumocytes, goblet cells), pleura, surfactant. Krillion idea: surfactant. |
 | Name a lung volume, capacity, or breathing-mechanics term. | 3.a.ii, 3.a.iv | 55 | Tidal volume, IRV, ERV, residual volume, FVC, FEV1, FEV1/FVC, compliance, elastic recoil, Boyle's law, flow-volume loop. Merge with gas-exchange terms (3.a.v) to pass 60. |
-| Name a part of the digestive tract, an accessory organ, or a digestive enzyme or hormone. | 3.b.ii–vii | 100 | Organs, the four wall layers, sphincters, enzymes (amylase, pepsin, trypsin, lipase), hormones (gastrin, secretin, CCK, GIP, ghrelin). |
 | Name a cell or structure of the liver or pancreas. | 3.b.xi (State/National) | 40 | Hepatocyte, Kupffer cell, lobule, portal triad, islets, alpha/beta/delta cells, acinar cells. Too small alone; pair with the digestive organs prompt. |
 
 ## Astronomy
@@ -27,7 +26,6 @@ Live prompts these drafts avoid: see `specialist-prompts.js`, `specialist-prompt
 | Draft prompt | Rules section | Est. answers | Notes |
 | --- | --- | --- | --- |
 | Name a spectral feature, spectral class, or luminosity class of a star. | 3.a | 60 | OBAFGKM(LTY), Morgan–Keenan I–V, Balmer series, H-alpha, Ca II H and K, Fraunhofer lines, absorption and emission lines. |
-| Name an observatory, telescope, or detector used for multi-wavelength or multi-messenger astronomy. | 3 (intro) | 70 | LIGO, Virgo, KAGRA, IceCube, Chandra, XMM-Newton, NuSTAR, Fermi, Swift, Hubble, JWST, Spitzer, ALMA, VLA, Pierre Auger. |
 | Name an equation, law, or quantity used to find a cosmic distance. | 3.b | 45 | Overlaps the stars prompt; widen with orbital mechanics terms (Kepler's laws, semi-major axis, period, radial velocity). |
 
 ## Boomilever
@@ -41,7 +39,6 @@ Live prompts these drafts avoid: see `specialist-prompts.js`, `specialist-prompt
 
 | Draft prompt | Rules section | Est. answers | Notes |
 | --- | --- | --- | --- |
-| Name a plant hormone, pigment, or biochemical a botanist studies. | 3.d.iii, 3.d.xiii | 70 | Auxin, gibberellin, cytokinin, ABA, ethylene, chlorophylls, carotenoids, anthocyanins, lignin, cellulose, starch, tannins, alkaloids, terpenes. |
 | Name a botanist or a milestone in the history of botany. | 3.d.i | 70 | Theophrastus, Linnaeus, Mendel, Hooke, Grew, Malpighi, Hales, Ingenhousz, Calvin, McClintock, Carver, Borlaug, Vavilov, Asa Gray, binomial nomenclature, Green Revolution. |
 | Name a crop, medicinal plant, or plant product people use. | 3.d.vii, x, xiv | 150 | Large and approachable. Keep it rules-flavored: fibers, drugs (quinine, digitalis, taxol), rubber, foods. |
 
@@ -72,7 +69,6 @@ Live prompts these drafts avoid: see `specialist-prompts.js`, `specialist-prompt
 | Draft prompt | Rules section | Est. answers | Notes |
 | --- | --- | --- | --- |
 | Name a type of DNA mutation, repair pathway, or DNA-damaging agent. | 3.b.iv.5–6 | 50 | Substitution, insertion, deletion, frameshift, missense, nonsense, silent, inversion, translocation, NER, NHEJ, HDR, UVA, UVB, ionizing radiation, intercalating agents, thymine dimer. |
-| Name a stage, structure, or factor in transcription or translation. | 3.b.v | 70 | TATA box, initiation, elongation, termination, RNA pol II, spliceosome, start codon, A/P/E sites, release factor, Shine–Dalgarno. |
 
 ## Disease Detectives
 
@@ -92,7 +88,6 @@ Live prompts these drafts avoid: see `specialist-prompts.js`, `specialist-prompt
 
 | Draft prompt | Rules section | Est. answers | Notes |
 | --- | --- | --- | --- |
-| Name a microcontroller, sensor, or programming concept used to control a vehicle. | 3.c, 3.l | 80 | Arduino, ESP32, encoder, IMU, PWM, interrupt, PID, loop, variable, delay, serial monitor, library. |
 
 ## Engineering CAD
 
@@ -162,7 +157,6 @@ Live prompts these drafts avoid: see `specialist-prompts.js`, `specialist-prompt
 
 | Draft prompt | Rules section | Est. answers | Notes |
 | --- | --- | --- | --- |
-| Name an estuary or marine-ecology concept from Water Quality Part I. | Part I | 80 | Salt wedge, halocline, brackish water, tides, nursery habitat, eutrophication, trophic cascade, r/K strategies, survivorship curves, TEK. |
 | Name a water-monitoring measurement and what it indicates. | Part III | 40 | Small closed set; widen with units and methods (Secchi disk, Winkler titration, membrane filtration, BOD5). |
 
 ## Wright Stuff

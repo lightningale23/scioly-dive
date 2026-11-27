@@ -6,6 +6,15 @@ import { normalize } from '../matching.js';
 // game prefers it as the 100-point answer and shows the fact when someone lands it: the
 // Krillion should be a delightful find, not just the most obscure word on the list.
 const facts = {
+  // Prompts added 2026-11-27 (scoped to a word in their prompt)
+  'sphincter of Oddi': ['Ruggero Oddi described the sphincter that now bears his name in 1887, while he was still a 23-year-old medical student.', 'digestive'],
+  'florigen': ['Florigen was proposed in 1936 as a mystery signal that travels from leaves to buds to start flowering; it was finally shown to be a protein, FT, in 2007.', 'hormone'],
+  'wobble hypothesis': ['Francis Crick proposed the wobble hypothesis in 1966 to explain how a cell reads all 61 sense codons with far fewer kinds of tRNA.', 'translation'],
+  'anadromous': ['Salmon are anadromous: they hatch in fresh water, grow up at sea, then swim back to the stream where they hatched to spawn.', 'estuary'],
+  'quadrature encoder': ['A quadrature encoder reads two signals a quarter cycle apart, so the controller can tell which way a wheel turns, not just how far.', 'microcontroller'],
+  'IceCube': ['IceCube\u2019s 5,160 light sensors hang in a cubic kilometer of Antarctic ice, up to about 2.5 km deep, watching for flashes from neutrinos.', 'multi-messenger'],
+  'Naegleria fowleri': ['Naegleria fowleri, the \u201cbrain-eating amoeba\u201d, infects people only when warm fresh water goes up the nose; drinking the water does not cause infection.', 'pathogen'],
+  'Seasat': ['Seasat, launched in 1978, carried the first imaging radar flown on an Earth-orbiting satellite, but it failed after just 106 days.', 'earth-observing'],
   // Astronomy
   'Cepheid': ['Henrietta Swan Leavitt discovered the Cepheid period–luminosity relation in 1912, giving astronomers a yardstick for the universe.', 'distance'],
   // Botany

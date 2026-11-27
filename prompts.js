@@ -2,6 +2,7 @@ import { expandCatalog } from './expand-catalog.js';
 import { specialistPrompts } from './catalog-data/specialist-prompts.js';
 import { specialistPrompts2 } from './catalog-data/specialist-prompts-2.js';
 import { specialistPrompts3 } from './catalog-data/specialist-prompts-3.js';
+import { specialistPrompts4 } from './catalog-data/specialist-prompts-4.js';
 import { sourcedAnswers } from './catalog-data/sourced-answers.js';
 
 // Every prompt is a specialist prompt written from its event's 2027 Division C rules, so the
@@ -12,7 +13,7 @@ const officialEvents = ['Anatomy & Physiology', 'Astronomy', 'Boomilever', 'Bota
   'Remote Sensing', 'Rocks & Minerals', 'Thermodynamics', 'Water Quality', 'Wright Stuff'];
 
 export const events = officialEvents.map(name => [name,
-  [...specialistPrompts, ...specialistPrompts2, ...specialistPrompts3].filter(([event]) => event === name)
+  [...specialistPrompts, ...specialistPrompts2, ...specialistPrompts3, ...specialistPrompts4].filter(([event]) => event === name)
     // Long lists pulled from open reference data (scripts/sourced-answers.mjs) follow the hand-written answers.
     .map(([, prompt, bank]) => [prompt, Object.hasOwn(sourcedAnswers, prompt) ? bank + '; ' + sourcedAnswers[prompt] : bank])]);
 

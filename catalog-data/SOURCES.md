@@ -5,5 +5,7 @@
 - Long answer lists in sourced-answers.js are pulled by scripts/sourced-answers.mjs from open reference data:
   - Disease names and synonyms (respiratory, gastrointestinal and immune system diseases) from the [Human Disease Ontology](https://disease-ontology.org/), released under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/).
   - Commercially available restriction enzymes from [REBASE](http://rebase.neb.com/) (New England Biolabs), as packaged in [Biopython](https://biopython.org/) under the Biopython License / BSD 3-Clause.
+  - Pathogen names from the Human Disease Ontology's infectious-disease definitions (CC0).
+  - Plant diseases and Earth-observation satellites from [Wikidata](https://www.wikidata.org/) (CC0), limited to items with an English Wikipedia article.
   - 7400- and 4000-series logic chip numbers and functions from Wikipedia's "List of 7400-series integrated circuits" and "List of 4000-series integrated circuits", available under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 - Some hand-written answers were cross-checked against Wikipedia categories (Star types, Variable stars, Chemical kinetics, Equations of state, Epidemiology, Molecular biology techniques, Boolean algebra, Logic families).

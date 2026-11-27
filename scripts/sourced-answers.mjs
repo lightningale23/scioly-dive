@@ -6,6 +6,9 @@
 //     only commercially available enzymes are kept.
 //   Circuit Lab chips: Wikipedia's "List of 7400-series integrated circuits" and
 //     "List of 4000-series integrated circuits" (CC BY-SA 4.0).
+//   Disease Detectives pathogens: organisms the Disease Ontology names as causes of infectious diseases.
+//   Botany plant diseases and Remote Sensing satellites: Wikidata (CC0), items with an English article.
+// Set NODE_USE_ENV_PROXY=1 when Node must reach the network through an HTTPS proxy.
 // Usage: node scripts/sourced-answers.mjs [cacheDir]. Downloads are cached in cacheDir (default: a temp dir).
 // Hand-written answers in catalog-data/specialist-prompts*.js always win: a sourced spelling that
 // another hand-written answer already uses is dropped, so sourced data never merges two answers.
@@ -16,6 +19,7 @@ import {normalize} from '../matching.js';
 import {specialistPrompts} from '../catalog-data/specialist-prompts.js';
 import {specialistPrompts2} from '../catalog-data/specialist-prompts-2.js';
 import {specialistPrompts3} from '../catalog-data/specialist-prompts-3.js';
+import {specialistPrompts4} from '../catalog-data/specialist-prompts-4.js';
 import {expandedGroups} from '../coverage.js';
 
 const cache = process.argv[2] ?? join(tmpdir(), 'scioly-sourced');
@@ -38,8 +42,11 @@ const PROMPTS = {
   disease: 'Name a disease or disorder of the respiratory, digestive, or immune system.',
   genetics: 'Name an enzyme, technique, or molecule used in molecular genetics.',
   logic: 'Name a digital logic gate, circuit, or concept.',
+  pathogens: 'Name a pathogen (virus, bacterium, parasite, fungus, or prion) that causes human disease.',
+  plants: 'Name a plant disease, pest, or nutrient deficiency.',
+  satellites: 'Name an Earth-observing satellite, satellite series, or onboard sensor.',
 };
-const handRows = [...specialistPrompts, ...specialistPrompts2, ...specialistPrompts3];
+const handRows = [...specialistPrompts, ...specialistPrompts2, ...specialistPrompts3, ...specialistPrompts4];
 const handRaw = prompt => handRows.find(([, text]) => text === prompt)[2];
 
 // Builds a "; "-joined answer string from [canonical, ...aliases] groups. A spelling may belong to
@@ -157,8 +164,66 @@ async function logicChips() {
   return groups;
 }
 
+// ---- Pathogens named in Disease Ontology definitions ("has_material_basis_in <organism>") of
+// infectious diseases (descendants of disease by infectious agent, DOID:0050117)
+async function pathogens() {
+  const obo = await fetchCached('doid.obo', 'https://raw.githubusercontent.com/DiseaseOntology/HumanDiseaseOntology/main/src/ontology/doid.obo');
+  const defs = new Map(), children = new Map();
+  for (const block of obo.split('\n[Term]\n').slice(1)) {
+    const body = block.split('\n[')[0];
+    if (/^is_obsolete: true$/m.test(body)) continue;
+    const id = body.match(/^id: (\S+)/m)[1];
+    defs.set(id, body.match(/^def: "(.*)"/m)?.[1] ?? '');
+    for (const [, parent] of body.matchAll(/^is_a: (\S+)/gm)) {
+      if (!children.has(parent)) children.set(parent, []);
+      children.get(parent).push(id);
+    }
+  }
+  const found = new Set(), stack = ['DOID:0050117'];
+  while (stack.length) for (const child of children.get(stack.pop()) ?? []) if (!found.has(child)) { found.add(child); stack.push(child); }
+  const organism = /has_material_basis_in ((?:[A-Z][a-z]+ [a-z]+(?: [a-z]+)?(?: virus| \d+)?)|(?:[A-Z][\w-]*(?: [\w-]+){0,4} virus(?: \d+)?))/g;
+  const names = new Set();
+  for (const id of found) for (const [, match] of (defs.get(id) ?? '').matchAll(organism)) {
+    const name = match.replace(/ (and|which|that|transmitted|or|in|by|with|is)$/, '').trim();
+    if (!/\b(species|viruses|subsp|spp|bacteria|infection|fever|disease)\b/.test(name)) names.add(name);
+  }
+  // Binomials also match by their short form: "Mycobacterium tuberculosis" -> "M. tuberculosis".
+  return [...names].sort().map(name => {
+    const binomial = name.match(/^(?!Human )([A-Z])[a-z]+ (?![a-z]*virus$)([a-z]{3,})$/);
+    return binomial ? [name, binomial[1] + '. ' + binomial[2]] : [name];
+  });
+}
+
+// ---- Wikidata (CC0): items with an English Wikipedia article
+async function wikidata(name, where) {
+  const query = `SELECT DISTINCT ?label WHERE { ${where} ?article schema:about ?x ; schema:isPartOf <https://en.wikipedia.org/> . ?x rdfs:label ?label FILTER(lang(?label)="en") }`;
+  const json = JSON.parse(await fetchCached(name, 'https://query.wikidata.org/sparql?format=json&query=' + encodeURIComponent(query)));
+  return json.results.bindings.map(row => row.label.value);
+}
+// Plant diseases and disorders (instances of plant disease, Q2662845). Pathogen names and
+// catch-all labels are dropped; labels are lowercased except genus names and proper nouns.
+async function plantDiseases() {
+  const keepCase = /^(Alternaria|Armillaria|Ascochyta|Cyclaneusma|Fusarium|Helminthosporium|Leucostoma|Phomopsis|Sphaeropsis|Typhula|Verticillium|Dutch|Panama|Japanese|Texas|Stewart|Rapid|Ramu|X|ʻŌhiʻa|Ōhiʻa|Horse|Chestnut)$/;
+  const rename = {'plants calcium deficiency': 'calcium deficiency', 'plants micronutrient deficiency': 'micronutrient deficiency', 'Blackleg (potatoes)': 'blackleg', 'Powdery mildew in oaks': 'oak powdery mildew'};
+  const drop = /^(Helminthosporium solani|Puccinia triticina|Ralstonia solanacearum|potato viral diseases|Ascochyta diseases of pea|Winter injury)$/;
+  return (await wikidata('wd-plant-diseases.json', '?x wdt:P31/wdt:P279* wd:Q2662845 .'))
+    .filter(label => !drop.test(label)).map(label => rename[label] ?? label)
+    .map(label => label.split(' ').map((word, i) => keepCase.test(word.replace(/[’']s$/, '')) || (i === 0 && /^[A-Z]{2,}/.test(word)) ? word : word.toLowerCase()).join(' '))
+    .map(label => [tidy(label)]);
+}
+// Earth observation satellites (instances of Q854845), leaving out reconnaissance, nuclear-test
+// detection and space-physics craft that Wikidata also files there.
+async function satellites() {
+  const notEarthObserving = /^(Kosmos|Cosmos|Discoverer|Vela|KH |USA-|OPS |SAMOS|Explorer|Van Allen|Solrad|SOLRAD|Injun|Pioneer|Vanguard|Sputnik|Wind$|Geotail|Polar$|IMAGE$|Equator-S|Freja|Viking$|Dynamics Explorer|Charge Composition|Arase|International Cometary|Hiscock|Carruthers|Zuma|Prowler|GRAB|DSP |Alouette|Applications Technology|Orion \d|Ofeq|Hélios|Navid|Rasad|Kwangmy|FTV-|MANTIS|Hitchhiker|Lewis$|Zircon|Ionosfera|Denpa|Cerise|Space Technology 5|Fast Auroral|Solar |TIMED|Upper Atmosphere|Hayato|Bilibili|Napa-1|Munin|EPE-|Tyche|Raijin|Experimental Geodetic|Badr|China Seismo|Demeter|DME$|MK-1TS|MSTI|TacSat|Microsat|People|Jugnu|AzaadiSAT|Kitsat|Waseda|SATurnin|ESTCube|Hodoyoshi|TabletSat|Eycore|Flying Laptop|DLR-Tubsat|GGSE|OPTSAT|CSO-|Olymp|EagleEye|Pundit|Khayyam|Sina-1|Sich-2-30|PakTES|RaInCube|UNIFORM|Phi-Sat|PISat|Diwata|NepaliSat|ZimSat|Lawkanat|Bulgaria 1300|Azur$|Aist$|Brik|FR 1|EOLE|ARGOS|Hitchhiker|TeLEOS|Microsat|X-Sat|Technology Experiment)/;
+  return (await wikidata('wd-eo-satellites.json', '?x wdt:P31/wdt:P279* wd:Q854845 .'))
+    .filter(label => !notEarthObserving.test(label)).sort().map(label => [tidy(label.replace(/ \(satellite\)$/, ''))]);
+}
+
 const sections = [
   [PROMPTS.disease, 'Human Disease Ontology (CC0): respiratory, gastrointestinal and immune system diseases', await diseases()],
+  [PROMPTS.pathogens, 'Human Disease Ontology (CC0): organisms named as the cause of infectious diseases', await pathogens()],
+  [PROMPTS.plants, 'Wikidata (CC0): plant diseases and disorders with an English Wikipedia article', await plantDiseases()],
+  [PROMPTS.satellites, 'Wikidata (CC0): Earth observation satellites with an English Wikipedia article', await satellites()],
   [PROMPTS.genetics, 'REBASE via Biopython: commercially available restriction enzymes', await restrictionEnzymes()],
   [PROMPTS.logic, 'Wikipedia (CC BY-SA 4.0): 7400- and 4000-series logic integrated circuits', await logicChips()],
 ];
