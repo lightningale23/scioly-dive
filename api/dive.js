@@ -47,7 +47,8 @@ async function validate(body) {
   }
   if(answer && status!=='valid')return {status};
   return {
-    points, status, canonical: match?.canonical, fact: match?.points === 100 ? match.fact : undefined,
+    // An answer the AI judge accepted has no list entry: name it as typed and flag it AI-checked.
+    points, status, canonical: match?.canonical ?? (answer ? answer.trim() : undefined), judged: !match && status === 'valid' || undefined, fact: match?.points === 100 ? match.fact : undefined,
     bank,
     examples: bank.filter(entry => entry !== match).slice(0, 3).map(entry => entry.canonical),
     receipt: sign({ type: 'round', seed, round, mode, points, dive }),

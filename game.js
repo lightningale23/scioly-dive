@@ -244,7 +244,7 @@ async function submit(answer){
  const meters=verdict.points*10;
  score+=meters;
  receipts.push(verdict.receipt);
- answers.push({bank:question.bank??verdict.bank,event:question.event,prompt:question.prompt,answer,points:meters,label:verdict.canonical,status:verdict.status});
+ answers.push({bank:question.bank??verdict.bank,event:question.event,prompt:question.prompt,answer,points:meters,label:verdict.canonical||answer||undefined,judged:verdict.judged||undefined,status:verdict.status});
  tone(meters>0?500:190);
  // Answers accepted by the AI judge (not on the list) say so, since no editor rated them.
  const outcome=meters?tierNames[verdict.points]+(verdict.judged?' · AI-checked':''):verdict.status==='unverified'?'Could not verify':answer?'Not accepted':Date.now()>=deadline?'Time’s up':'Round skipped';
@@ -287,12 +287,13 @@ async function submit(answer){
 function renderCatch(rounds){
  const list=app.querySelector('#catches');
  for(const [index,roundResult] of rounds.entries()){
-   const {prompt,event,answer,label,status,points}=roundResult;
+   const {prompt,event,answer,label,status,points,judged}=roundResult;
    const item=document.createElement('details');
    item.name='catch-round';
    const scored=points/10;
-   const shown=answer||label||(status==='valid'?'Accepted answer':status==='unverified'?'Unverified':'Skipped');
-   item.innerHTML=`<summary style="--ink:${tierColors[scored]||tierColors[0]}"><span>${index+1}</span><span><small>${escapeText(event)} · ${escapeText(prompt)}</small><b>${escapeText(shown)}</b></span><strong>${scored} pts</strong></summary>`;
+   // Older saved results kept no text for AI-accepted answers (listed answers always have a label).
+   const shown=answer||label||(status==='valid'?'AI-checked answer':status==='unverified'?'Unverified':'Skipped');
+   item.innerHTML=`<summary style="--ink:${tierColors[scored]||tierColors[0]}"><span>${index+1}</span><span><small>${escapeText(event)} · ${escapeText(prompt)}</small><b>${escapeText(shown)}${judged?'<i class="aiTag"> · AI-checked</i>':''}</b></span><strong>${scored} pts</strong></summary>`;
    list.append(item);
    item.addEventListener('toggle',async()=>{
      if(!item.open||item.querySelector('.catchPanel'))return;
