@@ -237,7 +237,8 @@ async function submit(answer){
  receipts.push(verdict.receipt);
  answers.push({bank:question.bank??verdict.bank,event:question.event,prompt:question.prompt,answer,points:meters,label:verdict.canonical,status:verdict.status});
  tone(meters>0?500:190);
- const outcome=meters?tierNames[verdict.points]:verdict.status==='unverified'?'Could not verify':answer?'Not accepted':Date.now()>=deadline?'Time’s up':'Round skipped';
+ // Answers accepted by the AI judge (not on the list) say so, since no editor rated them.
+ const outcome=meters?tierNames[verdict.points]+(verdict.judged?' · AI-checked':''):verdict.status==='unverified'?'Could not verify':answer?'Not accepted':Date.now()>=deadline?'Time’s up':'Round skipped';
  const examples=verdict.examples.map(escapeText).join(' · ');
  app.innerHTML=`<section class="diveScreen" style="--rarity:${tierColors[verdict.points]}">${diveHud()}
    ${meters?`<div class="sinkingGuess" aria-hidden="true">${escapeText(answer)}</div>`:''}
