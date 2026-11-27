@@ -49,6 +49,9 @@ export async function data(command, key, ...args) {
     return 1;
   }
   if (command === 'ZSCORE') return memory.get(key)?.get(args[0]) ?? null;
+  if (command === 'INCR') { const next = Number(memory.get(key) ?? 0) + 1; memory.set(key, String(next)); return next; }
+  if (command === 'EXPIRE') return memory.has(key) ? 1 : 0;
+  if (command === 'ZRANGE') return [...(memory.get(key)?.entries() ?? [])].sort((a, b) => a[1] - b[1]).map(([member]) => member);
   const scores = [...(memory.get(key)?.values() ?? [])];
   if (command === 'ZCARD') return scores.length;
   if (command === 'ZCOUNT') return scores.filter(score => score < Number(args[1].slice(1))).length;

@@ -1,7 +1,12 @@
-﻿{
+{
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/dive.js": { "maxDuration": 20 }
+    "api/dive.js": {
+      "maxDuration": 20
+    },
+    "api/judge.js": {
+      "maxDuration": 15
+    }
   }
 }

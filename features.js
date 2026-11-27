@@ -3,6 +3,10 @@
 export const dailyOnly = true;
 export const modeAllowed = mode => !dailyOnly || mode === 'Daily';
 
+// AI judging for answers that aren't in a prompt's list (api/judge.js on Vercel). Leave empty to turn it
+// off: unlisted answers are then simply not accepted. Example: 'https://scioly-dive.vercel.app/api/judge'.
+export const judgeUrl = '';
+
 // Trial events (not yet official Division C events) are left out of every dive for now.
 export const pausedEvents = ['Code Craze', 'Hydraulics', 'Junkyard Challenge'];
 
