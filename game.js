@@ -63,11 +63,6 @@ function partyPreview(){
  </section>`;
 }
 
-function lineup(){
- const names=Array.from({length:7},(_,round)=>events[selection(events,day,round,undefined,'Daily')[0]][0]);
- return '<div class="lineup"><p class="eyebrow">TODAY\u2019S EVENTS · 2027 DIVISION C RULES</p><ol>'+names.map(name=>'<li><span>'+escapeText(name)+'</span>'+typeBadge(name,true)+'</li>').join('')+'</ol></div>';
-}
-
 function home(){
  state='home';
  document.body.classList.toggle('surface',route==='/'||endless);
@@ -79,7 +74,7 @@ function home(){
    app.innerHTML=partyPreview();
  }else{
    const completed=!endless&&read('daily-'+day,null);
-   app.innerHTML='<section class="hero"><h1 class="wordmark">SCIOLY DIVE</h1><h2>'+(endless?'THE ENDLESS DIVE':'THE DAILY DIVE')+'</h2>'+(endless?'':'<p class="diveDate">'+escapeText(diveDate(day).toUpperCase())+'</p>')+'<p>7 events · 25 seconds each · rarer answers sink deeper</p></section><section class="launch"><div class="disclosure">'+(endless?button('OPEN THE DIVE LOG ∞','log','logToggle'):'<details class="inlineHelp"><summary>HOW TO PLAY</summary><div class="helpCard"><p>'+help+'</p><ol class="helpSteps"><li>Read the event prompt.</li><li>Type one answer or skip the round.</li><li>Review examples and continue your descent.</li></ol></div></details>')+'<span class="depthLabel">0m · SURFACE ZONE</span></div>'+(endless?'<div class="launchNote">Sperm whales hunt giant squid in deep water below the surface zone.</div>':lineup())+(!endless&&!dailyOnly?'<a class="partyLink" href="'+sitePath('/party')+'"><span role="img" aria-label="Pufferfish">🐡</span> PUFFER PARTY <small>PREVIEW</small></a>':'')+button(completed?'VIEW TODAY’S RESULTS':'▼ BEGIN DESCENT ▼',completed?'today-results':'start','action start')+(completed?countdown():'')+'<div class="foot"><span>'+(endless?'ENDLESS PRACTICE':'2027 RULES · DIVISION C · GRADES 9\u201312')+'</span>'+(dailyOnly?'':'<ul class="links" aria-label="Practice modes"><li>'+chip('/archive','ARCHIVE ⟲')+'</li>'+(endless?'<li>'+chip('/','TODAY’S DIVE')+'</li>':'<li>'+chip('/packs','THEMED PACKS')+'</li><li>'+chip('/unlimited/classic','UNLIMITED ∞')+'</li>')+'</ul>')+'</div></section>';
+   app.innerHTML='<section class="hero"><h1 class="wordmark">SCIOLY DIVE</h1><h2>'+(endless?'THE ENDLESS DIVE':'THE DAILY DIVE')+'</h2>'+(endless?'':'<p class="diveDate">'+escapeText(diveDate(day).toUpperCase())+'</p>')+'<p>7 events · 25 seconds each · rarer answers sink deeper</p></section><section class="launch"><div class="disclosure">'+(endless?button('OPEN THE DIVE LOG ∞','log','logToggle'):'<details class="inlineHelp"><summary>HOW TO PLAY</summary><div class="helpCard"><p>'+help+'</p><ol class="helpSteps"><li>Read the event prompt.</li><li>Type one answer or skip the round.</li><li>Review examples and continue your descent.</li></ol></div></details>')+'<span class="depthLabel">0m · SURFACE ZONE</span></div><div class="launchNote">Sperm whales hunt giant squid in deep water below the surface zone.</div>'+(!endless&&!dailyOnly?'<a class="partyLink" href="'+sitePath('/party')+'"><span role="img" aria-label="Pufferfish">🐡</span> PUFFER PARTY <small>PREVIEW</small></a>':'')+button(completed?'VIEW TODAY’S RESULTS':'▼ BEGIN DESCENT ▼',completed?'today-results':'start','action start')+(completed?countdown():'')+'<div class="foot"><span>'+(endless?'ENDLESS PRACTICE':'2027 RULES · DIVISION C · GRADES 9\u201312')+'</span>'+(dailyOnly?'':'<ul class="links" aria-label="Practice modes"><li>'+chip('/archive','ARCHIVE ⟲')+'</li>'+(endless?'<li>'+chip('/','TODAY’S DIVE')+'</li>':'<li>'+chip('/packs','THEMED PACKS')+'</li><li>'+chip('/unlimited/classic','UNLIMITED ∞')+'</li>')+'</ul>')+'</div></section>';
 
  }
  draw();

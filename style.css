@@ -259,17 +259,10 @@ body:has(.diveScreen) #tools{display:block;margin-top:50px}body:has(.diveScreen)
 .bearings li span i{font-style:normal;color:#7f93ab}.bearings .earned span i{color:#ffc3d6}
 @media(prefers-reduced-motion:reduce){.sinkingGuess~.revealStage .revealCard{animation:none}}
 
-/* Science Olympiad touches: event-type badges (after the rules manual's event types), today's
-   event lineup as a tournament schedule card, and a tournament medal on the results. */
+/* Science Olympiad touches: event-type badges (after the rules manual's event types), and a tournament medal on the results. */
 .typeBadge{display:inline-block;margin-left:6px;padding:1px 6px;border:1px solid currentColor;border-radius:2px;font:10px/1.5 monospace;letter-spacing:.12em;text-transform:uppercase;vertical-align:1px;white-space:nowrap}
 .typeBadge[data-type=core]{color:#6fd3ff}.typeBadge[data-type=build]{color:#ffb35c}.typeBadge[data-type=lab]{color:#7ee8a2}.typeBadge[data-type=hybrid]{color:#c7a6ff}
 .promptCard .event .typeBadge,.revealCard .event .typeBadge{font-size:9px}
-.lineup{margin:0 0 16px;padding:10px 12px 8px;background:#0b1626d9;border:1px solid #2a4566;border-top:3px solid var(--cyan);border-radius:3px}
-.lineup .eyebrow{margin:0 0 6px;font:11px/1.4 monospace;letter-spacing:.18em;color:#8fb3d1}
-.lineup ol{margin:0;padding:0;list-style:none;counter-reset:event;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:2px 16px}
-.lineup li{counter-increment:event;display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px dashed #223853;font-size:15px;color:#dbe7f5;letter-spacing:.04em}
-.lineup li::before{content:counter(event);min-width:18px;color:var(--pink);font:12px/1 monospace}
-.lineup li .typeBadge{margin-left:auto}
 .arrivalNotice b{display:inline-block;min-width:1ch;margin-left:4px;color:var(--cyan);font-size:20px;animation:countPulse 1s ease-out infinite}
 @keyframes countPulse{0%{transform:scale(1.35);opacity:.6}35%{transform:scale(1);opacity:1}}
 .scoreLine{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
@@ -285,7 +278,4 @@ body:has(.diveScreen) #tools{display:block;margin-top:50px}body:has(.diveScreen)
 .bearings li{align-items:baseline}.bearings li span{flex:1}
 .bandMedal{font:10px/1 monospace;letter-spacing:.1em;text-transform:uppercase;font-style:normal;color:#7f93ab;white-space:nowrap}
 .bandMedal[data-medal=gold]{color:#ffd45a}.bandMedal[data-medal=silver]{color:#cfd9e4}.bandMedal[data-medal=bronze]{color:#e89455}
-@media(max-width:540px){.lineup{padding:8px 10px 6px;margin-bottom:12px}.lineup li{font-size:13px}.lineup ol{grid-template-columns:1fr}.bandMedal{display:none}.medal i{width:36px;height:36px}}
 @media(prefers-reduced-motion:reduce){.arrivalNotice b{animation:none}}
-.lineup li span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-@media(max-width:540px){.lineup ol{grid-template-columns:1fr 1fr;gap:0 10px}.lineup li{font-size:12px;gap:4px;padding:2px 0}.lineup li::before{min-width:12px;font-size:11px}.lineup .typeBadge{font-size:8px;padding:0 3px;margin-left:auto}.lineup .eyebrow{font-size:10px;letter-spacing:.12em}}
