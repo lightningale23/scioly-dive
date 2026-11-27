@@ -37,8 +37,12 @@ Like Krillion, an answer's tier is fixed before anyone plays. In order of preced
 
 1. Hand-set tiers in `answer-bank.js` (the original prompts' editorial picks and the `ratings` list).
 2. A prompt's short list of obvious answers in `catalog-data/obvious-answers.js`, which become Plankton and Schooler.
-3. Familiarity from the wordfreq corpus in `catalog-data/familiarity.js`. Without an obvious list, the most familiar ~1% of a prompt's answers are Plankton and the next ~5% Schoolers. Everything else is Rare if the word is reasonably common in English, otherwise Deep Cut.
+3. Familiarity from the wordfreq corpus in `catalog-data/familiarity.js`, which fills each tier up to a size that grows with the answer list. About 1.1·ln(n) answers are Plankton and 1.6·√n Schooler, so obvious answers are a big share of a short list and a tiny share of a long one, as in a real crowd. About a third are Rare, and the rest are Deep Cuts. Lists flagged in `obvious-answers.js` skip corpus filling because their names double as everyday words.
 
 Each prompt's One in a Krillion prefers an answer with a fun fact from `catalog-data/krillion-facts.js`, and the fact appears when a player lands it. After adding answers, run `pip install wordfreq` and then `npm run familiarity` to score the new spellings. Unscored answers count as Deep Cuts.
 
 Broad prompts in `catalog-data/broad-prompts.js` carry the first Daily day that may draw them. The day must be after the deploy date, so a live Daily never changes.
+
+## Daily prompts
+
+The Daily draws only prompts with at least 100 accepted answers (`MIN_DAILY_ANSWERS` in `selection.js`) and skips unit and number puzzles. Narrower prompts stay in the catalog for other modes.

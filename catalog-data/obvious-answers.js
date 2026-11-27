@@ -1,5 +1,7 @@
 // The short list of obvious answers per base prompt: what most players type first.
-// [Plankton answers, Schooler answers], written as canonical names. When a prompt has a
+// [Plankton answers, Schooler answers, noCorpusFill?], written as canonical names. Corpus familiarity
+// tops up each tier to its size for the list's length unless the third element is true, which is for
+// lists whose names double as everyday words (programming languages called Go or Red). When a prompt has a
 // list, word frequency can rate its other answers Rare at most, so homonyms such as the
 // languages "Go" or "Red" never pass for obvious. Letter-rule variants use their base list.
 export const obviousAnswers = {
@@ -11,7 +13,7 @@ export const obviousAnswers = {
   'Name an infectious disease.': ['influenza; COVID-19; common cold', 'measles; chickenpox; malaria; tuberculosis; HIV; strep throat; pneumonia; Ebola; mumps; polio; plague'],
   'Name a river that is at least 80 km (50 miles) long.': ['Nile; Amazon; Mississippi', 'Yangtze; Thames; Danube; Ganges; Missouri; Rhine; Colorado River; Mekong; Congo; Hudson'],
   'Name a freshwater lake.': ['Lake Superior; Lake Michigan', 'Lake Erie; Lake Huron; Lake Ontario; Lake Tahoe; Lake Baikal; Lake Victoria; Loch Ness; Lake Titicaca'],
-  'Name a programming language.': ['Python; Java; JavaScript', 'C; C++; C#; Ruby; Swift; Rust; Go; Scratch; PHP; TypeScript; SQL'],
+  'Name a programming language.': ['Python; Java; JavaScript', 'C; C++; C#; Ruby; Swift; Rust; Go; Scratch; PHP; TypeScript; SQL; R; MATLAB; Kotlin; Assembly; BASIC; Lua; Perl', true],
   'Name a protein or enzyme.': ['hemoglobin; insulin; collagen', 'keratin; amylase; pepsin; actin; myosin; lactase; antibody; DNA polymerase; lipase'],
   'Name a human genetic disorder.': ['Down syndrome; cystic fibrosis', 'sickle cell disease; hemophilia; Huntington disease; color blindness; Turner syndrome; Klinefelter syndrome; Tay Sachs disease; albinism'],
   'Name an electronic component.': ['resistor; capacitor', 'transistor; diode; light emitting diode; battery; inductor; switch; integrated circuit; transformer; wire'],
@@ -32,4 +34,20 @@ export const obviousAnswers = {
   'Which classical cipher could a puzzle setter use?': ['Caesar cipher', 'Vigenère cipher; Atbash; Playfair cipher'],
   'Name a mineral, mineral group, or mineral variety.': ['quartz; diamond', 'calcite; feldspar; mica; gypsum; talc; pyrite; graphite; halite; topaz; fluorite'],
   'Name a moon in our Solar System.': ['Moon', 'Titan; Europa; Ganymede; Io; Callisto; Phobos; Deimos; Triton; Enceladus; Charon'],
+  'Name a car brand or manufacturer.': ['Toyota; Ford; Tesla; Honda; Chevrolet', 'BMW; Mercedes-Benz; Volkswagen; Audi; Nissan; Hyundai; Kia; Subaru; Mazda; Jeep; Dodge; Ferrari; Lamborghini; Porsche; Volvo; Lexus; Cadillac; GMC; Buick; Chrysler; Fiat; Jaguar; Land Rover; Mitsubishi; Bentley; Rolls-Royce', true],
+  'Name a bird that can fly.': ['eagle; robin; sparrow; pigeon; crow', 'hawk; owl; blue jay; cardinal; parrot; hummingbird; gull; duck; goose; swan; falcon; dove; flamingo; pelican; vulture; woodpecker; finch; raven; heron; swallow'],
+  'Name a famous bridge.': ['Golden Gate Bridge; Brooklyn Bridge; London Bridge', 'Tower Bridge; Sydney Harbour Bridge; Ponte Vecchio; Rialto Bridge; Bridge of Sighs; George Washington Bridge; Mackinac Bridge; Verrazzano Narrows Bridge; Tacoma Narrows Bridge; San Francisco Oakland Bay Bridge'],
+  'Name a sport played with a ball.': ['soccer; basketball; baseball; tennis; American football', 'volleyball; golf; table tennis; cricket; rugby union; softball; bowling; badminton; field hockey; lacrosse; handball; water polo; dodgeball; kickball; billiards; pool; squash; racquetball; pickleball'],
+  'Name a country.': ['United States; Canada; China; Mexico; France', 'Germany; Japan; United Kingdom; India; Brazil; Italy; Russia; Spain; Australia; Egypt; South Korea; Ireland; Greece; Argentina; Nigeria; South Africa; Kenya; Sweden; Norway; Netherlands; Switzerland; Portugal'],
+  'Name a flower.': ['rose; tulip; daisy; sunflower; lily', 'orchid; daffodil; carnation; lavender; dandelion; lilac; hibiscus; peony; poppy; violet; marigold; jasmine; lotus; iris; pansy; magnolia; cherry blossom; hydrangea'],
+  'Name a unit of measurement.': ['meter; inch; foot; gram; second', 'kilogram; mile; centimeter; liter; pound; ounce; gallon; yard; kilometer; millimeter; hour; minute; degree Celsius; degree Fahrenheit; kelvin; volt; watt; newton; joule; ampere'],
+  'Name a hand tool or power tool.': ['hammer; screwdriver; wrench; saw; drill', 'pliers; chisel; level; tape measure; sander; jigsaw; circular saw; chainsaw; crowbar; axe; shovel; mallet; Allen key; nail gun; utility knife; file; clamp; vise; glue gun'],
+  'Name a chemical compound.': ['water; carbon dioxide; sodium chloride', 'methane; glucose; ammonia; hydrogen peroxide; sulfuric acid; hydrochloric acid; ethanol; sodium bicarbonate; calcium carbonate; carbon monoxide; ozone; sucrose; acetone; benzene'],
+  'Name a famous invention.': ['wheel; light bulb; telephone; printing press', 'airplane; computer; internet; television; radio; steam engine; automobile; camera; telescope; microscope; compass; smartphone; battery; generator; vaccine; penicillin; refrigerator; gunpowder; paper; clock; telegraph'],
+  'Name a kind of vehicle.': ['car; truck; bus; bicycle; airplane', 'motorcycle; train; boat; ship; helicopter; van; scooter; skateboard; taxi; tractor; submarine; rocket; tank; ambulance; fire truck; police car; SUV; pickup truck; tram; subway'],
+  'Name a geometric shape, flat or solid.': ['circle; square; triangle', 'rectangle; pentagon; hexagon; octagon; oval; sphere; cube; cylinder; cone; pyramid; star; rhombus; trapezoid; parallelogram; heart; ellipse; prism'],
+  'Name a famous physicist or chemist.': ['Albert Einstein; Isaac Newton; Marie Curie', 'Nikola Tesla; Stephen Hawking; Galileo Galilei; Niels Bohr; Richard Feynman; Max Planck; Michael Faraday; Dmitri Mendeleev; Robert Oppenheimer; Ernest Rutherford; Erwin Schrodinger; Werner Heisenberg; Enrico Fermi; James Clerk Maxwell; Antoine Lavoisier; Louis Pasteur; Alfred Nobel; Rosalind Franklin; Lord Kelvin; James Prescott Joule'],
+  'Name a language other than English.': ['Spanish; French; Chinese; German', 'Japanese; Italian; Russian; Arabic; Portuguese; Korean; Hindi; Latin; Greek; Dutch; Swedish; Hebrew; Polish; Vietnamese; Turkish; Bengali; Urdu; Tagalog; Swahili; Cantonese'],
+  'Name a household device that runs on electricity.': ['refrigerator; microwave; television; computer', 'toaster; washing machine; clothes dryer; dishwasher; vacuum cleaner; hair dryer; lamp; fan; air conditioner; oven; blender; coffee maker; electric kettle; laptop; smartphone; printer; iron; electric toothbrush; game console'],
+  'Give the scientific name of a flowering plant family.': ['Rosaceae; Asteraceae', 'Fabaceae; Poaceae; Liliaceae; Solanaceae; Brassicaceae; Lamiaceae; Cactaceae; Apiaceae; Cucurbitaceae; Rutaceae'],
 };

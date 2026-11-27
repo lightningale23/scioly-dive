@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {events} from '../prompts.js';
-import {questions, questionFor, tiers} from '../answer-bank.js';
+import {questions, questionFor, tiers, publicEvents} from '../answer-bank.js';
 import {selection} from '../selection.js';
 import {matchAnswer, normalize} from '../matching.js';
 
 test('public prompts and scored banks agree across modes and historical seeds',()=>{
-  const published=events.map(([name,items])=>[name,items.map(([prompt,,since])=>since?{prompt,since}:prompt)]);
+  const published=publicEvents;
   for(const mode of ['Daily','Archive','Unlimited','Field Notebook']){
     for(const seed of [0,1234,20782,20783,20784,99999]){
       const names=new Set(), first=mode==='Field Notebook'?2:undefined;

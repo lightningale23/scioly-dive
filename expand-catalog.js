@@ -2,6 +2,7 @@ import { addNumericalPrompts } from './numerical-prompts.js';
 import { measurements, measurementBank } from './measurements.js';
 import { topics } from './topics.js';
 import { broadPrompts } from './catalog-data/broad-prompts.js';
+import { broadPrompts2 } from './catalog-data/broad-prompts-2.js';
 
 // Keep the original seven events and their first two entries in place for archived dives.
 export const combinedSources=new Map();
@@ -57,8 +58,8 @@ export function expandCatalog(events) {
   }
 
   // Broad prompts carry the first Daily day that may draw them (third element).
-  for(const [event,prompt,bank,firstDay] of broadPrompts){
-    events.find(([name])=>name===event)[1].push([prompt,bank,firstDay]);
+  for(const [event,prompt,bank,firstDay] of [...broadPrompts,...broadPrompts2]){
+    events.find(([name])=>name===event)[1].push(firstDay?[prompt,bank,firstDay]:[prompt,bank]);
   }
 
   const letters = word => word.toLowerCase().normalize('NFKD').replace(/[^a-z]/g,'');

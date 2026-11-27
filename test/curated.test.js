@@ -29,7 +29,7 @@ test('every obvious answer is an accepted canonical answer of its prompt',async(
     const row=questions.flatMap(([,rows])=>rows).find(r=>r.prompt===prompt);
     assert(row,'No prompt: '+prompt);
     const names=new Set(row.bank.map(entry=>entry.canonical.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]/g,'')));
-    for(const name of lists.join(';').split(';'))assert(names.has(name.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]/g,'')),prompt+' → '+name.trim());
+    for(const name of lists.slice(0,2).join(';').split(';'))assert(names.has(name.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]/g,'')),prompt+' → '+name.trim());
   }
 });
 
