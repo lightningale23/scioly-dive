@@ -19,6 +19,7 @@ export const krillionLocks = {
   "Name a microcontroller, sensor, or programming concept used to control a vehicle.": "Hall effect sensor",
   "Name a mineral habit, physical property, or rock texture from the Rocks and Minerals rules.": "piezoelectricity",
   "Name a part of an experiment or report scored on the Experimental Design checklist.": "null hypothesis",
+  "Name a part of the digestive tract, an accessory organ, or a digestive enzyme or hormone.": "sphincter of Oddi",
   "Name a part of the electromagnetic spectrum, a sensor band, or a spectral index.": "red edge",
   "Name a part, measurement, or rule term from Ping Pong Parachute.": "spill hole",
   "Name a part, trim adjustment, or rule term for a rubber-powered free-flight plane.": "decalage",

@@ -55,9 +55,21 @@ Wikimedia rate-limits automated requests heavily; the script caches downloads (p
 
 Unscored answers count as Deep Cuts.
 
+## Keeping Claude usage low
+
+Most upkeep runs without Claude. Spend Claude sessions on writing new prompts and answer lists, which is the only part that needs judgment.
+
+- **Scheduling is automatic.** `.github/workflows/plan-dailies.yml` runs every Monday: `npm run plan-dailies -- 14` pins the next two weeks (each event's least recently used prompt, Krillions with facts preferred, events used in the last two days rested), `npm run lock-krillions` locks them, tests run, and the site redeploys. Don't pin days by hand unless asked.
+- **Review with one command.** `npm run check-prompt -- "<part of the prompt>"` prints size, tiers, Krillion (fact, lock), obvious answers, folded groups, short aliases and samples. Use it instead of writing ad-hoc `node -e` scripts or reading answer files.
+- **Don't read generated files.** `familiarity.js`, `sourced-answers.js`, `package-lock.json`, `dist/` and `pages-dist/` are blocked in `.claude/settings.json`; regenerate them with their scripts instead.
+- **Prefer data over hand-writing.** Where an open dataset fits a prompt, add a source to `scripts/sourced-answers.mjs` rather than typing answers.
+- **Batch prompt writing.** Write several drafts from `catalog-data/prompt-drafts.md` in one session, then run `npm run sourced`, `npm run familiarity`, `npm run lock-krillions` and `npm test` once.
+- **Use a smaller model for routine edits.** Fixing a typo, adding aliases or swapping an obvious answer works fine with `/model sonnet` or `/model haiku`; keep the largest model for new prompts.
+- **The catalog's size limits the schedule.** With about 45 Daily-worthy prompts at 7 per day, prompts repeat after about six days; each new prompt lengthens the cycle.
+
 ## Pinning Dailies
 
-The Daily seed is the UTC day number (`Math.floor(Date.now() / 86400000)`; 2026-11-27 is 20784). `featuredDailies[day]` lists seven `[event, exact prompt]` pairs in round order, each from a different event. Pinned days so far: 20784–20789 (Nov 27 – Dec 2, 2026; Nov 28 repeats Nov 27). Unpinned days rotate through all eligible prompts.
+The Daily seed is the UTC day number (`Math.floor(Date.now() / 86400000)`; 2026-11-27 is 20784). `featuredDailies[day]` lists seven `[event, exact prompt]` pairs in round order, each from a different event. Pinned days so far: 20784–20798 (Nov 27 – Dec 11, 2026; Nov 28 repeats Nov 27; Dec 3 onward planned by `npm run plan-dailies`). Unpinned days rotate through all eligible prompts.
 
 When preparing new days:
 

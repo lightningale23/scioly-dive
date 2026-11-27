@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./catalog-data/familiarity.js)",
+      "Read(./catalog-data/sourced-answers.js)",
+      "Read(./package-lock.json)",
+      "Read(./pages-dist/**)",
+      "Read(./dist/**)"
+    ]
+  }
+}
