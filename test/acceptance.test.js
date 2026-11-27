@@ -12,21 +12,25 @@ test('every prompt awards exactly one obtainable Krillion',()=>{
     assert.equal(submit(q,winners[0].canonical).points,100,q.prompt);
   }
 });
-test('new factual entries, aliases and scientific notation work on Pages',()=>{
+test('specialist answers, aliases and plurals are accepted on Pages',()=>{
   const cases=[
-    ['Name a mineral,','aragonite'],['Name a mineral,','abelloemringerite'],['Name a mineral,','mica'],
-    ['Name a moon in','Callirrhoe'],['Name a moon in','S/1999 J1'],
-    ['Name a bone','the kneecap'],['Name a bone','femurs'],
-    ['What might you find living','a bullfrog'],['How could you visit','breadth first search (BFS)'],
-    ['An ammeter','µA'],['An ammeter','milliamp'],['Give an SI energy unit','kJ'],
-    ['What term might you hear in Earth and space','S/1999 J1']
+    ['Name a rock or mineral on the 2027','rhodochrosite'],['Name a rock or mineral on the 2027','TV rock'],['Name a rock or mineral on the 2027','fool’s gold'],
+    ['Name a disease or disorder of the respiratory','COPD'],['Name a disease or disorder of the respiratory','Crohns disease'],
+    ['Name a digital logic gate','K-map'],['Name a digital logic gate','an inverter'],
+    ['Name a concept, law, or quantity from gas','PV=nRT'],['Name an enzyme, technique, or molecule','qPCR'],
+    ['Name a type of star','Wolf-Rayet stars'],['Name an epidemiology term','R0'],
+    ['Name a thermodynamics law','zeroth law'],['Name a coral reef organism','Diadema'],
   ];
   for(const [start,answer] of cases){
     const q=rows.find(row=>row.prompt.startsWith(start)&&!row.prompt.includes('\n'));
     assert.equal(submit(q,answer).status,'valid',answer);
   }
-  const current=rows.find(q=>q.prompt.startsWith('An ammeter'));
-  assert.equal(submit(current,'MA').canonical,'megaampere');
-  assert.equal(submit(current,'mA').canonical,'milliampere');
-  assert.notEqual(submit(current,'mV').status,'valid');
+});
+test('every official event has exactly one specialist base prompt with a large answer list',()=>{
+  for(const [,entries] of questions){
+    const base=entries.filter(q=>!q.prompt.includes('\n'));
+    assert.equal(base.length,1);
+    assert(base[0].bank.length>=60,base[0].prompt);
+  }
+  assert.equal(questions.length,23);
 });

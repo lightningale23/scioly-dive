@@ -1,7 +1,7 @@
 // The Daily draws only prompts with very large answer lists (MIN_DAILY_ANSWERS or more) and skips
 // unit and number puzzles. Rows carry their bank; the server build's prompt-only catalog marks
 // each row with daily:false instead (see dailyWorthy in answer-bank.js).
-export const MIN_DAILY_ANSWERS=100;
+export const MIN_DAILY_ANSWERS=60;
 export const narrowPuzzle=prompt=>/Unit names and symbols both count|Pick a total|Pick a number|decimal integer|rotates in \d+° steps/.test(prompt);
 const dailyRow=entry=>entry.bank?entry.bank.length>=MIN_DAILY_ANSWERS&&!narrowPuzzle(entry.prompt):entry.daily!==false;
 import { featuredDailies, pausedEvents } from './features.js';

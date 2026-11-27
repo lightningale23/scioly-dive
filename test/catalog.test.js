@@ -74,3 +74,17 @@ test('featured Dailies name real prompts in seven different events, and paused e
     assert(!pausedEvents.includes(publicEvents[event][0]),seed+' '+round);
   }
 });
+
+test('every obvious answer is an accepted canonical answer of its prompt, and every fact has an answer',async()=>{
+  const {obviousAnswers}=await import('../catalog-data/obvious-answers.js');
+  const {factAnswers}=await import('../catalog-data/krillion-facts.js');
+  const rows=questions.flatMap(([,r])=>r);
+  for(const [prompt,lists] of Object.entries(obviousAnswers)){
+    const row=rows.find(r=>r.prompt===prompt);
+    assert(row,'No prompt: '+prompt);
+    const names=new Set(row.bank.map(entry=>normalize(entry.canonical)));
+    for(const name of lists.slice(0,2).join(';').split(';'))assert(names.has(normalize(name)),prompt+' → '+name.trim());
+  }
+  const spellings=new Set(rows.flatMap(r=>r.bank.flatMap(e=>[e.canonical,...e.aliases].map(normalize))));
+  for(const answer of factAnswers)assert(spellings.has(normalize(answer)),'No answer for fact: '+answer);
+});

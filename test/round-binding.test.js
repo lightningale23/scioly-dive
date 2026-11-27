@@ -15,8 +15,8 @@ test('Pages uses the painted question for examples, acceptance and corrections',
     assert(result.examples.every(example=>question.bank.some(entry=>entry.canonical===example)));
     assert.equal(guestApi({...body,prompt:'old release'},question).status,'catalog_changed');
   }
-  const logic=rows.find(q=>q.prompt.includes('logic gate you could find'));
-  for(const answer of ['AND gate','inverter','exclusive OR gate']){
+  const logic=rows.find(q=>q.prompt.startsWith('Name a digital logic gate')&&!q.prompt.includes('\n'));
+  for(const answer of ['AND','inverter','exclusive OR']){
     assert.equal(guestApi({action:'validate',prompt:logic.prompt,answer},logic).status,'valid');
   }
   assert.equal(guestApi({action:'validate',prompt:logic.prompt,answer:'tibia'},logic).status,'invalid');
