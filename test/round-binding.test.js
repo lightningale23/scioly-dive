@@ -4,9 +4,9 @@ import {guestApi} from '../guest-api.js';
 import {questions,questionFor} from '../answer-bank.js';
 import handler from '../api/dive.js';
 import {today} from '../dive-storage.js';
-import {dailyOnly} from '../features.js';
+import {dailyOnly,judgeUrl} from '../features.js';
 
-test('Pages uses the painted question for examples, acceptance and corrections',()=>{
+test('Pages uses the painted question for examples, acceptance and corrections',async()=>{
   const rows=questions.flatMap(([,entries])=>entries);
   for(const question of rows){
     const body={action:'validate',prompt:question.prompt,answer:question.bank[0].canonical};
@@ -19,7 +19,13 @@ test('Pages uses the painted question for examples, acceptance and corrections',
   for(const answer of ['AND','inverter','exclusive OR']){
     assert.equal(guestApi({action:'validate',prompt:logic.prompt,answer},logic).status,'valid');
   }
-  assert.equal(guestApi({action:'validate',prompt:logic.prompt,answer:'tibia'},logic).status,'invalid');
+  // An unlisted answer goes to the AI judge when one is configured; stub it so tests stay offline.
+  const realFetch=globalThis.fetch,asked=[];
+  globalThis.fetch=async(url,options)=>{asked.push(JSON.parse(options.body).answer);return new Response(JSON.stringify({status:'invalid'}))};
+  try{
+    assert.equal((await guestApi({action:'validate',prompt:logic.prompt,answer:'tibia'},logic)).status,'invalid');
+    assert.deepEqual(asked,judgeUrl?['tibia']:[]);
+  }finally{globalThis.fetch=realFetch}
 });
 test('Node refuses a different displayed prompt before grading even a correct scheduled answer',async()=>{
   const mode='Daily',seed=today(),round=0;
