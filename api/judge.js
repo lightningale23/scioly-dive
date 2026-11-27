@@ -59,6 +59,10 @@ export default async function handler(req, res) {
       if (new URL(req.url, 'http://local').searchParams.get('health') === 'deep' && health.configured) {
         try { health.testJudgment = await judgeAnswer('Name a noble gas.', 'neon'); } catch (error) { health.error = String(error.message).slice(0, 200); }
       }
+      if (new URL(req.url, 'http://local').searchParams.get('health') === 'models' && process.env.GEMINI_API_KEY) {
+        const list = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', {headers: {'x-goog-api-key': process.env.GEMINI_API_KEY}});
+        health.models = ((await list.json()).models ?? []).filter(model => model.supportedGenerationMethods?.includes('generateContent')).map(model => model.name.replace('models/', ''));
+      }
       return reply(200, health);
     }
     if (req.method === 'GET') {
