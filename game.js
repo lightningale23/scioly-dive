@@ -96,7 +96,6 @@ function begin(diveSeed,kind,first){
 }
 // One line of color for each tier on the reveal card and the results key.
 const tierLines={10:'The whole ocean thought of this one.',15:'A sideways answer that still counts.',30:'Swimming with the crowd.',60:'Few divers make it down this far.',85:'Barely any light reaches here.',100:'The answer hidden at the very bottom.'};
-const tierDepth={10:24,15:34,30:44,60:56,85:68,100:80};
 const tierColors={0:'#9aaac1',10:'#a8c3df',15:'#ffca77',30:'#57e3ee',60:'#ff709f',85:'#c1a2ff',100:'#ffe588'};
 
 function diveHud(){
@@ -137,7 +136,6 @@ function play(){
    if(state==='descending'){
      if(now<readyAt){
        notice.textContent='Descending · the clock starts in '+Math.ceil((readyAt-now)/1000);
-       draw(score,round===0?(readyAt-now)/arrival:0);
        return;
      }
      state='play';notice.hidden=true;app.querySelector('form').hidden=false;
@@ -156,7 +154,19 @@ function play(){
  }
  timer=setInterval(tick,75);
  if(!arrival && matchMedia('(pointer:fine)').matches)app.querySelector('input').focus();
- draw();
+ // The first round's surface-to-depth transition is painted every animation frame, eased, rather than
+ // on the 75 ms clock tick, which made it stutter at about 13 frames a second.
+ if(arrival&&round===0){
+   const began=performance.now(),thisDive=dive;
+   const frame=now=>{
+     if(state!=='descending'||dive!==thisDive||round!==0)return;
+     const t=Math.min(1,(now-began)/arrival),eased=t<.5?4*t*t*t:1-(-2*t+2)**3/2;
+     draw(score,1-eased);
+     if(t<1)requestAnimationFrame(frame);
+   };
+   draw(score,1);
+   requestAnimationFrame(frame);
+ }else draw();
  tick();
 }
 async function submit(answer){
@@ -211,7 +221,7 @@ async function submit(answer){
  const outcome=meters?tierNames[verdict.points]:verdict.status==='unverified'?'Could not verify':answer?'Not accepted':Date.now()>=deadline?'Time’s up':'Round skipped';
  const examples=verdict.examples.map(escapeText).join(' · ');
  app.innerHTML=`<section class="diveScreen" style="--rarity:${tierColors[verdict.points]}">${diveHud()}
-   ${meters?`<div class="sinkingGuess" aria-hidden="true" style="--stop:${tierDepth[verdict.points]}%">${escapeText(answer)}</div>`:''}
+   ${meters?`<div class="sinkingGuess" aria-hidden="true">${escapeText(answer)}</div>`:''}
    <div class="revealStage"><div class="revealCard" role="status">
      <div class="catchMark" aria-hidden="true"><span>${({10:'✧',15:'✶',30:'🐟',60:'🪸',85:'🐙',100:'🦐'})[verdict.points]||'◇'}</span><i></i><i></i><i></i></div>
      <p class="event">${question.event}</p><h1>${outcome}</h1>
@@ -227,14 +237,20 @@ async function submit(answer){
    </div></div>
    <div class="descendDock">${button(round===6?'SURFACE FOR RESULTS ↑':'DESCEND ▼','next','descend')}</div></section>`;
  app.querySelector('[data-action=next]').focus();
+ // The answer drops onto the depth marker (see .sinkingGuess), then the sea scrolls past it. Each tier's
+ // line is drawn at its depth below the starting point, so the line that comes to rest under the
+ // answer is the tier it earned. Lines stay up briefly after the descent, until the answer fades.
  const began=performance.now(), previous=score-meters, completedRound=round;
+ const DROP=260, SINK=950, HOLD=300;
  function descendFrame(now){
    if(state!=='reveal'||dive!==activeDive||round!==completedRound)return;
-   const progress=Math.min(1,(now-began)/950);
-   const depth=Math.round(previous+meters*(1-(1-progress)**2));
+   const elapsed=now-began, progress=Math.min(1,Math.max(0,(elapsed-DROP)/SINK));
+   const eased=progress<.5?4*progress**3:1-(-2*progress+2)**3/2;
+   const depth=Math.round(previous+meters*eased);
    app.querySelector('.gauge b').textContent=depth.toLocaleString()+' m';
-   draw(depth,0,progress<1?previous:null);
-   if(progress<1)requestAnimationFrame(descendFrame);
+   const showLines=elapsed<DROP+SINK+HOLD;
+   draw(depth,0,showLines?previous:null);
+   if(showLines)requestAnimationFrame(descendFrame);
  }
  if(meters&&!matchMedia('(prefers-reduced-motion: reduce)').matches)requestAnimationFrame(descendFrame);
  else draw();
@@ -445,6 +461,24 @@ dialog.addEventListener('close',()=>{
 dialog.addEventListener('change',e=>{if(e.target.dataset.pref){preferences[e.target.dataset.pref]=e.target.checked;updatePrefs()}});
 dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
 
+// Sun and pixel clouds never move, so they are painted once per viewport size into an offscreen
+// layer instead of thousands of fillRect calls on every animation frame.
+let skyCache=null;
+function skyLayer(w,h){
+ if(skyCache?.w===w&&skyCache?.h===h)return skyCache.canvas;
+ const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+ const g=canvas.getContext('2d');
+ const rect=(x,y,a,b,color)=>{g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),Math.ceil(a),Math.ceil(b))};
+ const pixel=w<=540?4:w<=768?7:10;
+ const sunX=w*.84,sunY=w<=540?h*.426:w<=768?h*.26:0;
+ for(let y=-7;y<=7;y++){const side=Math.floor(Math.sqrt(57-y*y));rect(sunX-side*pixel,sunY+y*pixel,(side*2+1)*pixel,pixel,'#f5db8f')}
+ const cloud=['       ###          ','     #######        ','   ###########      ','  ##############    ',' #################  ','####################','  #######   ######  '];
+  const positions=w<=540?[[.11,.26],[.72,.28],[.10,.41],[.53,.415],[.37,.46],[-.12,.46],[.84,.46]]:w<=768?[[.11,-.03],[.71,-.02],[.10,.23],[.40,.33],[-.09,.32],[.84,.32]]:[[.10,-.013],[.53,-.04],[.37,.105],[-.09,.105],[.85,.105]];
+ positions.forEach(([x,y],i)=>cloud.forEach((row,j)=>[...row].forEach((cell,k)=>{if(cell==='#')rect(w*x+k*pixel*(i%3===0?1.65:1.25),h*y+j*pixel,pixel*(i%3===0?1.65:1.25),pixel,j<4?'#f4f8f5':'#dde9e9')})));
+ skyCache={w,h,canvas};
+ return canvas;
+}
+
 function draw(displayDepth=score,arrival=0,descentStart=null){
  const canvas=document.querySelector('#scene');
  const w=innerWidth,h=innerHeight;
@@ -463,12 +497,7 @@ function draw(displayDepth=score,arrival=0,descentStart=null){
  const gradient=(top,bottom,stops)=>{const grad=g.createLinearGradient(0,top,0,bottom);for(const [point,color] of stops)grad.addColorStop(point,color);return grad};
  if(surface){
    g.fillStyle=gradient(0,water,[[0,w>768?'#93b9cf':'#54a5ce'],[.55,'#9ecfe0'],[1,'#e7f1ef']]);g.fillRect(0,0,w,water+8);
-   const pixel=w<=540?4:w<=768?7:10;
-   const sunX=w*.84,sunY=w<=540?h*.426:w<=768?h*.26:0;
-   for(let y=-7;y<=7;y++){const side=Math.floor(Math.sqrt(57-y*y));rect(sunX-side*pixel,sunY+y*pixel,(side*2+1)*pixel,pixel,'#f5db8f')}
-   const cloud=['       ###          ','     #######        ','   ###########      ','  ##############    ',' #################  ','####################','  #######   ######  '];
-   const positions=w<=540?[[.11,.26],[.72,.28],[.10,.41],[.53,.415],[.37,.46],[-.12,.46],[.84,.46]]:w<=768?[[.11,-.03],[.71,-.02],[.10,.23],[.40,.33],[-.09,.32],[.84,.32]]:[[.10,-.013],[.53,-.04],[.37,.105],[-.09,.105],[.85,.105]];
-   positions.forEach(([x,y],i)=>cloud.forEach((row,j)=>[...row].forEach((cell,k)=>{if(cell==='#')rect(w*x+k*pixel*(i%3===0?1.65:1.25),h*y+j*pixel,pixel*(i%3===0?1.65:1.25),pixel,j<4?'#f4f8f5':'#dde9e9')})));
+   g.drawImage(skyLayer(w,h),0,0);
    const s=w<=540?2:w<=768?4:7,x=w*.25,y=water-16*s/2+5;
    const boat=['          P         ','        ffP         ','      ffffP         ','       fffP         ','          P         ','          P         ','          P         ','       PPPPPPPP     ','        P b bP      ','        P b bP  PPPP',' PP     PPPPPPPPPPP ','PPPPPPPPPPPPPPPPPPP ',' PPPPPPPPPPPPPPPPP  '];
    boat.forEach((line,j)=>[...line].forEach((c,k)=>{if(c!==' ')rect(x+k*s,y+(j-6)*s,s,s,c==='P'?'#101e2a':c==='f'?'#ff5d8f':'#7dabb9')}));

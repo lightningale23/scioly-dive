@@ -247,9 +247,11 @@ body:has(.diveScreen) #tools{display:block;margin-top:50px}body:has(.diveScreen)
 @media(max-width:540px){.hero .diveDate{font-size:12px;margin-top:4px}}
 
 /* Reveal: the answer sinks deeper the rarer it is before the card appears. */
-.sinkingGuess{animation:sinkToTier 1.15s cubic-bezier(.35,0,.6,1) both}
-@keyframes sinkToTier{0%{opacity:0;top:14%;transform:translate(-50%,0)}12%{opacity:1}82%{opacity:1;top:var(--stop,42%)}100%{opacity:0;top:var(--stop,42%);transform:translate(-50%,10px)}}
-.sinkingGuess+.revealStage .revealCard,.sinkingGuess~.revealStage .revealCard{animation-delay:1.05s;animation-fill-mode:both}
+/* The answer lands on the depth marker (42% of the viewport, where draw() puts the pink tick) and
+   holds while the tier lines scroll past; timings match DROP/SINK/HOLD in game.js (1.51 s total). */
+.sinkingGuess{top:42%;transform:translate(-50%,-50%);z-index:3;animation:sinkToTier 1.51s linear both}
+@keyframes sinkToTier{0%{opacity:0;top:16%;animation-timing-function:cubic-bezier(.3,0,.6,1)}17%{opacity:1;top:42%}86%{opacity:1;top:42%}100%{opacity:0;top:42%}}
+.sinkingGuess+.revealStage .revealCard,.sinkingGuess~.revealStage .revealCard{animation-delay:1.3s;animation-fill-mode:both}
 .catchLine{margin:6px 0 0;font-size:14px;color:var(--rarity);opacity:.9}
 .catchFact{margin:14px auto 0;max-width:440px;padding:10px 14px;border-left:3px solid #ffe588;background:#101b2c;box-shadow:0 0 0 1px #ffe58826;text-align:left;font-size:14px;line-height:1.45;color:#dfe8f3}
 .catchFact b{display:block;margin-bottom:4px;font:11px/1.3 monospace;letter-spacing:.16em;color:#ffe588;text-transform:uppercase}
