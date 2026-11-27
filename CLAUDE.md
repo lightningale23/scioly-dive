@@ -1,0 +1,90 @@
+# SciOly Dive
+
+A daily Science Olympiad (Division C, 2027 rules) answer game modeled loosely on Krillion: seven events per dive, one prompt each, 25 seconds per prompt. Rarer accepted answers score more and "sink deeper". It runs as a static GitHub Pages site (guest mode, everything judged in the browser) and optionally as a Node/Vercel server (`api/dive.js`).
+
+## Prompt style (the most important rule)
+
+Every prompt must be a **specialist prompt** written from its event's 2027 Division C rules, so that someone who studies that event does best. For example: "Name a rock or mineral on the 2027 National Rocks and Minerals List", or "Name an ion you are expected to know for Chemistry Lab". General-knowledge prompts were deliberately removed: no "Name a country/bird/car" prompts, no unit or number puzzles. Don't reintroduce them.
+
+- Cite the rules section you drew from in a comment on the answer list.
+- Aim for 60+ accepted answers per prompt (the Daily minimum is `MIN_DAILY_ANSWERS` = 60 in `selection.js`).
+- Only include answers you are sure are correct. Respect the rules: for example, Boomilever bans bamboo and commercial plywood.
+- Only the 23 official events are used. The trial events (Code Craze, Hydraulics, Junkyard Challenge) are paused (`pausedEvents` in `features.js`).
+- Future prompt ideas without answer banks live in `catalog-data/prompt-drafts.md`.
+
+## Where things live
+
+| File | Role |
+| --- | --- |
+| `catalog-data/specialist-prompts*.js` | Prompts and answer lists: `[event, prompt, 'answer|alias; answer|alias; ...']`. Groups are split on `;` and spellings on `|`; the first spelling is canonical. |
+| `prompts.js` | Builds `events` (official events in rules-manual order) from the specialist files, then `expandCatalog` adds letter-rule variants ("Include the letter E."). |
+| `expand-catalog.js` | Generates the letter-rule variants. A dive uses at most one. |
+| `coverage.js` | `expandedGroups`: merges a prompt's groups, adds everyday aliases (`aliases` map), and folds groups that share a spelling into one answer. |
+| `answer-bank.js` | Scores each prompt's answers lazily: tiers, the One in a Krillion pick and its fun fact. Exports `questions`, `questionFor`, `publicEvents`. |
+| `catalog-data/obvious-answers.js` | Per prompt: `[Plankton list, Schooler list, noCorpusFill?]`, using canonical names. Use `true` as the third element for technical or multi-word lists (all specialist prompts use it). |
+| `catalog-data/krillion-facts.js` | Fun facts keyed by answer. Use `[fact, 'word']` to restrict a fact to base prompts containing that word (needed when an answer appears in several prompts). |
+| `catalog-data/familiarity.js` | Generated wordfreq Zipf scores. Never edit by hand. |
+| `matching.js` | Answer matching: normalization, aliases, plurals, a dropped possessive ("Koch postulates"), unique-typo suggestions, letter-rule checks. |
+| `selection.js` | Picks each round's event and prompt from the seed. Honors `featuredDailies`, `pausedEvents`, `since` dates and the Daily minimum. |
+| `features.js` | Switches: `dailyOnly` (only the Daily is offered), `pausedEvents`, and `featuredDailies` (hand-pinned Dailies by UTC day number). |
+| `game.js`, `style.css`, `index.html` | Client UI: canvas ocean scene, round flow, results. |
+| `guest-api.js` | Judges answers in the browser for the Pages build. |
+| `api/dive.js`, `serve.mjs`, `dive-storage.js` | Optional server with an Azure judging fallback, accounts and global stats. |
+
+## Rarity tiers
+
+The tiers are 10 Plankton, 30 Schooler, 60 Rare, 85 Deep Cut and 100 One in a Krillion. (15 "Too Clever" still exists in `tiers` but is unused.) For a list of n answers:
+
+1. The prompt's obvious-answer lists set Plankton and Schooler.
+2. Unless the list is flagged no-fill, corpus familiarity fills Plankton up to about 1.1·ln n and Schooler up to about 1.6·√n.
+3. About a third of the list is Rare, chosen by familiarity among words the corpus knows. Everything else is a Deep Cut.
+4. The One in a Krillion prefers an answer with a fun fact (never a Plankton answer), then a Rare answer. A stable hash of the prompt breaks ties.
+
+After adding answers, regenerate familiarity:
+
+```bash
+pip install wordfreq
+npm run familiarity
+```
+
+Unscored answers count as Deep Cuts.
+
+## Pinning Dailies
+
+The Daily seed is the UTC day number (`Math.floor(Date.now() / 86400000)`; 2026-11-27 is 20784). `featuredDailies[day]` lists seven `[event, exact prompt]` pairs in round order, each from a different event. Pinned days so far: 20784–20788 (Nov 27 – Dec 1, 2026). Unpinned days rotate through all eligible prompts.
+
+When preparing new days:
+
+- Don't repeat a prompt from recent days.
+- Mix event types.
+- Check each pinned prompt's Krillion has a fact: `node -e` with `questionFor(day, round, undefined, 'Daily')`.
+- `npm run upcoming -- 7` prints upcoming Dailies with their answers.
+
+Don't change a Daily that is already live (today or earlier) unless the user asks. New prompts can carry a `since` day so they don't reshuffle the live rotation.
+
+## Commands
+
+```bash
+npm ci
+npm test
+node build.mjs --pages
+npm run build
+npm start
+```
+
+- `npm test` must pass before pushing. It checks matching, Krillion uniqueness, obvious and fact references, and client/server schedule agreement.
+- `node build.mjs --pages` builds the static site into `pages-dist/`.
+- `npm run build` builds the server version into `dist/`.
+- `npm start` serves the server version locally at http://localhost:4173.
+
+Pushing to `main` runs `.github/workflows/pages.yml` (tests, build, deploy). The live site is https://lightningale23.github.io/scioly-dive/.
+
+## Gotchas
+
+- Don't use apostrophes inside answer lists as `'` in single-quoted JS strings. Use `’` (’), or a double-quoted string. Possessive forms are matched with or without the "s".
+- Obvious-answer names must be exact canonical names (the first spelling of a group). Tests fail otherwise. Don't write `a|b` in obvious lists.
+- `aliases` in `coverage.js` is a plain object: look keys up with `Object.hasOwn` (an answer named "constructor" once crashed the catalog).
+- `question.bank` is a lazy getter. Use `row.size` when you only need the count.
+- Canvas tier lines during the sink are drawn relative to the depth marker at 42% of the viewport height. The sinking answer in CSS (`.sinkingGuess`) must stay on that marker, with timings matching `DROP`, `SINK` and `HOLD` in `game.js`.
+- Verify UI changes in a browser (Playwright is preinstalled) at desktop and phone widths before pushing.
+- Wording written to the site should be original. Don't copy Krillion's text or Science Olympiad's branding or logo.
