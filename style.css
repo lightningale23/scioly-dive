@@ -237,3 +237,11 @@ body:has(.diveScreen) #tools{display:block;margin-top:50px}body:has(.diveScreen)
 .catchPanel input{width:100%;padding:8px 10px;margin:10px 0 4px;background:#101c2e;color:var(--foam);border:1px solid #375068}.catchList{list-style:none;margin:0;padding:0;max-height:270px;overflow:auto;overscroll-behavior:contain;scrollbar-color:#52728b #101a26}.catchList li{display:flex;justify-content:space-between;align-items:baseline;gap:8px;border-bottom:1px solid #233448;padding:8px;overflow-wrap:anywhere}.catchList em{font-size:13px;color:var(--cyan);font-style:normal;margin-left:8px}.catchPanel>small{display:block;margin-top:8px;color:#a7bdce}
 
 .missedGuess{margin:8px auto 0;color:#b5c5d3;font-size:16px}.missedGuess summary{cursor:pointer}.missedGuess p{margin:6px 0}.missedGuess .chip{overflow-wrap:anywhere}
+
+/* Daily-only polish: dated hero, rollover countdown, readable round counter. */
+.hero .diveDate{margin:6px 0 0;font-size:14px;letter-spacing:.28em;color:#2f5f86}
+.nextDive{margin:12px 0 0;text-align:center;font:12px/1.4 monospace;letter-spacing:.2em;color:#8fa3bd}
+.nextDive b{display:inline-block;min-width:8ch;margin-left:6px;color:var(--cyan);font-size:15px;letter-spacing:.12em}
+.diveResults .nextDive{text-align:left;margin:4px 0 18px}
+.roundTrack{background:#0b1626cc;border:1px solid #ffffff14;padding:4px 10px 6px;color:#d4deea}
+@media(max-width:540px){.hero .diveDate{font-size:12px;margin-top:4px}}

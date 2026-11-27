@@ -19,6 +19,11 @@ let seed, firstEvent, dive, receipts, profile, timer, round=0, score=0, answers=
 const chip=(url,label)=>'<a class="chip" href="'+sitePath(url)+'">'+label+'</a>';
 const button=(label,action,cls='small')=>'<button class="'+cls+'" data-action="'+action+'">'+label+'</button>';
 const help='Each dive visits seven different Division C events. Find one accepted answer per round in 25 seconds. Retry missed guesses while the clock runs. Submit a suggested spelling again to confirm it. Valid answers earn 10, 15, 30, 60, 85, or 100 points based on rarity. Each point adds 10 meters. Skip anytime and review examples after each round.';
+const diveDate=d=>new Date(d*86400000).toLocaleDateString(undefined,{timeZone:'UTC',weekday:'short',month:'short',day:'numeric'});
+// Daily dives roll over at 00:00 UTC. Every [data-countdown] element ticks down to the next one.
+const untilNext=()=>{const ms=(day+1)*86400000-Date.now();if(ms<=0)return '00:00:00';const t=Math.floor(ms/1000);return [t/3600,t/60%60,t%60].map(n=>String(Math.floor(n)).padStart(2,'0')).join(':')};
+setInterval(()=>{for(const el of document.querySelectorAll('[data-countdown]'))el.textContent=untilNext()},1000);
+const countdown=()=>'<p class="nextDive">NEXT DIVE IN <b data-countdown>'+untilNext()+'</b></p>';
 const escapeText=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
 const tierNames={10:'Plankton',15:'Too Clever',30:'Schooler',60:'Rare',85:'Deep Cut',100:'One in a Krillion'};
@@ -69,7 +74,7 @@ function home(){
    app.innerHTML=partyPreview();
  }else{
    const completed=!endless&&read('daily-'+day,null);
-   app.innerHTML='<section class="hero"><h1 class="wordmark">SCIOLY DIVE</h1><h2>'+(endless?'THE ENDLESS DIVE':'THE DAILY DIVE')+'</h2><p>7 events · 25 seconds each · rarer answers sink deeper</p></section><section class="launch"><div class="disclosure">'+(endless?button('OPEN THE DIVE LOG ∞','log','logToggle'):'<details class="inlineHelp"><summary>HOW TO PLAY</summary><div class="helpCard"><p>'+help+'</p><ol class="helpSteps"><li>Read the event prompt.</li><li>Type one answer or skip the round.</li><li>Review examples and continue your descent.</li></ol></div></details>')+'<span class="depthLabel">0m · SURFACE ZONE</span></div><div class="launchNote">Sperm whales hunt giant squid in deep water below the surface zone.</div>'+(!endless?'<a class="partyLink" href="'+sitePath('/party')+'"><span role="img" aria-label="Pufferfish">🐡</span> PUFFER PARTY <small>PREVIEW</small></a>':'')+button(completed?'VIEW TODAY’S RESULTS':'▼ BEGIN DESCENT ▼',completed?'today-results':'start','action start')+'<div class="foot"><span>'+(endless?'ENDLESS PRACTICE':'2027 · DIVISION C')+'</span><ul class="links" aria-label="Practice modes"><li>'+chip('/archive','ARCHIVE ⟲')+'</li>'+(endless?'<li>'+chip('/','TODAY’S DIVE')+'</li>':'<li>'+chip('/packs','THEMED PACKS')+'</li><li>'+chip('/unlimited/classic','UNLIMITED ∞')+'</li>')+'</ul></div></section>';
+   app.innerHTML='<section class="hero"><h1 class="wordmark">SCIOLY DIVE</h1><h2>'+(endless?'THE ENDLESS DIVE':'THE DAILY DIVE')+'</h2>'+(endless?'':'<p class="diveDate">'+escapeText(diveDate(day).toUpperCase())+'</p>')+'<p>7 events · 25 seconds each · rarer answers sink deeper</p></section><section class="launch"><div class="disclosure">'+(endless?button('OPEN THE DIVE LOG ∞','log','logToggle'):'<details class="inlineHelp"><summary>HOW TO PLAY</summary><div class="helpCard"><p>'+help+'</p><ol class="helpSteps"><li>Read the event prompt.</li><li>Type one answer or skip the round.</li><li>Review examples and continue your descent.</li></ol></div></details>')+'<span class="depthLabel">0m · SURFACE ZONE</span></div><div class="launchNote">Sperm whales hunt giant squid in deep water below the surface zone.</div>'+(!endless&&!dailyOnly?'<a class="partyLink" href="'+sitePath('/party')+'"><span role="img" aria-label="Pufferfish">🐡</span> PUFFER PARTY <small>PREVIEW</small></a>':'')+button(completed?'VIEW TODAY’S RESULTS':'▼ BEGIN DESCENT ▼',completed?'today-results':'start','action start')+(completed?countdown():'')+'<div class="foot"><span>'+(endless?'ENDLESS PRACTICE':'2027 · DIVISION C')+'</span>'+(dailyOnly?'':'<ul class="links" aria-label="Practice modes"><li>'+chip('/archive','ARCHIVE ⟲')+'</li>'+(endless?'<li>'+chip('/','TODAY’S DIVE')+'</li>':'<li>'+chip('/packs','THEMED PACKS')+'</li><li>'+chip('/unlimited/classic','UNLIMITED ∞')+'</li>')+'</ul>')+'</div></section>';
 
  }
  draw();
@@ -283,6 +288,7 @@ function renderCatch(rounds){
 }
 
 function results(result){
+ const dailyLabel=result.mode==='Daily'&&result.date?'Daily · '+diveDate(Date.parse(result.date+'T00:00:00Z')/86400000):result.mode;
  state='results'; score=result.score; document.body.classList.remove('surface');
  const points=result.score/10;
  const bands=[[0,150,'Plankton'],[151,250,'Schooler'],[251,350,'Rare'],[351,449,'Deep Cut'],[450,700,'One in a Krillion']];
@@ -294,7 +300,7 @@ function results(result){
  const bins=Array.from({length:14},()=>0);
  for(const n of savedScores)if(Number.isFinite(n)&&n>=0&&n<=700)bins[Math.min(13,Math.floor(n/50))]++;
  const peak=Math.max(1,...bins);
- app.innerHTML=`<section class="diveResults report"><div class="reportHead"><b>SCIOLY DIVE</b><span>${escapeText(result.mode)} · DIVE COMPLETE</span></div>
+ app.innerHTML=`<section class="diveResults report"><div class="reportHead"><b>SCIOLY DIVE</b><span>${escapeText(dailyLabel)} · DIVE COMPLETE</span></div>
    <h1>${points} <small>−${result.score.toLocaleString()} m</small></h1>
    <p>${result.answers.filter(a=>a.points).length} of 7 scored${result.streak?' · '+result.streak+'-day streak':''}</p>
    <div class="localScores" role="img" aria-label="Your last ${savedScores.length} scores on this device. This dive scored ${points} out of 700.">
@@ -304,11 +310,13 @@ function results(result){
    <h2>DIVE LOG <small>DEEPER = RARER</small></h2><div class="logChart"><div class="chartTicks" aria-hidden="true"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>${marks}</div>
    <h2>THE BEARING</h2><ul class="bearings">${bands.map(([lo,hi,name])=>`<li class="${points>=lo&&points<=hi?'earned':''}"><small>${hi===700?'450+':lo+'–'+hi}</small>${name}</li>`).join('')}</ul>
    <div class="row reportActions">${button('COPY RESULT','copy','diveSubmit')}${button('SHARE…','share')}</div>
-   <p id="shareStatus" role="status"></p>
+   <p id="shareStatus" role="status"></p>${result.mode==='Daily'?countdown():''}
    <section class="catchBook"><h2>THE CATCH <small>Tap a prompt for every answer</small></h2><div id="catches"></div></section>
    <div class="row reportActions">${dailyOnly?'':chip('/unlimited/classic','KEEP DIVING →')+chip('/archive','ARCHIVE ⟲')}${chip('/','DAILY DIVE')}</div></section>`;
  renderCatch(result.answers);
- const summary='Science Olympiad Dive | '+points+' pts · '+result.score+' m\n'+result.answers.map(a=>a.points?'🟦':'⬛').join('')+'\n'+siteRoot.href;
+ // One square per round, colored by rarity tier, so a shared result shows how deep each catch was.
+ const tierSquares={0:'⬛',10:'🟦',15:'🟪',30:'🟩',60:'🟨',85:'🟧',100:'🟥'};
+ const summary='SciOly Dive · '+dailyLabel.replace(' · ',' Dive · ')+'\n'+points+' pts · '+result.score.toLocaleString()+' m deep\n'+result.answers.map(a=>tierSquares[a.points/10]??'⬛').join('')+'\n'+siteRoot.href;
  const status=document.querySelector('#shareStatus');
  const copy=async()=>{try{await navigator.clipboard.writeText(summary);status.textContent='Result copied.'}catch{status.textContent=summary}};
  app.querySelector('[data-action=copy]').onclick=copy;
