@@ -55,7 +55,7 @@ Unscored answers count as Deep Cuts.
 
 ## Pinning Dailies
 
-The Daily seed is the UTC day number (`Math.floor(Date.now() / 86400000)`; 2026-11-27 is 20784). `featuredDailies[day]` lists seven `[event, exact prompt]` pairs in round order, each from a different event. Pinned days so far: 20784–20788 (Nov 27 – Dec 1, 2026). Unpinned days rotate through all eligible prompts.
+The Daily seed is the UTC day number (`Math.floor(Date.now() / 86400000)`; 2026-11-27 is 20784). `featuredDailies[day]` lists seven `[event, exact prompt]` pairs in round order, each from a different event. Pinned days so far: 20784–20789 (Nov 27 – Dec 2, 2026; Nov 28 repeats Nov 27). Unpinned days rotate through all eligible prompts.
 
 When preparing new days:
 
