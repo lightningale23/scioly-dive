@@ -65,7 +65,7 @@ Most upkeep runs without Claude. Spend Claude sessions on writing new prompts an
 - **Prefer data over hand-writing.** Where an open dataset fits a prompt, add a source to `scripts/sourced-answers.mjs` rather than typing answers.
 - **Batch prompt writing.** Write several drafts from `catalog-data/prompt-drafts.md` in one session, then run `npm run sourced`, `npm run familiarity`, `npm run lock-krillions` and `npm test` once.
 - **Use a smaller model for routine edits.** Fixing a typo, adding aliases or swapping an obvious answer works fine with `/model sonnet` or `/model haiku`; keep the largest model for new prompts.
-- **The catalog's size limits the schedule.** With about 45 Daily-worthy prompts at 7 per day, prompts repeat after about six days; each new prompt lengthens the cycle.
+- **The catalog's size limits the schedule.** With about 55 Daily-worthy prompts at 7 per day, a prompt returns after about a week; each new prompt lengthens the cycle. Events with the fewest prompts repeat soonest, so write for those first.
 
 ## Pinning Dailies
 

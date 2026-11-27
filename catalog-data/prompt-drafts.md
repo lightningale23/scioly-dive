@@ -61,8 +61,6 @@ Live prompts these drafts avoid: see `specialist-prompts.js`, `specialist-prompt
 
 | Draft prompt | Rules section | Est. answers | Notes |
 | --- | --- | --- | --- |
-| Name a clue or technique for cracking an Aristocrat or Patristocrat. | 3.e.i–ii | 45 | Pattern words, letter frequency, doubled letters, short words, contact analysis, K1/K2 alphabet recovery, keyword guessing. Merge with Spanish Xenocrypt clues (ñ, common Spanish words). |
-| Name a word in the Porta, Nihilist, checkerboard, or homophonic cipher procedures. | 3.e.vii–xi | 40 | Porta table, key, Polybius square, row and column keywords, additive key. Small; pair with the clue prompt. |
 
 ## Designer Genes
 
@@ -81,8 +79,6 @@ Live prompts these drafts avoid: see `specialist-prompts.js`, `specialist-prompt
 
 | Draft prompt | Rules section | Est. answers | Notes |
 | --- | --- | --- | --- |
-| Name something you could read from a topographic map, well data, or a hydrograph. | 3.k | 55 | Contour interval, index contour, gradient, relief, V-pointing contours, flow lines, rising limb, falling limb, lag time, peak discharge, baseflow. |
-| Name a karst landform or groundwater feature. | 3.g | 50 | Sinkhole, cave, spring, losing stream, uvala, polje, tower karst, stalactite, aquifer types, cone of depression. |
 
 ## Electric Vehicle
 
@@ -93,44 +89,36 @@ Live prompts these drafts avoid: see `specialist-prompts.js`, `specialist-prompt
 
 | Draft prompt | Rules section | Est. answers | Notes |
 | --- | --- | --- | --- |
-| Name a view, line type, or annotation on an engineering drawing. | 1, 2.e | 60 | Orthographic views, section, detail, hidden line, phantom line, centerline, leader, GD&T symbols, title block fields. |
 
 ## Experimental Design
 
 | Draft prompt | Rules section | Est. answers | Notes |
 | --- | --- | --- | --- |
-| Name a statistic, graph type, or data-analysis term used in an Experimental Design report. | Checklist I–L | 60 | Mean, median, mode, range, standard deviation, IQR, best-fit line, R², percent error, outlier tests, bar vs line graph. |
 
 ## Forensics
 
 | Draft prompt | Rules section | Est. answers | Notes |
 | --- | --- | --- | --- |
-| Name a test, reagent, or observation used to identify a white powder. | 2.f, 3.b | 45 | Iodine (starch), Benedict's (reducing sugar), HCl fizz (carbonate), flame colors (Li red, K violet, Ca orange-red, Na yellow), solubility, pH, conductivity. |
-| Name a hair, fiber, or polymer identification clue. | 3.c | 50 | Medulla patterns, scale types, burn odor, melt behavior, density float or sink, resin identification codes 1–7. |
 
 ## Hovercraft
 
 | Draft prompt | Rules section | Est. answers | Notes |
 | --- | --- | --- | --- |
-| Name an equation, unit, or quantity used to plan a hovercraft run. | 4, 7 | 50 | Pressure = force/area, lift, thrust, Target Time, average speed, distance, mass of nickels, run score terms. |
 
 ## Mission Possible
 
 | Draft prompt | Rules section | Est. answers | Notes |
 | --- | --- | --- | --- |
-| Name a simple machine or a mechanical-advantage term. | 4.b.iv–x | 40 | Lever classes, fulcrum, effort arm, load arm, IMA, AMA, efficiency, pulley systems, block and tackle, screw pitch. Merge with chemical-reaction actions (vinegar and baking soda, endothermic). |
 
 ## Ping Pong Parachute
 
 | Draft prompt | Rules section | Est. answers | Notes |
 | --- | --- | --- | --- |
-| Name a parameter you could record in a bottle-rocket flight log. | 4 | 50 | Pressure, peak height, time aloft, fin count, fin shape, parachute diameter, canopy material, line length, nose mass, launch angle. |
 
 ## Protein Modeling
 
 | Draft prompt | Rules section | Est. answers | Notes |
 | --- | --- | --- | --- |
-| Name a step of influenza infection or the immune response to it. | 3, Part II c.iii–iv | 50 | Attachment, sialic acid binding, endocytosis, endosome acidification, fusion, uncoating, replication, budding, neuraminidase release, antibodies, T cells. |
 | Name a Jmol/JUDE display style or visualization term. | Part II d | 30 | Cartoon, backbone, wireframe, spacefill, sticks, ball and stick, surface, alpha carbon trace. Small; merge with sidechain chemistry terms. |
 
 ## Remote Sensing
@@ -163,5 +151,4 @@ Live prompts these drafts avoid: see `specialist-prompts.js`, `specialist-prompt
 
 | Draft prompt | Rules section | Est. answers | Notes |
 | --- | --- | --- | --- |
-| Name a material or tool used to build a rubber-powered model plane. | 3 | 70 | Balsa, carbon fiber, tissue, Mylar, condenser paper, CA glue, tungsten wire, prop hanger, winder, torque meter, building board, pins. |
 | Name a trim problem or flight behavior you could see on a test flight. | 4.e | 40 | Stall, dive, spiral dive, porpoising, Dutch roll, mush, wing drop, torque roll, ceiling hit. Merge with fixes (add washin, shift CG). |

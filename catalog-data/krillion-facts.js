@@ -7,6 +7,10 @@ import { normalize } from '../matching.js';
 // Krillion should be a delightful find, not just the most obscure word on the list.
 const facts = {
   // Prompts added 2026-11-27 (scoped to a word in their prompt)
+  'Kasiski examination': ['Friedrich Kasiski published his attack on the Vigen\u00e8re cipher in 1863, ending its reputation as \u201cthe indecipherable cipher\u201d.', 'codebusters'],
+  'Darcy\u2019s law': ['Henry Darcy worked out his law of groundwater flow in 1856 while engineering the public fountains of Dijon, France.', 'groundwater'],
+  'cap snatching': ['Influenza steals the 5\u2032 caps off the host cell\u2019s own mRNAs, a trick called cap snatching, to start writing its own messages.', 'influenza infection'],
+  'Grubbs\u2019 test': ['Frank Grubbs published his outlier test in 1950 while working on ballistics data at the U.S. Army\u2019s Aberdeen Proving Ground.', 'experimental design'],
   'sphincter of Oddi': ['Ruggero Oddi described the sphincter that now bears his name in 1887, while he was still a 23-year-old medical student.', 'digestive'],
   'florigen': ['Florigen was proposed in 1936 as a mystery signal that travels from leaves to buds to start flowering; it was finally shown to be a protein, FT, in 2007.', 'hormone'],
   'wobble hypothesis': ['Francis Crick proposed the wobble hypothesis in 1966 to explain how a cell reads all 61 sense codons with far fewer kinds of tRNA.', 'translation'],
