@@ -1,6 +1,6 @@
 # SciOly Dive
 
-A daily Science Olympiad (Division C, 2027 rules) answer game modeled loosely on Krillion: seven events per dive, one prompt each, 25 seconds per prompt. Rarer accepted answers score more and "sink deeper". It runs as a static GitHub Pages site (guest mode, everything judged in the browser) and optionally as a Node/Vercel server (`api/dive.js`).
+A daily Science Olympiad (Division C, 2027 rules) answer game modeled loosely on Krillion: seven events per dive, one prompt each, 25 seconds per prompt. Rarer accepted answers score more and "sink deeper". It runs on Vercel as a Node server (`api/dive.js`, `api/judge.js`) at https://scioly-dive.vercel.app/. The old GitHub Pages address now only redirects there (`pages-redirect/index.html`), carrying each visitor's saved results along once. The static guest build (`node build.mjs --pages`) still exists but is no longer deployed.
 
 ## Prompt style (the most important rule)
 
@@ -61,7 +61,7 @@ Unscored answers count as Deep Cuts.
 
 Most upkeep runs without Claude. Spend Claude sessions on writing new prompts and answer lists, which is the only part that needs judgment.
 
-- **Scheduling is automatic.** `.github/workflows/plan-dailies.yml` runs every Monday: `npm run plan-dailies -- 14` pins the next two weeks (each event's least recently used prompt, Krillions with facts preferred, events used in the last two days rested), `npm run lock-krillions` locks them, tests run, and the site redeploys. Don't pin days by hand unless asked.
+- **Scheduling is automatic.** `.github/workflows/plan-dailies.yml` runs every Monday: `npm run plan-dailies -- 14` pins the next two weeks (each event's least recently used prompt, Krillions with facts preferred, events used in the last two days rested), `npm run lock-krillions` locks them, tests run, and the commit is pushed (Vercel redeploys). Don't pin days by hand unless asked.
 - **Review with one command.** `npm run check-prompt -- "<part of the prompt>"` prints size, tiers, Krillion (fact, lock), obvious answers, folded groups, short aliases and samples. Use it instead of writing ad-hoc `node -e` scripts or reading answer files.
 - **Don't read generated files.** `familiarity.js`, `sourced-answers.js`, `package-lock.json`, `dist/` and `pages-dist/` are blocked in `.claude/settings.json`; regenerate them with their scripts instead.
 - **Prefer data over hand-writing.** Where an open dataset fits a prompt, add a source to `scripts/sourced-answers.mjs` rather than typing answers.
@@ -97,7 +97,7 @@ npm start
 - `npm run build` builds the server version into `dist/`.
 - `npm start` serves the server version locally at http://localhost:4173.
 
-Pushing to `main` runs `.github/workflows/pages.yml` (tests, build, deploy). The live site is https://lightningale23.github.io/scioly-dive/.
+Vercel deploys every push to `main`. Pushing to `main` also runs `.github/workflows/pages.yml`, which runs the tests and republishes the redirect page on GitHub Pages. The live site is https://scioly-dive.vercel.app/; https://lightningale23.github.io/scioly-dive/ (any path) forwards there.
 
 ## Gotchas
 

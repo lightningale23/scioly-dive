@@ -1,13 +1,12 @@
 name: Plan Dailies and lock Krillions
 # Keeps the next two weeks of Dailies pinned and every played prompt's Krillion locked, with no
-# one at the keyboard: plans unpinned days, locks Krillions, runs the tests, commits, then redeploys.
+# one at the keyboard: plans unpinned days, locks Krillions, runs the tests and commits (Vercel deploys the push).
 on:
   schedule:
     - cron: '23 7 * * 1'
   workflow_dispatch:
 permissions:
   contents: write
-  actions: write
 concurrency:
   group: plan-dailies
 jobs:
@@ -19,14 +18,10 @@ jobs:
       - run: npm run plan-dailies -- 14
       - run: npm run lock-krillions
       - run: npm test
-      - name: Commit and redeploy if anything changed
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Commit if anything changed
         run: |
           if git diff --quiet; then echo "Nothing to plan or lock."; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -am "Plan upcoming Dailies and lock their Krillions"
           git push
-          # Pushes made with the workflow token don't trigger other workflows, so start the deploy here.
-          gh workflow run pages.yml --ref main

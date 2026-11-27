@@ -9,9 +9,9 @@ Run npm ci, npm run build and npm start from this folder, then open http://local
 
 Guest settings, completion, and streaks are saved on the device. The answer API stores a hash of a daily fallback guess with its verdict. It records normalized practice guesses and their outcomes for editorial review. Azure-validated answers initially receive 30 points and can receive a curated tier when added to the answer bank.
 
-## GitHub Pages
+## Live site and GitHub Pages
 
-[Play Science Olympiad Dive](https://lightningale23.github.io/scioly-dive/). Pushes to main automatically build and publish the guest game. Daily, Archive, Unlimited and packs use the curated answers and rarity tiers in the browser. Results and streaks are stored on the device. Azure judgments, account sync and global rankings require the Node or Vercel deployment described above.
+[Play SciOly Dive](https://scioly-dive.vercel.app/). Vercel deploys every push to main. The old GitHub Pages address, https://lightningale23.github.io/scioly-dive/, now only redirects to Vercel (`pages-redirect/index.html`, published by `.github/workflows/pages.yml`) and carries a visitor's saved results and streaks across once. The static guest build below still works but is no longer deployed. Daily, Archive, Unlimited and packs use the curated answers and rarity tiers in the browser. Results and streaks are stored on the device. Azure judgments, account sync and global rankings require the Node or Vercel deployment described above.
 
 Run `npm ci` and then `node build.mjs --pages` to generate the static site in `pages-dist/`.
 

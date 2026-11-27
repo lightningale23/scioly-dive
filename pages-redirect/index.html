@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SciOly Dive has moved</title>
+<link rel="canonical" href="https://scioly-dive.vercel.app/">
+<meta http-equiv="refresh" content="3;url=https://scioly-dive.vercel.app/">
+<meta name="robots" content="noindex">
+<style>
+:root{color-scheme:dark}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#050a14;color:#cfe9f5;font:16px/1.5 system-ui,sans-serif;text-align:center;padding:0 16px}
+a{color:#4de3ff}
+</style>
+<script>
+// GitHub Pages now only forwards visitors to the Vercel site. Served as index.html and 404.html,
+// so old deep links (/scioly-dive/archive, ?query, #hash) land on the same page there.
+// Saved streaks and results live in this origin's localStorage, so they ride along once in the
+// hash (#carry=...); game.js imports them on Vercel if that browser has nothing saved there yet.
+(function(){
+  var site='https://scioly-dive.vercel.app/';
+  var base='/scioly-dive/';
+  var path=location.pathname.indexOf(base)===0?location.pathname.slice(base.length):'';
+  var carry={}, any=false;
+  try{
+    for(var i=0;i<localStorage.length;i++){
+      var key=localStorage.key(i);
+      if(key&&key.indexOf('scioly-')===0){carry[key]=localStorage.getItem(key);any=true}
+    }
+  }catch(e){}
+  location.replace(site+path+location.search+(any?'#carry='+encodeURIComponent(JSON.stringify(carry)):location.hash));
+})();
+</script>
+</head>
+<body>
+<p>SciOly Dive has moved to <a href="https://scioly-dive.vercel.app/">scioly-dive.vercel.app</a>.</p>
+</body>
+</html>

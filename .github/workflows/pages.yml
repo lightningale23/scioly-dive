@@ -1,4 +1,6 @@
-name: Publish game to Pages
+name: Test and publish Pages redirect
+# The game lives on Vercel (https://scioly-dive.vercel.app/), which deploys main by itself.
+# GitHub Pages only serves pages-redirect/index.html (also as 404.html, so old deep links forward too).
 on:
   push:
     branches: [main]
@@ -18,10 +20,13 @@ jobs:
       - uses: actions/configure-pages@v5
       - run: npm ci
       - run: npm test
-      - run: node build.mjs --pages
+      - run: |
+          mkdir -p redirect-dist
+          cp pages-redirect/index.html redirect-dist/index.html
+          cp pages-redirect/index.html redirect-dist/404.html
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: pages-dist
+          path: redirect-dist
   publish:
     needs: build
     runs-on: ubuntu-latest

@@ -12,6 +12,15 @@ const requestedRoute=('/'+location.pathname.slice(siteRoot.pathname.length)).rep
 const route=dailyOnly?'/':requestedRoute;
 const endless=route==='/unlimited/classic';
 const day=Math.floor(Date.now()/86400000);
+// Saves forwarded from the old GitHub Pages address (pages-redirect/index.html). Only taken from that
+// referrer, and only into a browser with nothing saved here yet, so a crafted link can't overwrite a save.
+if(location.hash.startsWith('#carry=')){
+ try{
+  const fresh=!Object.keys(localStorage).some(key=>key.startsWith('scioly-'));
+  if(fresh&&document.referrer.startsWith('https://lightningale23.github.io/'))for(const [key,value] of Object.entries(JSON.parse(decodeURIComponent(location.hash.slice(7)))))if(key.startsWith('scioly-')&&typeof value==='string')localStorage.setItem(key,value);
+ }catch{}
+ history.replaceState(null,'',location.pathname+location.search);
+}
 const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem('scioly-'+key))??fallback}catch{return fallback}};
 const save=(key,value)=>{try{localStorage.setItem('scioly-'+key,JSON.stringify(value))}catch{}};
 const preferences=read('settings',{sound:false,scan:true,color:'#4de3ff'});
