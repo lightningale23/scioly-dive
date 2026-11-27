@@ -55,7 +55,7 @@ export default async function handler(req, res) {
     if (req.method === 'GET' && new URL(req.url, 'http://local').searchParams.has('health')) {
       // Says whether judging can run, without revealing any key. ?health=deep also makes one test call.
       const health = {configured: judgeConfigured(), provider: process.env.GEMINI_API_KEY ? 'gemini' : judgeConfigured() ? 'azure' : null,
-        model: process.env.GEMINI_API_KEY ? process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite' : undefined, durableStorage: durable};
+        model: process.env.GEMINI_API_KEY ? process.env.GEMINI_MODEL || 'gemini-flash-lite-latest' : undefined, durableStorage: durable};
       if (new URL(req.url, 'http://local').searchParams.get('health') === 'deep' && health.configured) {
         try { health.testJudgment = await judgeAnswer('Name a noble gas.', 'neon'); } catch (error) { health.error = String(error.message).slice(0, 200); }
       }

@@ -3,7 +3,8 @@
 // Rare (60) or a Deep Cut (85). Deep Cut is the default: an answer missing from a list of hundreds is
 // probably uncommon. An AI-judged answer can never be the One in a Krillion.
 // Providers, by environment variable (set them in Vercel's project settings, never in the repo):
-//   GEMINI_API_KEY (+ optional GEMINI_MODEL): Google's Gemini API, which has a free tier.
+//   GEMINI_API_KEY (+ optional GEMINI_MODEL, default gemini-flash-lite-latest, an alias Google keeps
+//   pointed at its newest Flash-Lite model): Google's Gemini API, which has a free tier.
 //   AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_DEPLOYMENT: Azure OpenAI.
 export const AI_POINTS = {rare: 60, deep: 85};
 export const AI_DEFAULT_POINTS = AI_POINTS.deep;
@@ -19,7 +20,7 @@ const instructions = 'You judge answers in a Science Olympiad trivia game. The u
   + '{"valid": true, "tier": "deep"} or {"valid": false}.';
 
 async function gemini(prompt, answer) {
-  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite';
+  const model = process.env.GEMINI_MODEL || 'gemini-flash-lite-latest';
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY},
@@ -28,7 +29,7 @@ async function gemini(prompt, answer) {
       systemInstruction: {parts: [{text: instructions}]},
       contents: [{role: 'user', parts: [{text: JSON.stringify({prompt, answer})}]}],
       generationConfig: {
-        temperature: 0, maxOutputTokens: 30, responseMimeType: 'application/json',
+        temperature: 0, maxOutputTokens: 256, responseMimeType: 'application/json',
         responseSchema: {type: 'OBJECT', properties: {valid: {type: 'BOOLEAN'}, tier: {type: 'STRING', enum: ['rare', 'deep']}}, required: ['valid']},
       },
     }),
