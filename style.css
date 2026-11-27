@@ -1,4 +1,4 @@
-@font-face{font-family:VT323;src:url('./vt323.ttf') format('truetype');font-display:swap}
+@font-face{font-family:VT323;src:url('./vt323.woff2') format('woff2'),url('./vt323.ttf') format('truetype');font-display:swap}
 :root{--abyss:#050a14;--panel:#101d33;--line:#1b2c47;--foam:#e8f1ff;--muted:#7d93b8;--cyan:#4de3ff;--pink:#ff5d8f;--night:#0b1526;--column:600px;--water:54.5svh;--rim:0 0 0 3px var(--abyss),0 0 0 6px var(--cyan),0 6px 0 6px #123048}
 *{box-sizing:border-box}body{margin:0;min-height:100svh;background:var(--abyss);color:var(--foam);font:17px VT323,monospace}button,input,a{font:inherit}button,a{color:inherit}a{text-decoration:none}button{cursor:pointer}button,a,input{touch-action:manipulation}button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 #scene,.scan{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}.scan{z-index:9;background:repeating-linear-gradient(0deg,#050a141e 0 1px,transparent 1px 3px)}
@@ -258,3 +258,34 @@ body:has(.diveScreen) #tools{display:block;margin-top:50px}body:has(.diveScreen)
 .catchPanel .catchFact{margin:6px 0 12px;max-width:none}
 .bearings li span i{font-style:normal;color:#7f93ab}.bearings .earned span i{color:#ffc3d6}
 @media(prefers-reduced-motion:reduce){.sinkingGuess~.revealStage .revealCard{animation:none}}
+
+/* Science Olympiad touches: event-type badges (after the rules manual's event types), today's
+   event lineup as a tournament schedule card, and a tournament medal on the results. */
+.typeBadge{display:inline-block;margin-left:6px;padding:1px 6px;border:1px solid currentColor;border-radius:2px;font:10px/1.5 monospace;letter-spacing:.12em;text-transform:uppercase;vertical-align:1px;white-space:nowrap}
+.typeBadge[data-type=core]{color:#6fd3ff}.typeBadge[data-type=build]{color:#ffb35c}.typeBadge[data-type=lab]{color:#7ee8a2}.typeBadge[data-type=hybrid]{color:#c7a6ff}
+.promptCard .event .typeBadge,.revealCard .event .typeBadge{font-size:9px}
+.lineup{margin:0 0 16px;padding:10px 12px 8px;background:#0b1626d9;border:1px solid #2a4566;border-top:3px solid var(--cyan);border-radius:3px}
+.lineup .eyebrow{margin:0 0 6px;font:11px/1.4 monospace;letter-spacing:.18em;color:#8fb3d1}
+.lineup ol{margin:0;padding:0;list-style:none;counter-reset:event;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:2px 16px}
+.lineup li{counter-increment:event;display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px dashed #223853;font-size:15px;color:#dbe7f5;letter-spacing:.04em}
+.lineup li::before{content:counter(event);min-width:18px;color:var(--pink);font:12px/1 monospace}
+.lineup li .typeBadge{margin-left:auto}
+.arrivalNotice b{display:inline-block;min-width:1ch;margin-left:4px;color:var(--cyan);font-size:20px;animation:countPulse 1s ease-out infinite}
+@keyframes countPulse{0%{transform:scale(1.35);opacity:.6}35%{transform:scale(1);opacity:1}}
+.scoreLine{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.medal{display:flex;flex-direction:column;align-items:center;gap:4px;font:10px/1.2 monospace;letter-spacing:.14em;color:#c9d6e6}
+.medal i{position:relative;width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff8 0 18%,transparent 19%),var(--metal);box-shadow:inset 0 0 0 4px #0003,0 0 0 2px var(--rim,#0000),0 0 18px var(--glow,#0000);margin-top:18px}
+.medal i::before,.medal i::after{content:'';position:absolute;top:-20px;width:14px;height:24px;background:var(--ribbon,#4de3ff)}
+.medal i::before{left:8px;transform:skewX(18deg)}.medal i::after{right:8px;transform:skewX(-18deg);background:var(--ribbon2,#ff5d8f)}
+.medal i{z-index:0}.medal i::before,.medal i::after{z-index:-1}
+.medal[data-medal=gold]{--metal:linear-gradient(135deg,#ffe27a,#c79a1c);--glow:#ffd45a66;--rim:#7a5a07}
+.medal[data-medal=silver]{--metal:linear-gradient(135deg,#f2f6fa,#8e9aa8);--glow:#cfe3ff44;--rim:#56606c}
+.medal[data-medal=bronze]{--metal:linear-gradient(135deg,#f0b27a,#9a5a26);--glow:#e8945544;--rim:#5c3311}
+.medal[data-medal=ribbon] i{border-radius:6px 6px 50% 50%;--metal:linear-gradient(135deg,#4de3ff,#2b7fb8)}
+.bearings li{align-items:baseline}.bearings li span{flex:1}
+.bandMedal{font:10px/1 monospace;letter-spacing:.1em;text-transform:uppercase;font-style:normal;color:#7f93ab;white-space:nowrap}
+.bandMedal[data-medal=gold]{color:#ffd45a}.bandMedal[data-medal=silver]{color:#cfd9e4}.bandMedal[data-medal=bronze]{color:#e89455}
+@media(max-width:540px){.lineup{padding:8px 10px 6px;margin-bottom:12px}.lineup li{font-size:13px}.lineup ol{grid-template-columns:1fr}.bandMedal{display:none}.medal i{width:36px;height:36px}}
+@media(prefers-reduced-motion:reduce){.arrivalNotice b{animation:none}}
+.lineup li span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:540px){.lineup ol{grid-template-columns:1fr 1fr;gap:0 10px}.lineup li{font-size:12px;gap:4px;padding:2px 0}.lineup li::before{min-width:12px;font-size:11px}.lineup .typeBadge{font-size:8px;padding:0 3px;margin-left:auto}.lineup .eyebrow{font-size:10px;letter-spacing:.12em}}

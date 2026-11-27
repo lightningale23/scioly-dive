@@ -34,3 +34,16 @@ test('every official event has exactly one specialist base prompt with a large a
   }
   assert.equal(questions.length,23);
 });
+test('a dropped possessive still matches ("Koch postulates", "Boyle law")',()=>{
+  const dd=rows.find(q=>q.prompt.startsWith('Name an epidemiology term')&&!q.prompt.includes('\n'));
+  assert.equal(submit(dd,'Koch postulates').status,'valid');
+  const chem=rows.find(q=>q.prompt.startsWith('Name a concept, law, or quantity from gas')&&!q.prompt.includes('\n'));
+  assert.equal(submit(chem,'Boyle law').status,'valid');
+});
+test('a dropped possessive cannot dodge a letter rule',()=>{
+  const chem=rows.find(q=>q.prompt.startsWith('Name a concept, law, or quantity from gas')&&q.prompt.endsWith('Include the letter S.'));
+  if(!chem)return;
+  assert(chem.bank.some(e=>e.canonical==='Boyle’s law'));
+  assert.notEqual(submit(chem,'Boyle law').status,'valid');
+  assert.equal(submit(chem,'Boyles law').status,'valid');
+});

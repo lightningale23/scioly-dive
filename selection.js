@@ -3,7 +3,7 @@
 // each row with daily:false instead (see dailyWorthy in answer-bank.js).
 export const MIN_DAILY_ANSWERS=60;
 export const narrowPuzzle=prompt=>/Unit names and symbols both count|Pick a total|Pick a number|decimal integer|rotates in \d+° steps/.test(prompt);
-const dailyRow=entry=>entry.bank?entry.bank.length>=MIN_DAILY_ANSWERS&&!narrowPuzzle(entry.prompt):entry.daily!==false;
+const dailyRow=entry=>'size' in entry?entry.size>=MIN_DAILY_ANSWERS&&!narrowPuzzle(entry.prompt):entry.daily!==false;
 import { featuredDailies, pausedEvents } from './features.js';
 const promptOf=entry=>Array.isArray(entry)?entry[0]:entry.prompt??entry;
 export function selection(events, seed, round, first, mode) {

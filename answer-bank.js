@@ -69,46 +69,42 @@ function chooseFeatured(bank,prompt){
   return bank.map(entry=>entry===winner?{...entry,points:100,...(fact&&{fact})}:entry.points===100?{...entry,points:85}:entry);
 }
 
-export const questions=events.map(([event,entries],eventIndex)=>{
+// Rows are built eagerly with only what selection needs (prompt and answer count); each row's scored
+// bank (tiers, Krillion and fact) is computed the first time it is read. A dive reads seven, so the
+// page no longer tiers every prompt in the catalog before it can start.
+function scoredBank(allowedGroups,base,prompt){
+  const bank=allowedGroups.map(([canonical,...aliases])=>({canonical,aliases,points:null}));
+  const computed=familiarityTiers(bank,bank,obviousAnswers[base]);
+  for(const entry of bank)entry.points=computed.get(entry)??30;
+  return chooseFeatured(bank,prompt);
+}
+export const questions=events.map(([event,entries])=>{
   const bases=new Map();
-  const rows=entries.map(([prompt,raw,since],questionIndex)=>{
+  const rows=entries.map(([prompt,raw,since])=>{
     const [base,rule]=prompt.split('\n');
     let groups=bases.get(base);
     if(!groups){
       groups=expandedGroups(base,raw);
       bases.set(base,groups);
     }
-    const bank=[];
-    for(const [index,names] of groups.entries()){
-      let allowed=names;
-      if(rule){
-        const letter=rule.at(-2).toLowerCase();
-        allowed=names.filter(name=>{
-          const spelling=normalize(name);
-          if(rule.startsWith('Start'))return spelling.startsWith(letter);
-          if(rule.startsWith('End'))return spelling.endsWith(letter);
-          return spelling.includes(letter);
-        });
-      }
-      if(!allowed.length)continue;
-      const [canonical,...aliases]=allowed;
-      bank.push({canonical,aliases,points:null,names:allowed});
+    let allowedGroups=groups;
+    if(rule){
+      const letter=rule.at(-2).toLowerCase();
+      const fits=rule.startsWith('Start')?spelling=>spelling.startsWith(letter):rule.startsWith('End')?spelling=>spelling.endsWith(letter):spelling=>spelling.includes(letter);
+      allowedGroups=groups.map(names=>names.filter(name=>fits(normalize(name)))).filter(names=>names.length);
     }
-    // Tiers come from the obvious-answer lists and corpus familiarity.
-    const numeric=/^\d+$/.test(bank[0]?.canonical??'');
-    const computed=numeric?new Map():familiarityTiers(bank.filter(entry=>entry.points==null),bank,obviousAnswers[base]);
-    for(const entry of bank){
-      entry.points??=computed.get(entry)??30;
-      delete entry.names;
-    }
-    return since?{prompt,bank:chooseFeatured(bank,prompt),since}:{prompt,bank:chooseFeatured(bank,prompt)};
+    const row={prompt,size:allowedGroups.length,...(since&&{since})};
+    let bank;
+    Object.defineProperty(row,'bank',{enumerable:true,get:()=>bank??=scoredBank(allowedGroups,base,prompt)});
+    return row;
   });
   return [event,rows];
 });
 
+
 // Prompt-only catalog for the server build: the client needs each row's first day and Daily eligibility.
 import { MIN_DAILY_ANSWERS, narrowPuzzle } from './selection.js';
-export const dailyWorthy=row=>row.bank.length>=MIN_DAILY_ANSWERS&&!narrowPuzzle(row.prompt);
+export const dailyWorthy=row=>row.size>=MIN_DAILY_ANSWERS&&!narrowPuzzle(row.prompt);
 export const publicEvents=questions.map(([event,rows])=>[event,rows.map(row=>({prompt:row.prompt,...(row.since&&{since:row.since}),...(!dailyWorthy(row)&&{daily:false})}))]);
 
 export function questionFor(seed, round, first, mode) {

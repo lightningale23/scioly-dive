@@ -1,5 +1,11 @@
 import pluralize from 'pluralize';
-export const normalize=value=>value.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]/g,'');
+// Catalog strings repeat across hundreds of prompts, so normalized forms are memoized.
+const normalized=new Map();
+export const normalize=value=>{
+  let key=normalized.get(value);
+  if(key===undefined){key=value.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]/g,'');if(normalized.size<100000)normalized.set(value,key)}
+  return key;
+};
 
 // Optimal string alignment distance also recognizes a single adjacent transposition.
 function distance(a,b) {
@@ -21,7 +27,10 @@ function indexFor(bank){
   if(index)return index;
   const exact=new Map(), byLength=new Map();
   for(const entry of bank){
-    for(const name of [entry.canonical,...entry.aliases]){
+    // "Boyle\u2019s law" also matches "Boyle law": players often drop the possessive.
+    const names=[entry.canonical,...entry.aliases];
+    for(const name of names)if(/['\u2019]s\b/.test(name))names.push(name.replace(/['\u2019]s\b/g,''));
+    for(const name of names){
       const key=normalize(name);
       if(!exact.has(key))exact.set(key,entry);
       if(!byLength.has(key.length))byLength.set(key.length,[]);
@@ -59,11 +68,12 @@ export function matchAnswer(bank,answer,prompt=''){
   const guess=normalize(typed);
   if(!guess)return {};
   const {exact,byLength}=indexFor(bank);
-  const direct=exact.get(normalize(answer))??exact.get(guess);
-  if(direct)return {match:direct};
   const rule=prompt.match(/\n(Start with|End with|Include) the letter ([A-Z])/);
   const letter=rule?.[2].toLowerCase();
   const fits=!rule||(rule[1]==='Start with'?guess.startsWith(letter):rule[1]==='End with'?guess.endsWith(letter):guess.includes(letter));
+  // Listed spellings already obey the letter rule; derived ones (a dropped possessive) must too.
+  const direct=exact.get(normalize(answer))??exact.get(guess);
+  if(direct)return fits?{match:direct}:{};
   if(fits){
     const equivalents=[pluralize.singular(typed),typed.replace(/colour/gi,'color').replace(/centre/gi,'center').replace(/fibre/gi,'fiber')];
     for(const variant of equivalents){

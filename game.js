@@ -18,7 +18,7 @@ const preferences=read('settings',{sound:false,scan:true,color:'#4de3ff'});
 let seed, firstEvent, dive, receipts, profile, timer, round=0, score=0, answers=[], session=[], mode='', state='home', deadline=0;
 const chip=(url,label)=>'<a class="chip" href="'+sitePath(url)+'">'+label+'</a>';
 const button=(label,action,cls='small')=>'<button class="'+cls+'" data-action="'+action+'">'+label+'</button>';
-const help='Each dive visits seven different Division C events. Find one accepted answer per round in 25 seconds. Retry missed guesses while the clock runs. Submit a suggested spelling again to confirm it. Valid answers earn 10, 15, 30, 60, 85, or 100 points based on rarity. Each point adds 10 meters. Skip anytime and review examples after each round.';
+const help='Each dive visits seven Division C events, with one prompt written from each event\u2019s 2027 rules. Find one accepted answer per event in 25 seconds. Retry missed guesses while the clock runs, and submit a suggested spelling again to confirm it. Answers earn 10, 30, 60, 85, or 100 points by rarity, and each point sinks you 10 meters. The answers an event specialist knows sink deepest. Skip anytime and review the full answer list after each event.';
 const diveDate=d=>new Date(d*86400000).toLocaleDateString(undefined,{timeZone:'UTC',weekday:'short',month:'short',day:'numeric'});
 // Daily dives roll over at 00:00 UTC. Every [data-countdown] element ticks down to the next one.
 const untilNext=()=>{const ms=(day+1)*86400000-Date.now();if(ms<=0)return '00:00:00';const t=Math.floor(ms/1000);return [t/3600,t/60%60,t%60].map(n=>String(Math.floor(n)).padStart(2,'0')).join(':')};
@@ -63,6 +63,11 @@ function partyPreview(){
  </section>`;
 }
 
+function lineup(){
+ const names=Array.from({length:7},(_,round)=>events[selection(events,day,round,undefined,'Daily')[0]][0]);
+ return '<div class="lineup"><p class="eyebrow">TODAY\u2019S EVENTS · 2027 DIVISION C RULES</p><ol>'+names.map(name=>'<li><span>'+escapeText(name)+'</span>'+typeBadge(name,true)+'</li>').join('')+'</ol></div>';
+}
+
 function home(){
  state='home';
  document.body.classList.toggle('surface',route==='/'||endless);
@@ -74,7 +79,7 @@ function home(){
    app.innerHTML=partyPreview();
  }else{
    const completed=!endless&&read('daily-'+day,null);
-   app.innerHTML='<section class="hero"><h1 class="wordmark">SCIOLY DIVE</h1><h2>'+(endless?'THE ENDLESS DIVE':'THE DAILY DIVE')+'</h2>'+(endless?'':'<p class="diveDate">'+escapeText(diveDate(day).toUpperCase())+'</p>')+'<p>7 events · 25 seconds each · rarer answers sink deeper</p></section><section class="launch"><div class="disclosure">'+(endless?button('OPEN THE DIVE LOG ∞','log','logToggle'):'<details class="inlineHelp"><summary>HOW TO PLAY</summary><div class="helpCard"><p>'+help+'</p><ol class="helpSteps"><li>Read the event prompt.</li><li>Type one answer or skip the round.</li><li>Review examples and continue your descent.</li></ol></div></details>')+'<span class="depthLabel">0m · SURFACE ZONE</span></div><div class="launchNote">Sperm whales hunt giant squid in deep water below the surface zone.</div>'+(!endless&&!dailyOnly?'<a class="partyLink" href="'+sitePath('/party')+'"><span role="img" aria-label="Pufferfish">🐡</span> PUFFER PARTY <small>PREVIEW</small></a>':'')+button(completed?'VIEW TODAY’S RESULTS':'▼ BEGIN DESCENT ▼',completed?'today-results':'start','action start')+(completed?countdown():'')+'<div class="foot"><span>'+(endless?'ENDLESS PRACTICE':'2027 · DIVISION C')+'</span>'+(dailyOnly?'':'<ul class="links" aria-label="Practice modes"><li>'+chip('/archive','ARCHIVE ⟲')+'</li>'+(endless?'<li>'+chip('/','TODAY’S DIVE')+'</li>':'<li>'+chip('/packs','THEMED PACKS')+'</li><li>'+chip('/unlimited/classic','UNLIMITED ∞')+'</li>')+'</ul>')+'</div></section>';
+   app.innerHTML='<section class="hero"><h1 class="wordmark">SCIOLY DIVE</h1><h2>'+(endless?'THE ENDLESS DIVE':'THE DAILY DIVE')+'</h2>'+(endless?'':'<p class="diveDate">'+escapeText(diveDate(day).toUpperCase())+'</p>')+'<p>7 events · 25 seconds each · rarer answers sink deeper</p></section><section class="launch"><div class="disclosure">'+(endless?button('OPEN THE DIVE LOG ∞','log','logToggle'):'<details class="inlineHelp"><summary>HOW TO PLAY</summary><div class="helpCard"><p>'+help+'</p><ol class="helpSteps"><li>Read the event prompt.</li><li>Type one answer or skip the round.</li><li>Review examples and continue your descent.</li></ol></div></details>')+'<span class="depthLabel">0m · SURFACE ZONE</span></div>'+(endless?'<div class="launchNote">Sperm whales hunt giant squid in deep water below the surface zone.</div>':lineup())+(!endless&&!dailyOnly?'<a class="partyLink" href="'+sitePath('/party')+'"><span role="img" aria-label="Pufferfish">🐡</span> PUFFER PARTY <small>PREVIEW</small></a>':'')+button(completed?'VIEW TODAY’S RESULTS':'▼ BEGIN DESCENT ▼',completed?'today-results':'start','action start')+(completed?countdown():'')+'<div class="foot"><span>'+(endless?'ENDLESS PRACTICE':'2027 RULES · DIVISION C · GRADES 9\u201312')+'</span>'+(dailyOnly?'':'<ul class="links" aria-label="Practice modes"><li>'+chip('/archive','ARCHIVE ⟲')+'</li>'+(endless?'<li>'+chip('/','TODAY’S DIVE')+'</li>':'<li>'+chip('/packs','THEMED PACKS')+'</li><li>'+chip('/unlimited/classic','UNLIMITED ∞')+'</li>')+'</ul>')+'</div></section>';
 
  }
  draw();
@@ -96,6 +101,11 @@ function begin(diveSeed,kind,first){
 }
 // One line of color for each tier on the reveal card and the results key.
 const tierLines={10:'The whole ocean thought of this one.',15:'A sideways answer that still counts.',30:'Swimming with the crowd.',60:'Few divers make it down this far.',85:'Barely any light reaches here.',100:'The answer hidden at the very bottom.'};
+// Event types from the rules manual's Event Type Descriptions, shown as badges like the rules' symbols.
+const eventTypes={'Anatomy & Physiology':'Core Knowledge',Astronomy:'Core Knowledge',Boomilever:'Build',Botany:'Core Knowledge','Chemistry Lab':'Lab','Circuit Lab':'Lab',Codebusters:'Core Knowledge','Designer Genes':'Core Knowledge','Disease Detectives':'Core Knowledge','Dynamic Planet':'Core Knowledge','Electric Vehicle':'Build','Engineering CAD':'Lab','Experimental Design':'Lab',Forensics:'Lab',Hovercraft:'Build','Mission Possible':'Build','Ping Pong Parachute':'Build','Protein Modeling':'Hybrid','Remote Sensing':'Core Knowledge','Rocks & Minerals':'Core Knowledge',Thermodynamics:'Hybrid','Water Quality':'Hybrid','Wright Stuff':'Build'};
+const typeBadge=(event,short)=>{const type=eventTypes[event];if(!type)return '';const key=type.split(' ')[0].toLowerCase();return '<span class="typeBadge" data-type="'+key+'" title="'+type+' event">'+(short?key:type)+'</span>'};
+// Tournament-style award for a finished dive, matched to the score bands on the results key.
+const medalFor=points=>points>=450?['gold','Gold medal','🥇']:points>=351?['silver','Silver medal','🥈']:points>=251?['bronze','Bronze medal','🥉']:points>=151?['ribbon','Honorable mention','🎗️']:['ribbon','Participation ribbon','🎗️'];
 const tierColors={0:'#9aaac1',10:'#a8c3df',15:'#ffca77',30:'#57e3ee',60:'#ff709f',85:'#c1a2ff',100:'#ffe588'};
 
 function diveHud(){
@@ -105,14 +115,14 @@ function diveHud(){
  }).join('');
  return `<div class="diveHud">
    <div class="gauge"><small>DEPTH</small><b>${score.toLocaleString()} m</b></div>
-   <div class="roundTrack"><div aria-hidden="true">${marks}</div>PROMPT ${round+1} OF 7</div>
+   <div class="roundTrack"><div aria-hidden="true">${marks}</div>EVENT ${round+1} OF 7</div>
    <div class="gauge"><small>SCORE</small><b>${score/10}</b></div>
  </div>`;
 }
 
 function play(){
  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
- const arrival=reduced?0:round===0?1800:1100;
+ const arrival=reduced?0:3000;
  const readyAt=Date.now()+arrival;
  state=arrival?'descending':'play';
  deadline=readyAt+25000;
@@ -120,7 +130,7 @@ function play(){
  const [question,wordRule]=prompt.split('\n');
  app.innerHTML=`<section class="diveScreen playing">${diveHud()}
    <div class="seaLife" aria-hidden="true"><i></i><i></i><i></i></div>
-   <div class="promptStage"><article class="promptCard"><p class="event">PROMPT ${round+1} OF 7 · ${event}</p><h1>${question}</h1>
+   <div class="promptStage"><article class="promptCard"><p class="event">EVENT ${round+1} OF 7 · ${event} ${typeBadge(event)}</p><h1>${question}</h1>
    ${wordRule?`<p class="wordRule">${wordRule}</p>`:''}<small>▼ rarer answers sink deeper ▼</small></article></div>
    <span class="srOnly timeWarning" aria-live="polite"></span>
    <div class="arrivalNotice" role="status" ${arrival?'':'hidden'}></div>
@@ -135,7 +145,8 @@ function play(){
    const now=Date.now();
    if(state==='descending'){
      if(now<readyAt){
-       notice.textContent='Descending · the clock starts in '+Math.ceil((readyAt-now)/1000);
+       const seconds=Math.ceil((readyAt-now)/1000);
+       if(notice.dataset.seconds!==String(seconds)){notice.dataset.seconds=seconds;notice.innerHTML='Descending · the clock starts in <b>'+seconds+'</b>'}
        return;
      }
      state='play';notice.hidden=true;app.querySelector('form').hidden=false;
@@ -160,7 +171,7 @@ function play(){
    const began=performance.now(),thisDive=dive;
    const frame=now=>{
      if(state!=='descending'||dive!==thisDive||round!==0)return;
-     const t=Math.min(1,(now-began)/arrival),eased=t<.5?4*t*t*t:1-(-2*t+2)**3/2;
+     const t=Math.min(1,(now-began)/Math.min(arrival,2200)),eased=t<.5?4*t*t*t:1-(-2*t+2)**3/2;
      draw(score,1-eased);
      if(t<1)requestAnimationFrame(frame);
    };
@@ -224,7 +235,7 @@ async function submit(answer){
    ${meters?`<div class="sinkingGuess" aria-hidden="true">${escapeText(answer)}</div>`:''}
    <div class="revealStage"><div class="revealCard" role="status">
      <div class="catchMark" aria-hidden="true"><span>${({10:'✧',15:'✶',30:'🐟',60:'🪸',85:'🐙',100:'🦐'})[verdict.points]||'◇'}</span><i></i><i></i><i></i></div>
-     <p class="event">${question.event}</p><h1>${outcome}</h1>
+     <p class="event">${question.event} ${typeBadge(question.event)}</p><h1>${outcome}</h1>
      ${answer?`<p class="catchAnswer">“${escapeText(answer)}”</p>`:''}
      <p class="catchDistance">+${verdict.points} PTS <span>·</span> sink ${meters.toLocaleString()} m</p>
      ${meters?`<p class="catchLine">${tierLines[verdict.points]}</p>`:''}
@@ -323,14 +334,14 @@ function results(result){
  for(const n of savedScores)if(Number.isFinite(n)&&n>=0&&n<=700)bins[Math.min(13,Math.floor(n/50))]++;
  const peak=Math.max(1,...bins);
  app.innerHTML=`<section class="diveResults report"><div class="reportHead"><b>SCIOLY DIVE</b><span>${escapeText(dailyLabel)} · DIVE COMPLETE</span></div>
-   <h1>${points} <small>−${result.score.toLocaleString()} m</small></h1>
+   <div class="scoreLine"><h1>${points} <small>−${result.score.toLocaleString()} m</small></h1><div class="medal" data-medal="${medalFor(points)[0]}" role="img" aria-label="${medalFor(points)[1]}"><i aria-hidden="true"></i><span>${medalFor(points)[1].toUpperCase()}</span></div></div>
    <p>${result.answers.filter(a=>a.points).length} of 7 scored${result.streak?' · '+result.streak+'-day streak':''}</p>
    <div class="localScores" role="img" aria-label="Your last ${savedScores.length} scores on this device. This dive scored ${points} out of 700.">
      ${bins.map(count=>`<i style="height:${count/peak*85}%"></i>`).join('')}
      <b style="left:${points/7}%"></b></div><div class="axisLabels"><span>0</span>YOUR RECENT DIVES<span>700 PTS</span></div>
    <p id="percentile" role="status">${result.global&&result.count>1?'Deeper than '+result.percentile+'% of today’s divers.':''}</p>
    <h2>DIVE LOG <small>DEEPER = RARER</small></h2><div class="logChart"><div class="chartTicks" aria-hidden="true"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>${marks}</div>
-   <h2>THE BEARING</h2><ul class="bearings">${bands.map(([lo,hi,name,line])=>`<li class="${points>=lo&&points<=hi?'earned':''}"><small>${hi===700?'450+':lo+'–'+hi}</small><span>${name}. <i>${line}</i></span></li>`).join('')}</ul>
+   <h2>THE BEARING</h2><ul class="bearings">${bands.map(([lo,hi,name,line])=>`<li class="${points>=lo&&points<=hi?'earned':''}"><small>${hi===700?'450+':lo+'–'+hi}</small><span>${name}. <i>${line}</i></span><em class="bandMedal" data-medal="${medalFor(lo)[0]}">${medalFor(lo)[1]}</em></li>`).join('')}</ul>
    <div class="row reportActions">${button('COPY RESULT','copy','diveSubmit')}${button('SHARE…','share')}</div>
    <p id="shareStatus" role="status"></p>${result.mode==='Daily'?countdown():''}
    <section class="catchBook"><h2>THE CATCH <small>Tap a prompt for every answer</small></h2><div id="catches"></div></section>
@@ -338,7 +349,7 @@ function results(result){
  renderCatch(result.answers);
  // One square per round, colored by rarity tier, so a shared result shows how deep each catch was.
  const tierSquares={0:'⬛',10:'🟦',15:'🟪',30:'🟩',60:'🟨',85:'🟧',100:'🟥'};
- const summary='SciOly Dive · '+dailyLabel.replace(' · ',' Dive · ')+'\n'+points+' pts · '+result.score.toLocaleString()+' m deep\n'+result.answers.map(a=>tierSquares[a.points/10]??'⬛').join('')+'\n'+siteRoot.href;
+ const summary='SciOly Dive · '+dailyLabel.replace(' · ',' Dive · ')+'\n'+medalFor(points)[2]+' '+points+' pts · '+result.score.toLocaleString()+' m deep\n'+result.answers.map(a=>tierSquares[a.points/10]??'⬛').join('')+'\n'+siteRoot.href;
  const status=document.querySelector('#shareStatus');
  const copy=async()=>{try{await navigator.clipboard.writeText(summary);status.textContent='Result copied.'}catch{status.textContent=summary}};
  app.querySelector('[data-action=copy]').onclick=copy;
@@ -545,7 +556,7 @@ function draw(displayDepth=score,arrival=0,descentStart=null){
      }
      if(descentStart!==null){
        g.save();
-       for(const [points,label] of Object.entries(tierNames)){
+       for(const [points,label] of Object.entries(tierNames).filter(([points])=>points!=='15')){
          const y=marker+(descentStart+Number(points)*10-depth)*step/100;
          if(y<70||y>h-75)continue;
          g.strokeStyle=tierColors[points];g.globalAlpha=.55;g.setLineDash([3,5]);
@@ -564,7 +575,9 @@ function draw(displayDepth=score,arrival=0,descentStart=null){
    if(state!=='home'){const x=Math.max(26,w*.14),y=h*(.15+Math.min(displayDepth,7000)/9800);rect(x,y,28,9,preferences.color);rect(x+6,y-5,10,5,preferences.color);rect(x-5,y+2,5,5,preferences.color);rect(x+17,y+2,4,4,'#101d33')}
  }
 }
-window.addEventListener('resize',()=>draw());
+// Coalesce resize bursts into one repaint per frame.
+let resizeQueued=false;
+window.addEventListener('resize',()=>{if(resizeQueued)return;resizeQueued=true;requestAnimationFrame(()=>{resizeQueued=false;draw()})});
 home();
 updatePrefs();
 
