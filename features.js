@@ -19,4 +19,44 @@ export const featuredDailies = {
     ['Astronomy', 'Name a type of star, stellar remnant, or stellar explosion.'],
     ['Disease Detectives', 'Name an epidemiology term, measure, or study design.'],
   ],
+  // 2026-11-28
+  20785: [
+    ["Astronomy","Name an object or galactic feature from the 2027 Astronomy rules."],
+    ["Forensics","Name a substance, material, or technique from the Forensics rules."],
+    ["Boomilever","Name a structural concept or rule term from Boomilever."],
+    ["Chemistry Lab","Name an ion you are expected to know for Chemistry Lab."],
+    ["Dynamic Planet","Name a freshwater landform, process, or feature from the study of rivers, lakes, and groundwater."],
+    ["Wright Stuff","Name a part, trim adjustment, or rule term for a rubber-powered free-flight plane."],
+    ["Designer Genes","Name a term from Mendelian, population, or evolutionary genetics."],
+  ],
+  // 2026-11-29
+  20786: [
+    ["Anatomy & Physiology","Name a cell, organ, or molecule of the human immune system."],
+    ["Remote Sensing","Name a satellite, instrument, or concept from the Remote Sensing rules."],
+    ["Electric Vehicle","Name a component, measurement, or rule term from the Electric Vehicle event."],
+    ["Codebusters","Name a cipher, code type, or cryptanalysis technique from Codebusters."],
+    ["Botany","Name a plant tissue, structure, or process a botanist studies."],
+    ["Thermodynamics","Name a thermodynamics law, process, quantity, or scientist from the rules."],
+    ["Rocks & Minerals","Name a mineral habit, physical property, or rock texture from the Rocks and Minerals rules."],
+  ],
+  // 2026-11-30
+  20787: [
+    ["Circuit Lab","Name a DC circuit idea, component, or pioneer from Circuit Lab."],
+    ["Water Quality","Name a coral reef organism, water test, or marine ecology term from Water Quality."],
+    ["Engineering CAD","Name an Onshape feature, CAD tool, or engineering-drawing term."],
+    ["Disease Detectives","Name a strategy to control or prevent disease in a population."],
+    ["Mission Possible","Name an action, machine, or rule term from Mission Possible."],
+    ["Protein Modeling","Name an amino acid, structural feature, or influenza term from Protein Modeling."],
+    ["Botany","Name a plant disease, pest, or nutrient deficiency."],
+  ],
+  // 2026-12-01
+  20788: [
+    ["Experimental Design","Name a part of an experiment or report scored on the Experimental Design checklist."],
+    ["Hovercraft","Name a physics concept, part, or rule term from the Hovercraft event."],
+    ["Ping Pong Parachute","Name a part, measurement, or rule term from Ping Pong Parachute."],
+    ["Remote Sensing","Name a part of the electromagnetic spectrum, a sensor band, or a spectral index."],
+    ["Thermodynamics","Name a material or design feature for a heat-collecting device."],
+    ["Water Quality","Name a water treatment step or water pollutant."],
+    ["Boomilever","Name a wood, adhesive, or joint used to build a Boomilever."],
+  ],
 };

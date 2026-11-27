@@ -29,7 +29,7 @@ const facts = {
   'saltation': ['Saltation is Latin for "leaping": sand grains hop along a riverbed or desert in short arcs.', 'freshwater'],
   'sublimation': 'Snow can vanish on cold, dry, windy days without melting: it sublimates straight into water vapor.',
   // Engineering CAD / Mission Possible / Boomilever
-  'gusset': 'A gusset plate ties truss members together at a joint. An undersized gusset helped bring down Minneapolis’s I-35W bridge in 2007.',
+  'gusset': ['A gusset plate ties truss members together at a joint. An undersized gusset helped bring down Minneapolis’s I-35W bridge in 2007.', 'structural'],
   // Flight
   'spill hole': 'A spill hole at the top of a parachute lets air escape steadily, which cuts down on side-to-side swinging.',
   // Protein Modeling
@@ -61,6 +61,20 @@ const facts = {
   'sialic acid': 'Sialic acid takes its name from the Greek sialon, "saliva", because it was first isolated from salivary mucin.',
   'Maxwell\u2019s demon': 'Maxwell\u2019s demon, a thought experiment from 1867, imagined a tiny being sorting fast and slow molecules to beat the second law of thermodynamics.',
   'decalage': 'D\u00e9calage is French for "offset": the difference in incidence between a plane\u2019s wing and its stabilizer.',
+  // Second specialist prompts
+  'IgE': 'IgE is the rarest antibody class in the blood, yet it drives allergic reactions, from hay fever to anaphylaxis.',
+  'GW170817': ['GW170817 was the first neutron star merger seen in both gravitational waves and light, and about 70 observatories followed it up.', 'astronomy'],
+  'Terzan 5': 'Terzan 5, a star cluster near the Milky Way\u2019s center, hosts more known millisecond pulsars than any other cluster.',
+  'Panama disease': 'Panama disease wiped out the Gros Michel banana as an export crop by the 1960s, which is why supermarkets switched to the Cavendish.',
+  'thiocyanate': 'Thiocyanate and iron(III) ions form a blood-red complex, a classic trick for making stage "fake blood".',
+  'Georg Ohm': 'Georg Ohm\u2019s 1827 work on circuits was so badly received that he resigned his teaching post. The Royal Society gave him its Copley Medal in 1841.',
+  'Hardy-Weinberg equilibrium': 'The mathematician G. H. Hardy, who prized pure mathematics over practical uses, derived his half of the Hardy\u2013Weinberg principle in a short 1908 letter to Science.',
+  'ring vaccination': 'Ring vaccination, vaccinating the contacts around each case, was the strategy that finished off smallpox.',
+  'piezoelectricity': 'Piezoelectricity keeps time in quartz watches: a tiny quartz crystal vibrates 32,768 times a second.',
+  'red edge': 'Healthy leaves reflect near infrared strongly but absorb red, so reflectance jumps sharply near 700 nm. Satellites watch this "red edge" to track plant health.',
+  'Fresnel lens': 'Augustin-Jean Fresnel designed his flat, ridged lens in 1822 to make lighthouses visible for many kilometers.',
+  'activated sludge': 'The activated sludge process, still the core of most sewage plants, was developed in Manchester, England, in 1914.',
+  'birch': ['Howard Hughes\u2019s "Spruce Goose" flying boat was actually built almost entirely of birch.', 'boomilever'],
 };
 
 export const factAnswers = Object.keys(facts);

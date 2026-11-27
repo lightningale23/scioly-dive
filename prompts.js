@@ -1,6 +1,7 @@
 import { expandCatalog } from './expand-catalog.js';
 import { specialistPrompts } from './catalog-data/specialist-prompts.js';
 import { specialistPrompts2 } from './catalog-data/specialist-prompts-2.js';
+import { specialistPrompts3 } from './catalog-data/specialist-prompts-3.js';
 
 // Every prompt is a specialist prompt written from its event's 2027 Division C rules, so the
 // player who studies that event does best. Events appear in the rules manual's order.
@@ -10,7 +11,7 @@ const officialEvents = ['Anatomy & Physiology', 'Astronomy', 'Boomilever', 'Bota
   'Remote Sensing', 'Rocks & Minerals', 'Thermodynamics', 'Water Quality', 'Wright Stuff'];
 
 export const events = officialEvents.map(name => [name,
-  [...specialistPrompts, ...specialistPrompts2].filter(([event]) => event === name).map(([, prompt, bank]) => [prompt, bank])]);
+  [...specialistPrompts, ...specialistPrompts2, ...specialistPrompts3].filter(([event]) => event === name).map(([, prompt, bank]) => [prompt, bank])]);
 
 expandCatalog(events);
 
