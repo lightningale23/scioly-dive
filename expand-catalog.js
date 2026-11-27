@@ -3,6 +3,7 @@ import { measurements, measurementBank } from './measurements.js';
 import { topics } from './topics.js';
 import { broadPrompts } from './catalog-data/broad-prompts.js';
 import { broadPrompts2 } from './catalog-data/broad-prompts-2.js';
+import { specialistPrompts } from './catalog-data/specialist-prompts.js';
 
 // Keep the original seven events and their first two entries in place for archived dives.
 export const combinedSources=new Map();
@@ -58,7 +59,7 @@ export function expandCatalog(events) {
   }
 
   // Broad prompts carry the first Daily day that may draw them (third element).
-  for(const [event,prompt,bank,firstDay] of [...broadPrompts,...broadPrompts2]){
+  for(const [event,prompt,bank,firstDay] of [...broadPrompts,...broadPrompts2,...specialistPrompts]){
     events.find(([name])=>name===event)[1].push(firstDay?[prompt,bank,firstDay]:[prompt,bank]);
   }
 

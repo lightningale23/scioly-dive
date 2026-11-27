@@ -25,7 +25,7 @@ const facts = {
   'Polaris': 'Polaris will not be the North Star forever: Earth’s slow wobble will make Vega the pole star in about 12,000 years.',
   'Mira': ['Mira means "wonderful". It was one of the first variable stars recognized, brightening and fading over about 11 months.', 'star'],
   'Albireo': 'Through a small telescope, Albireo splits into a golden star and a blue one, one of the prettiest color contrasts in the sky.',
-  'Cepheid': 'Henrietta Swan Leavitt discovered the Cepheid period–luminosity relation in 1912, giving astronomers a yardstick for the universe.',
+  'Cepheid': ['Henrietta Swan Leavitt discovered the Cepheid period–luminosity relation in 1912, giving astronomers a yardstick for the universe.', 'distance'],
   'Cartwheel': 'The Cartwheel Galaxy’s ring formed when a smaller galaxy plunged through its center, like a stone dropped into a pond.',
   'Dysnomia': 'Dysnomia orbits the dwarf planet Eris and is named after Eris’s daughter, the spirit of lawlessness.',
   'Miranda': ['Miranda, a moon of Uranus, has Verona Rupes, a cliff around 20 km tall, among the tallest known in the Solar System.', 'moon'],
@@ -52,7 +52,6 @@ const facts = {
   // Circuit Lab
   'Norton theorem': 'Edward Norton described Norton’s theorem in a 1926 Bell Labs memo and never formally published it.',
   'NOR': ['The Apollo Guidance Computer that flew to the Moon was built almost entirely from NOR gates.', 'logic gate'],
-  'NAND': ['NAND is a universal gate: every other logic gate can be built from NAND gates alone.', 'logic gate'],
   'memristor': 'Leon Chua predicted the memristor in 1971 as the missing fourth basic circuit element. HP Labs reported a working device in 2008.',
   'siemens': 'The siemens, the unit of conductance, was once called the mho: "ohm" spelled backwards.',
   // Codebusters
@@ -65,7 +64,7 @@ const facts = {
   'progeria': 'Progeria is caused by a single-letter change in the LMNA gene. Most cases arise as new mutations rather than being inherited.',
   'smallpox': 'Smallpox is the only human disease ever eradicated. The last natural case was in 1977, and eradication was declared in 1980.',
   'Kuru': 'Kuru, a prion disease in Papua New Guinea, spread through funeral rites in which relatives ate the dead.',
-  'cohort study': 'The Framingham Heart Study, a cohort study begun in 1948, has followed three generations of one Massachusetts town.',
+  'cohort study': ['The Framingham Heart Study, a cohort study begun in 1948, has followed three generations of one Massachusetts town.', 'population health'],
   'box plot': 'The box plot was introduced by the statistician John Tukey in 1970, who also coined the word "bit".',
   // Dynamic Planet
   'knickpoint': 'Niagara Falls is a knickpoint that has retreated upstream about 11 km over roughly 12,000 years.',
@@ -95,14 +94,14 @@ const facts = {
   'Gossamer Albatross': 'In 1979 the pedal-powered Gossamer Albatross crossed the English Channel, about 36 km, in under three hours.',
   // Protein Modeling
   'titin': 'Titin is the largest known protein, about 34,000 amino acids long. Its full chemical name runs to nearly 190,000 letters.',
-  'green fluorescent protein': 'Green fluorescent protein comes from the jellyfish Aequorea victoria, and its development won the 2008 Nobel Prize in Chemistry.',
+  'green fluorescent protein': ['Green fluorescent protein comes from the jellyfish Aequorea victoria, and its development won the 2008 Nobel Prize in Chemistry.', 'protein'],
   'sulfur': ['Only two of the twenty standard amino acids contain sulfur: cysteine and methionine.', 'amino'],
   'ball and stick model': 'Ball-and-stick models date to the 1860s, when August Hofmann built molecule models from croquet balls.',
   // Remote Sensing
   'Landsat': 'Landsat has photographed Earth continuously since 1972, the longest record of the land surface from space.',
   'center pivot irrigation': 'Center pivot irrigation paints the giant green circles you see from airplane windows.',
   // Rocks & Minerals
-  'pumice': 'Pumice is so full of gas bubbles that it floats. Rafts of pumice have drifted across entire oceans.',
+  'pumice': ['Pumice is so full of gas bubbles that it floats. Rafts of pumice have drifted across entire oceans.', 'igneous'],
   'spinifex': 'Spinifex texture is named after a spiky Australian grass, and it forms when very hot komatiite lava cools quickly.',
   'skarn': 'Skarn was an old Swedish miners’ word for "dirt" or "filth", used for the rock around valuable ore.',
   'streak': ['A mineral’s streak can differ from its color: golden pyrite leaves a greenish-black streak.', 'mineral'],
@@ -155,6 +154,12 @@ const facts = {
   'corpse flower': 'The corpse flower, or titan arum, blooms only every few years and smells of rotting meat to attract carrion beetles and flies.',
   'rafflesia': 'Rafflesia produces the largest single flower in the world, up to about a meter across, and it has no leaves, stem or roots of its own.',
   'GRACE': 'The twin GRACE satellites "weighed" Earth\u2019s water by measuring tiny changes in the distance between them as gravity varied below.',
+  // Today's specialist prompts
+  'ulexite': 'Ulexite is nicknamed "TV rock": its parallel fibers carry light like optical fibers, so text beneath a polished slab appears on its top surface.',
+  'Job\u2019s syndrome': 'Job\u2019s syndrome (hyper-IgE syndrome) is named after the biblical Job, struck with boils, because patients suffer repeated skin abscesses.',
+  'Taq polymerase': 'Taq polymerase comes from Thermus aquaticus, a bacterium found in a Yellowstone hot spring. Because it survives near-boiling heat, PCR became practical.',
+  'Thorne-Zytkow object': 'A Thorne\u2013\u017bytkow object is a hypothetical star with a neutron star at its core, hidden inside a red supergiant.',
+  'Koch\u2019s postulates': 'Robert Koch himself found healthy people carrying cholera bacteria, so his own postulate that the microbe appears only in the sick could not always hold.',
 };
 
 const lookup = new Map(Object.entries(facts).map(([answer, fact]) => [normalize(answer), Array.isArray(fact) ? fact : [fact]]));

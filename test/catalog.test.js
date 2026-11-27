@@ -58,3 +58,19 @@ test('a dive can have zero or one spelling challenge across seven different even
   }
   assert.deepEqual([...counts].sort(),[0,1]);
 });
+
+test('featured Dailies name real prompts in seven different events, and paused events never appear',async()=>{
+  const {featuredDailies,pausedEvents}=await import('../features.js');
+  for(const [day,rounds] of Object.entries(featuredDailies)){
+    assert.equal(rounds.length,7);
+    assert.equal(new Set(rounds.map(([event])=>event)).size,7);
+    rounds.forEach(([event,prompt],round)=>{
+      assert.equal(questionFor(Number(day),round,undefined,'Daily').prompt,prompt,event);
+      assert(!pausedEvents.includes(event));
+    });
+  }
+  for(const mode of ['Daily','Unlimited'])for(let seed=20783;seed<20983;seed++)for(let round=0;round<7;round++){
+    const [event]=selection(publicEvents,seed,round,undefined,mode);
+    assert(!pausedEvents.includes(publicEvents[event][0]),seed+' '+round);
+  }
+});

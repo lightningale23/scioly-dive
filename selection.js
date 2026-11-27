@@ -4,6 +4,8 @@
 export const MIN_DAILY_ANSWERS=100;
 export const narrowPuzzle=prompt=>/Unit names and symbols both count|Pick a total|Pick a number|decimal integer|rotates in \d+° steps/.test(prompt);
 const dailyRow=entry=>entry.bank?entry.bank.length>=MIN_DAILY_ANSWERS&&!narrowPuzzle(entry.prompt):entry.daily!==false;
+import { featuredDailies, pausedEvents } from './features.js';
+const promptOf=entry=>Array.isArray(entry)?entry[0]:entry.prompt??entry;
 export function selection(events, seed, round, first, mode) {
   if ((mode === 'Daily' || mode === 'Archive') && seed < 20783) {
     return [(seed % 7 + round) % 7, (Math.floor(seed / 7) + round) % 2];
@@ -16,13 +18,18 @@ export function selection(events, seed, round, first, mode) {
     state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
     return Math.floor(state / 4294967296 * limit);
   }
-  // Daily-style dives use only events that have an eligible prompt.
   const daily=mode==='Daily'||mode==='Archive';
+  const featured=daily&&featuredDailies[seed]?.[round];
+  if(featured){
+    const event=events.findIndex(([name])=>name===featured[0]);
+    return [event,events[event][1].findIndex(entry=>promptOf(entry)===featured[1])];
+  }
+  // Daily-style dives use only events that have an eligible prompt; paused events never appear.
   const usable=(entry)=>{
     const since=Array.isArray(entry)?entry[2]:entry.since;
     return !(since>seed) && (!daily||typeof entry==='string'||Array.isArray(entry)||dailyRow(entry));
   };
-  const order = events.map((_, index) => index).filter(index=>!daily||events[index][1].some(entry=>usable(entry)&&!(Array.isArray(entry)?entry[0]:entry.prompt??entry).includes('\n')));
+  const order = events.map((_, index) => index).filter(index=>!pausedEvents.includes(events[index][0])).filter(index=>!daily||events[index][1].some(entry=>usable(entry)&&!(Array.isArray(entry)?entry[0]:entry.prompt??entry).includes('\n')));
   if (first != null) [order[0], order[first]] = [order[first], order[0]];
   for (let i = first == null ? 0 : 1; i < 7; i++) {
     const j = i + pick(order.length - i);
