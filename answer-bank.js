@@ -8,6 +8,7 @@ import { normalize } from './matching.js';
 import { familiarity } from './catalog-data/familiarity.js';
 import { factFor as factLookup } from './catalog-data/krillion-facts.js';
 import { obviousAnswers } from './catalog-data/obvious-answers.js';
+import { krillionLocks } from './catalog-data/krillion-locks.js';
 export { normalize };
 
 // Corpus familiarity (wordfreq Zipf scale, see scripts/familiarity.mjs). Like Krillion, the tier is
@@ -64,7 +65,10 @@ function chooseFeatured(bank,prompt){
     :({60:300,85:200,30:100,10:50}[entry.points]??0);
   const best=bank.reduce((n,entry)=>Math.max(n,priority(entry)),-1);
   const candidates=bank.filter(entry=>priority(entry)===best);
-  const winner=candidates[hash%candidates.length];
+  // Once a prompt has been played, its Krillion is locked (catalog-data/krillion-locks.js), so
+  // growing the answer list never changes the answer at the bottom of a live or past Daily.
+  const locked=Object.hasOwn(krillionLocks,prompt)?bank.find(entry=>entry.canonical===krillionLocks[prompt]):undefined;
+  const winner=locked??candidates[hash%candidates.length];
   const fact=factFor(winner);
   return bank.map(entry=>entry===winner?{...entry,points:100,...(fact&&{fact})}:entry.points===100?{...entry,points:85}:entry);
 }
