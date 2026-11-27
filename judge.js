@@ -24,19 +24,24 @@ async function gemini(prompt, answer) {
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY},
-    signal: AbortSignal.timeout(6000),
+    signal: AbortSignal.timeout(8000),
     body: JSON.stringify({
       systemInstruction: {parts: [{text: instructions}]},
       contents: [{role: 'user', parts: [{text: JSON.stringify({prompt, answer})}]}],
       generationConfig: {
-        temperature: 0, maxOutputTokens: 256, responseMimeType: 'application/json',
+        // Room for models that reason before answering; the reply itself is a few tokens.
+        temperature: 0, maxOutputTokens: 2048, responseMimeType: 'application/json',
         responseSchema: {type: 'OBJECT', properties: {valid: {type: 'BOOLEAN'}, tier: {type: 'STRING', enum: ['rare', 'deep']}}, required: ['valid']},
       },
     }),
   });
   if (!response.ok) throw new Error('Gemini request failed: ' + response.status + ' ' + (await response.text()).slice(0, 160));
-  const result = await response.json();
-  return JSON.parse(result.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}');
+  const candidate = (await response.json()).candidates?.[0];
+  // Skip any reasoning ("thought") parts and read the first JSON object in the answer text.
+  const text = (candidate?.content?.parts ?? []).filter(part => !part.thought).map(part => part.text ?? '').join('');
+  const json = text.match(/\{[\s\S]*?\}/)?.[0];
+  if (!json) throw new Error('Gemini gave no verdict (finish reason ' + (candidate?.finishReason ?? 'none') + ')');
+  return JSON.parse(json);
 }
 
 async function azure(prompt, answer) {

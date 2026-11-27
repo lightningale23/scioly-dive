@@ -101,6 +101,7 @@ export default async function handler(req, res) {
     return reply(200, points ? {status: 'valid', points, judged: true} : {status: 'invalid'});
   } catch (error) {
     console.error('AI judge failed:', error.message);
-    return reply(200, {status: 'unverified'});
+    // A short reason (no secrets) shows in the browser's network panel, which helps diagnose outages.
+    return reply(200, {status: 'unverified', reason: String(error.message).slice(0, 120)});
   }
 }
