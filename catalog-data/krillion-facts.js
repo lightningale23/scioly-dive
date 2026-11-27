@@ -7,6 +7,7 @@ import { normalize } from '../matching.js';
 // Krillion should be a delightful find, not just the most obscure word on the list.
 const facts = {
   // Prompts added 2026-11-27 (scoped to a word in their prompt)
+  'third-angle projection': ['US drawings use third-angle projection while much of Europe and Asia uses first-angle; a small truncated-cone symbol in the title block tells you which.', 'onshape'],
   'Kasiski examination': ['Friedrich Kasiski published his attack on the Vigen\u00e8re cipher in 1863, ending its reputation as \u201cthe indecipherable cipher\u201d.', 'codebusters'],
   'Darcy\u2019s law': ['Henry Darcy worked out his law of groundwater flow in 1856 while engineering the public fountains of Dijon, France.', 'groundwater'],
   'cap snatching': ['Influenza steals the 5\u2032 caps off the host cell\u2019s own mRNAs, a trick called cap snatching, to start writing its own messages.', 'influenza infection'],

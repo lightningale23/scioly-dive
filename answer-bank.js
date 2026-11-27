@@ -28,14 +28,28 @@ const zipf=name=>{const key=normalize(name),z=familiarity[key]??0;return key.len
 export function tierSizes(n){
   return {plankton:Math.max(1,Math.round(1.1*Math.log(Math.max(n,2)))),schooler:Math.round(1.6*Math.sqrt(n)),rare:Math.round(n/3)};
 }
-function familiarityTiers(entries,bank,obvious){
+// An answer that just repeats words from its own prompt ("epidemiology" for "Name an epidemiology
+// term...") is as obvious as an answer can be, so it is Plankton. Matches that begin with a small word
+// ("Of star" inside "type of star") don't count.
+const promptWords=text=>' '+text.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,' ').trim()+' ';
+const smallWords=/^(a|an|the|of|or|and|to|in|on|for|from|by|with|at)$/;
+function echoesPrompt(entry,base){
+  const words=promptWords(base);
+  return [entry.canonical,...entry.aliases].some(name=>{
+    const phrase=promptWords(name);
+    return phrase.trim().length>2&&!smallWords.test(phrase.trim().split(' ')[0])&&words.includes(phrase);
+  });
+}
+function familiarityTiers(entries,bank,obvious,base=''){
   // Hand-rated answers count toward each quota; listed obvious answers come next; the corpus fills the
   // rest unless the list says its names double as everyday words (third element true).
   const size=bank.length, quota=tierSizes(size);
   for(const entry of bank){if(entry.points===10)quota.plankton--;else if(entry.points===30)quota.schooler--;else if(entry.points===60)quota.rare--;}
   const tiers=new Map(), ranked=entries.map(entry=>({entry,z:zipf(entry.canonical)})).sort((a,b)=>b.z-a.z);
   const [listed10,listed30]=(obvious??['','']).slice(0,2).map(list=>new Set(list.split(';').map(name=>normalize(name)).filter(Boolean)));
+  for(const {entry} of ranked)if(base&&echoesPrompt(entry,base)){tiers.set(entry,10);quota.plankton--}
   for(const {entry} of ranked){
+    if(tiers.has(entry))continue;
     const key=normalize(entry.canonical);
     if(listed10.has(key)){tiers.set(entry,10);quota.plankton--}
     else if(listed30.has(key)){tiers.set(entry,30);quota.schooler--}
@@ -78,7 +92,7 @@ function chooseFeatured(bank,prompt){
 // page no longer tiers every prompt in the catalog before it can start.
 function scoredBank(allowedGroups,base,prompt){
   const bank=allowedGroups.map(([canonical,...aliases])=>({canonical,aliases,points:null}));
-  const computed=familiarityTiers(bank,bank,obviousAnswers[base]);
+  const computed=familiarityTiers(bank,bank,obviousAnswers[base],base);
   for(const entry of bank)entry.points=computed.get(entry)??30;
   return chooseFeatured(bank,prompt);
 }

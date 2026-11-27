@@ -56,7 +56,7 @@ export const krillionLocks = {
   "Name a water treatment step or water pollutant.": "activated sludge",
   "Name a wood, adhesive, or joint used to build a Boomilever.": "birch",
   "Name an Earth-observing satellite, satellite series, or onboard sensor.": "Seasat",
-  "Name an Onshape feature, CAD tool, or engineering-drawing term.": "Onshape",
+  "Name an Onshape feature, CAD tool, or engineering-drawing term.": "third-angle projection",
   "Name an action, machine, or rule term from Mission Possible.": "Archimedes screw",
   "Name an amino acid, structural feature, or influenza term from Protein Modeling.": "sialic acid",
   "Name an enzyme, technique, or molecule used in molecular genetics.": "Taq polymerase",

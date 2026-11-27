@@ -39,7 +39,7 @@ Every prompt must be a **specialist prompt** written from its event's 2027 Divis
 
 The tiers are 10 Plankton, 30 Schooler, 60 Rare, 85 Deep Cut and 100 One in a Krillion. (15 "Too Clever" still exists in `tiers` but is unused.) For a list of n answers:
 
-1. The prompt's obvious-answer lists set Plankton and Schooler.
+1. An answer that repeats words from its own prompt ("epidemiology" for "Name an epidemiology term...") is Plankton. Then the prompt's obvious-answer lists set Plankton and Schooler.
 2. Unless the list is flagged no-fill, corpus familiarity fills Plankton up to about 1.1·ln n and Schooler up to about 1.6·√n.
 3. About a third of the list is Rare, chosen by familiarity among words the corpus knows. Everything else is a Deep Cut.
 4. The One in a Krillion prefers an answer with a fun fact (never a Plankton or Schooler answer), then a Rare answer. A stable hash of the prompt breaks ties.
