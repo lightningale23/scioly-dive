@@ -10,7 +10,7 @@
 import {matchAnswer} from '../matching.js';
 import {normalize, questionFor} from '../answer-bank.js';
 import {data, hash, today} from '../dive-storage.js';
-import {AI_POINTS, judgeAnswer, judgeConfigured} from '../judge.js';
+import {cachedPoints, judgeAnswer, judgeConfigured} from '../judge.js';
 
 const origins = (process.env.ALLOWED_ORIGINS || 'https://lightningale23.github.io').split(',').map(origin => origin.trim());
 const dailyLimit = Number(process.env.JUDGE_DAILY_LIMIT || 900);
@@ -79,12 +79,13 @@ export default async function handler(req, res) {
       const visitor = hash(String(req.headers['x-forwarded-for'] || '').split(',')[0] || 'unknown');
       if (!await underLimit('judge-day:' + today(), dailyLimit) || !await underLimit('judge-visitor:' + today() + ':' + visitor, visitorLimit))
         return reply(200, {status: 'unverified'});
-      const valid = await judgeAnswer(prompt, answer);
-      await data('SET', key, valid ? 'valid' : 'invalid', 'NX');
-      verdict = await data('GET', key) ?? (valid ? 'valid' : 'invalid');
-      if (verdict === 'valid') await data('ZADD', 'accepted:' + today(), 'NX', Date.now(), JSON.stringify({prompt, answer: answer.trim()}));
+      const points = await judgeAnswer(prompt, answer);
+      await data('SET', key, String(points), 'NX');
+      verdict = await data('GET', key) ?? String(points);
+      if (cachedPoints(verdict)) await data('ZADD', 'accepted:' + today(), 'NX', Date.now(), JSON.stringify({prompt, answer: answer.trim(), points: cachedPoints(verdict)}));
     }
-    return reply(200, verdict === 'valid' ? {status: 'valid', points: AI_POINTS, judged: true} : {status: 'invalid'});
+    const points = cachedPoints(verdict);
+    return reply(200, points ? {status: 'valid', points, judged: true} : {status: 'invalid'});
   } catch {
     return reply(200, {status: 'unverified'});
   }

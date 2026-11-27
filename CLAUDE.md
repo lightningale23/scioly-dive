@@ -31,7 +31,7 @@ Every prompt must be a **specialist prompt** written from its event's 2027 Divis
 | `game.js`, `style.css`, `index.html` | Client UI: canvas ocean scene, round flow, results. |
 | `guest-api.js` | Judges answers in the browser for the Pages build. |
 | `pages-catalog.mjs` | Pages build only: the game bundle gets a prompt-only catalog, and each prompt’s scored answers become `banks/<hash>.json`, fetched by `loadBank` in `game.js` when a dive starts. Keeps the bundle small however long the lists get. |
-| `judge.js`, `api/judge.js` | AI fallback for answers not on a list. The Pages site calls `api/judge.js` on Vercel (URL in `judgeUrl`, `features.js`; empty turns it off). It accepts only current Daily prompts, enforces letter rules, caches each verdict, rate-limits, and logs accepted answers (`npm run accepted`). The AI only rules valid or invalid; accepted unlisted answers always score `AI_POINTS` (60, Rare) and are labeled AI-checked. Gemini (`GEMINI_API_KEY`, free tier) or Azure OpenAI, set in Vercel's environment variables. |
+| `judge.js`, `api/judge.js` | AI fallback for answers not on a list. The Pages site calls `api/judge.js` on Vercel (URL in `judgeUrl`, `features.js`; empty turns it off). It accepts only current Daily prompts, enforces letter rules, caches each verdict, rate-limits, and logs accepted answers (`npm run accepted`). The AI rules valid or invalid and rates an accepted answer Rare (60) or Deep Cut (85), defaulting to Deep Cut; AI-judged answers are labeled AI-checked and are never the Krillion. Gemini (`GEMINI_API_KEY`, free tier) or Azure OpenAI, set in Vercel's environment variables. |
 | `api/dive.js`, `serve.mjs`, `dive-storage.js` | Optional server with the same AI fallback, accounts and global stats. |
 
 ## Rarity tiers

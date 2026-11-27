@@ -3,7 +3,7 @@ import { normalize, questionFor } from '../answer-bank.js';
 import { packs } from '../prompts.js';
 import { modeAllowed } from '../features.js';
 import { account, data, durable, equal, hash, passwordHash, salt, sign, today, verify } from '../dive-storage.js';
-import { AI_POINTS, judgeAnswer } from '../judge.js';
+import { cachedPoints, judgeAnswer } from '../judge.js';
 
 async function validate(body) {
   const { seed, round, mode, answer, first, dive } = body;
@@ -28,14 +28,14 @@ async function validate(body) {
     try {
       let verdict = await data('GET', key);
       if (verdict == null) {
-        const valid = await judgeAnswer(prompt, answer);
-        if (valid != null) {
-          await data('SET', key, valid ? 'valid' : 'invalid', 'NX');
-          verdict = await data('GET', key) ?? (valid ? 'valid' : 'invalid');
+        const judged = await judgeAnswer(prompt, answer);
+        if (judged != null) {
+          await data('SET', key, String(judged), 'NX');
+          verdict = await data('GET', key) ?? String(judged);
         }
       }
-      status = verdict ?? 'unverified';
-      if (status === 'valid') points = AI_POINTS;
+      status = verdict == null ? 'unverified' : cachedPoints(verdict) ? 'valid' : 'invalid';
+      if (status === 'valid') points = cachedPoints(verdict);
     } catch {
       status = 'unverified';
     }
