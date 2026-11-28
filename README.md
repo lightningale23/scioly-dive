@@ -1,4 +1,4 @@
-# Science Olympiad Dive
+# ScioKrillion
 
 Run npm ci, npm run build and npm start from this folder, then open http://localhost:4173. This serves both the built pages and the answer API. On Vercel, use this folder as the project root.
 
@@ -11,7 +11,7 @@ Guest settings, completion, and streaks are saved on the device. The answer API 
 
 ## Live site and GitHub Pages
 
-[Play SciOly Dive](https://scioly-dive.vercel.app/). Vercel deploys every push to main. The old GitHub Pages address, https://lightningale23.github.io/scioly-dive/, now only redirects to Vercel (`pages-redirect/index.html`, published by `.github/workflows/pages.yml`) and carries a visitor's saved results and streaks across once. The static guest build below still works but is no longer deployed. Daily, Archive, Unlimited and packs use the curated answers and rarity tiers in the browser. Results and streaks are stored on the device. Azure judgments, account sync and global rankings require the Node or Vercel deployment described above.
+[Play ScioKrillion](https://scioly-dive.vercel.app/). Vercel deploys every push to main. The old GitHub Pages address, https://lightningale23.github.io/scioly-dive/, now only redirects to Vercel (`pages-redirect/index.html`, published by `.github/workflows/pages.yml`) and carries a visitor's saved results and streaks across once. The static guest build below still works but is no longer deployed. Daily, Archive, Unlimited and packs use the curated answers and rarity tiers in the browser. Results and streaks are stored on the device. Azure judgments, account sync and global rankings require the Node or Vercel deployment described above.
 
 Run `npm ci` and then `node build.mjs --pages` to generate the static site in `pages-dist/`.
 

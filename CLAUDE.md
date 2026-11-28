@@ -1,6 +1,6 @@
-# SciOly Dive
+# ScioKrillion
 
-A daily Science Olympiad (Division C, 2027 rules) answer game modeled loosely on Krillion: seven events per dive, one prompt each, 25 seconds per prompt. Rarer accepted answers score more and "sink deeper". It runs on Vercel as a Node server (`api/dive.js`, `api/judge.js`) at https://scioly-dive.vercel.app/. The old GitHub Pages address now only redirects there (`pages-redirect/index.html`), carrying each visitor's saved results along once. The static guest build (`node build.mjs --pages`) still exists but is no longer deployed.
+ScioKrillion (formerly SciOly Dive) is a daily Science Olympiad (Division C, 2027 rules) answer game modeled loosely on Krillion: seven events per dive, one prompt each, 25 seconds per prompt. Rarer accepted answers score more and "sink deeper". It runs on Vercel as a Node server (`api/dive.js`, `api/judge.js`) at https://scioly-dive.vercel.app/. The old GitHub Pages address now only redirects there (`pages-redirect/index.html`), carrying each visitor's saved results along once. The static guest build (`node build.mjs --pages`) still exists but is no longer deployed.
 
 ## Prompt style (the most important rule)
 
@@ -108,4 +108,5 @@ Vercel deploys every push to `main`. Pushing to `main` also runs `.github/workfl
 - `question.bank` is a lazy getter. Use `row.size` when you only need the count.
 - Canvas tier lines during the sink are drawn relative to the depth marker at 42% of the viewport height. The sinking answer in CSS (`.sinkingGuess`) must stay on that marker, with timings matching `DROP`, `SINK` and `HOLD` in `game.js`.
 - Verify UI changes in a browser (Playwright is preinstalled) at desktop and phone widths before pushing.
-- Wording written to the site should be original. Don't copy Krillion's text or Science Olympiad's branding or logo.
+- The name ScioKrillion was the owner's choice (2026-11-28). Other wording written to the site should be original: don't copy Krillion's text or Science Olympiad's branding or logo.
+- Saved data keeps its old `scioly-` names (localStorage keys and the like), so renaming the game never wipes anyone's results or streaks.
