@@ -39,12 +39,14 @@ for (const page of pages) {
     pageHtml = html.replace('<html ', '<html data-static-game ')
       .replace('href="/style.css"', 'href="' + root + 'style.css"')
       .replace('href="/vt323.woff2"', 'href="' + root + 'vt323.woff2"')
+      .replace('href="/icon.svg"', 'href="' + root + 'icon.svg"')
+      .replace('href="/apple-touch-icon.png"', 'href="' + root + 'apple-touch-icon.png"')
       .replace('src="/game.js"', 'src="' + root + gameFile + '"');
   }
   await writeFile(dir + '/index.html', pageHtml);
 }
 
-const assets=['style.css','vt323.woff2','vt323.ttf','VT323-LICENSE.txt'];
+const assets=['style.css','vt323.woff2','vt323.ttf','VT323-LICENSE.txt','icon.svg','apple-touch-icon.png'];
 if(!staticGame){
   // Bundle game.js to include @vercel/analytics and other dependencies. Without a NODE_ENV the
   // analytics package assumes development and loads its debug script, which only logs to the
