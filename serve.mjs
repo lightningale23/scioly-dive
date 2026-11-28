@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import handler from './api/dive.js';
 
 const pages = new Set(['/', '/unlimited/classic', '/archive', '/packs', '/party']);
-const assets = new Map([['/style.css', 'text/css'], ['/client-catalog.js','text/javascript'], ['/selection.js','text/javascript'], ['/game.js', 'text/javascript'], ['/prompts.js', 'text/javascript'], ['/vt323.ttf','font/ttf'], ['/VT323-LICENSE.txt','text/plain']]);
+const assets = new Map([['/style.css', 'text/css'], ['/client-catalog.js','text/javascript'], ['/selection.js','text/javascript'], ['/game.js', 'text/javascript'], ['/prompts.js', 'text/javascript'], ['/vt323.ttf','font/ttf'], ['/VT323-LICENSE.txt','text/plain'], ['/icon.svg','image/svg+xml'], ['/apple-touch-icon.png','image/png']]);
 createServer(async (req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname.replace(/\/$/, '') || '/';
   if (path === '/api/dive') {
@@ -25,7 +25,7 @@ createServer(async (req, res) => {
     if (!page && !assets.has(path)) throw new Error('Unknown path');
     const file = page ? '/index.html' : path;
     const contents = await readFile(new URL('./dist' + file, import.meta.url));
-    res.writeHead(200, { 'Content-Type': page ? 'text/html; charset=utf-8' : assets.get(path) + (path.endsWith('.ttf') ? '' : '; charset=utf-8') }).end(contents);
+    res.writeHead(200, { 'Content-Type': page ? 'text/html; charset=utf-8' : assets.get(path) + (/\.(ttf|png)$/.test(path) ? '' : '; charset=utf-8') }).end(contents);
   } catch {
     res.writeHead(404).end();
   }
