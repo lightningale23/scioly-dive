@@ -1,6 +1,10 @@
+import {inject} from '@vercel/analytics';
 import {selection} from './selection.js';
 import {events,packs} from './client-catalog.js';
 import {dailyOnly,modeAllowed} from './features.js';
+
+// Initialize Vercel Web Analytics
+inject();
 
 const app=document.querySelector('#app');
 const dialog=document.querySelector('#panel');
