@@ -2,7 +2,7 @@ import {inject} from '@vercel/analytics';
 import {selection} from './selection.js';
 import {events,packs} from './client-catalog.js';
 import {dailyOnly,modeAllowed} from './features.js';
-import {dailyDay,dailyStart} from './daily-clock.js';
+import {dailyDay,dailyStart,playDay} from './daily-clock.js';
 
 // Initialize Vercel Web Analytics
 inject();
@@ -33,10 +33,12 @@ let seed, firstEvent, dive, receipts, profile, timer, round=0, score=0, answers=
 const chip=(url,label)=>'<a class="chip" href="'+sitePath(url)+'">'+label+'</a>';
 const button=(label,action,cls='small')=>'<button class="'+cls+'" data-action="'+action+'">'+label+'</button>';
 const help='Each dive visits seven Division C events, with one prompt written from each event\u2019s 2027 rules. Find one accepted answer per event in 25 seconds. Retry missed guesses while the clock runs, and submit a suggested spelling again to confirm it. Answers earn 10, 30, 60, 85, or 100 points by rarity, and each point sinks you 10 meters. The answers an event specialist knows sink deepest. Skip anytime and review the full answer list after each event.';
-const diveDate=d=>new Date(d*86400000).toLocaleDateString(undefined,{timeZone:'UTC',weekday:'short',month:'short',day:'numeric'});
+// Dates shown to players are the dates a Daily is played on (playDay), not its day number.
+const diveDate=d=>new Date(playDay(d)*86400000).toLocaleDateString(undefined,{timeZone:'UTC',weekday:'short',month:'short',day:'numeric'});
 // Daily dives roll over at midnight Pacific time. Every [data-countdown] element ticks down to the next one.
 const untilNext=()=>{const ms=dailyStart(day+1)-Date.now();if(ms<=0)return '00:00:00';const t=Math.floor(ms/1000);return [t/3600,t/60%60,t%60].map(n=>String(Math.floor(n)).padStart(2,'0')).join(':')};
 setInterval(()=>{for(const el of document.querySelectorAll('[data-countdown]'))el.textContent=untilNext()},1000);
+const shownDate=iso=>/^\d{4}-\d\d-\d\d$/.test(iso)?new Date(playDay(Date.parse(iso+'T00:00:00Z')/86400000)*86400000).toISOString().slice(0,10):iso;
 const countdown=()=>'<p class="nextDive">NEXT DIVE IN <b data-countdown>'+untilNext()+'</b></p>';
 const escapeText=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
@@ -92,7 +94,7 @@ function home(){
  state='home';
  document.body.classList.toggle('surface',route==='/'||endless);
  if(route==='/archive'){
-   app.innerHTML='<section class="center archive"><div class="sigil" role="img" aria-label="Dive history">⟲</div><h1>THE DIVE ARCHIVE</h1><a class="action archiveAction" href="'+sitePath('/unlimited/classic')+'">OPEN UNLIMITED ∞</a><p>Practice across seven events in the ocean or revisit a past dive here on this device.</p><details><summary>Browse past dives</summary><ul>'+[1,2,3,4,5,6,7].map(i=>'<li>'+button(new Date((day-i)*86400000).toISOString().slice(0,10),'archive-'+i).replace('<button ', '<button aria-label="Start '+new Date((day-i)*86400000).toISOString().slice(0,10)+' dive" ')+'</li>').join('')+'</ul></details></section>';
+   app.innerHTML='<section class="center archive"><div class="sigil" role="img" aria-label="Dive history">⟲</div><h1>THE DIVE ARCHIVE</h1><a class="action archiveAction" href="'+sitePath('/unlimited/classic')+'">OPEN UNLIMITED ∞</a><p>Practice across seven events in the ocean or revisit a past dive here on this device.</p><details><summary>Browse past dives</summary><ul>'+[1,2,3,4,5,6,7].map(i=>'<li>'+button(new Date(playDay(day-i)*86400000).toISOString().slice(0,10),'archive-'+i).replace('<button ', '<button aria-label="Start '+new Date(playDay(day-i)*86400000).toISOString().slice(0,10)+' dive" ')+'</li>').join('')+'</ul></details></section>';
  }else if(route==='/packs'){
    app.innerHTML='<div class="packs"><div class="packHeader"><h1 class="wordmark">SCIOKRILLION</h1><p class="eyebrow">THEMED PACKS · BEYOND THE DAILY DIVE</p></div><div class="cards">'+packs.map(([title,desc,icon,color],i)=>'<button class="card" data-action="pack-'+i+'" style="--accent:'+color+'">'+(i===0?'<span class="packBanner">OPEN PRACTICE <small>Start here with the field notebook</small></span>':'')+'<span class="art art-'+i+'" role="img" aria-label="'+title+' illustration">'+packScenes[i]+'</span><span class="cardText"><strong>'+title+'</strong><small>'+desc+'</small><em>START PRACTICE →</em></span></button>').join('')+'</div><section class="packLinks"><div><h2>Past dives</h2><p>Take another dive and review your answers.</p></div>'+chip('/archive','ARCHIVE ⟲')+'<div><h2>Unlimited practice</h2><p>Start another seven-event dive.</p></div>'+chip('/unlimited/classic','UNLIMITED ∞')+'</section><div class="packReturn">'+chip('/','← TODAY’S DIVE')+'</div></div>';
  }else if(route==='/party'){
@@ -402,7 +404,7 @@ function panel(name){
  if(name==='wardrobe')content='<p>Choose a color for your research vessel.</p><div class="grid">'+[['#4de3ff','Cyan'],['#ff5d8f','Pink'],['#ffe08a','Gold'],['#bfa7ff','Violet']].map(([color,label])=>'<button class="tile '+(preferences.color===color?'active':'')+'" data-color="'+color+'"><span style="color:'+color+'">◆</span>'+label+'</button>').join('')+'</div>';
  if(name==='help')content='<p>'+help+'</p><ol class="helpSteps"><li>Read the event prompt.</li><li>Type one answer or skip the round.</li><li>Review examples and continue your descent.</li></ol>';
  if(name==='party-help')content='<p>Name an answer from the prompt, then pass the puffer to the next diver. Multiplayer is coming in a future update.</p>';
- if(name==='log'){const log=read('log',[]);content=log.length?'<ol>'+log.map(item=>'<li>'+item.date+' · '+item.mode+' · '+item.score+'m</li>').join('')+'</ol>':'<p>Finished dives will appear here on this device.</p>'}
+ if(name==='log'){const log=read('log',[]);content=log.length?'<ol>'+log.map(item=>'<li>'+shownDate(item.date)+' · '+item.mode+' · '+item.score+'m</li>').join('')+'</ol>':'<p>Finished dives will appear here on this device.</p>'}
  if(name==='account')content='<div id="accountStatus" role="status">Loading account?</div>';
  dialog.innerHTML='<form method="dialog"><button class="small close" aria-label="Close dialog">×</button></form><div class="eyebrow">SCIOKRILLION</div><h2 id="panelTitle">'+({'help':'HOW TO PLAY','party-help':'HOW TO PLAY','log':'DIVE LOG'}[name]||(name==='menu'?'Menu':name.toUpperCase()))+'</h2>'+content;
  dialog.setAttribute('aria-labelledby','panelTitle');
@@ -415,7 +417,7 @@ async function showAccount(){
  try{profile=await api()}catch{target.textContent='Account service unavailable.';return}
  if(!target.isConnected)return;
  if(profile.signedIn){
-   target.innerHTML='<p>Signed in</p>'+button('SIGN OUT','signout')+'<h3>Synced dives</h3><ul>'+profile.history.map(item=>'<li>'+escapeText(item.date)+' ? '+escapeText(item.mode)+' ? '+item.score+'m</li>').join('')+'</ul>'+(profile.packs.length?'<p>Unlocked packs: '+profile.packs.map(escapeText).join(', ')+'</p>':'');
+   target.innerHTML='<p>Signed in</p>'+button('SIGN OUT','signout')+'<h3>Synced dives</h3><ul>'+profile.history.map(item=>'<li>'+escapeText(shownDate(item.date))+' ? '+escapeText(item.mode)+' ? '+item.score+'m</li>').join('')+'</ul>'+(profile.packs.length?'<p>Unlocked packs: '+profile.packs.map(escapeText).join(', ')+'</p>':'');
  }else if(profile.available){
    target.innerHTML='<form id="accountForm"><label>Username <input name="username" autocomplete="username" required></label><label>Password <input name="password" type="password" minlength="12" maxlength="128" required></label><div class="row"><button class="small" value="signin">SIGN IN</button><button class="small" value="register">CREATE ACCOUNT</button></div></form><p id="accountError" role="status"></p>';
    const form=target.querySelector('form');
