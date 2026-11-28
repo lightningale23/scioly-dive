@@ -24,6 +24,8 @@ const zipf=name=>{const key=normalize(name),z=familiarity[key]??0;return key.len
 //              "ulexite"), plus every other answer the corpus knows at least as well as this prompt's own
 //              less familiar obvious answers (the lower quartile of their familiarity, kept between Zipf 1.5 and 3)
 //   Deep Cut = everything else
+// Short hand-judged prompts skip the corpus: their lists name Plankton, Schooler and Deep Cut answers, and
+// every other answer is Rare.
 // So a prompt with many obvious answers has a big Plankton and Schooler, a prompt whose obvious answers
 // are everyday words sets a high bar for Rare, and a technical prompt sets a low one. Prompts without
 // an obvious list (or whose list is not flagged no-fill) also let the corpus pick obvious answers by
@@ -56,6 +58,13 @@ function familiarityTiers(bank,obvious,base=''){
   if(!obvious?.[2])for(const entry of bank)if(!tiers.has(entry)){
     const z=zipf(entry.canonical);
     if(z>=5)tiers.set(entry,10);else if(z>=4)tiers.set(entry,30);
+  }
+  // A hand-judged prompt ('judged' as the third element) lists its Deep Cuts too; every other answer is
+  // Rare, with no corpus guesswork. Word frequency misjudges short technical lists ("key", "calorie").
+  if(obvious?.[2]==='judged'){
+    const listed85=nameSet(obvious[4]);
+    for(const entry of bank)if(!tiers.has(entry))tiers.set(entry,listed85.has(key(entry))?85:60);
+    return tiers;
   }
   const bar=rareBar([...tiers.keys()].map(entry=>zipf(entry.canonical)));
   for(const entry of bank)if(!tiers.has(entry))tiers.set(entry,listed60.has(key(entry))||zipf(entry.canonical)>=bar?60:85);
