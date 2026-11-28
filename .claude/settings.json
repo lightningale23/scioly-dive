@@ -1,5 +1,8 @@
 {
   "permissions": {
+    "allow": [
+      "Bash(git push origin HEAD:main)"
+    ],
     "deny": [
       "Read(./catalog-data/familiarity.js)",
       "Read(./catalog-data/sourced-answers.js)",
