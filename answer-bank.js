@@ -22,11 +22,18 @@ const zipf=name=>{const key=normalize(name),z=familiarity[key]??0;return key.len
 // over a thousand answers). For a list of n answers:
 //   Plankton ~ 1.1 ln n   (5 of 100, 8 of 1,500, 10 of 10,000)
 //   Schooler ~ 1.6 sqrt n (16 of 100, 62 of 1,500, 160 of 10,000)
-//   Rare     ~ a third of the list, taken next in order of familiarity, if the corpus knows the word
-// Everything else is a Deep Cut. Answers are ranked by corpus familiarity; an editor's obvious list,
-// where one exists, replaces the Plankton and Schooler picks so homonyms ("Go", "Red") never count as obvious.
+//   Deep Cut ~ a share that grows with the list: 20% of 60, 35% of 200, 50% of 600, 60% from 1,500
+//   Rare     = what is left, taken next in order of familiarity
+// A crowd only spreads into a long tail when there is a long list to spread into, so a short list is
+// mostly Rare, and only a list of hundreds or thousands is mostly Deep Cuts the way Krillion's are.
+// Answers are ranked by corpus familiarity; an editor's obvious list, where one exists, replaces the
+// Plankton and Schooler picks so homonyms ("Go", "Red") never count as obvious.
+export function deepShare(n){
+  return Math.min(0.6,Math.max(0.15,0.2+0.4*Math.log(Math.max(n,2)/60)/Math.log(25)));
+}
 export function tierSizes(n){
-  return {plankton:Math.max(1,Math.round(1.1*Math.log(Math.max(n,2)))),schooler:Math.round(1.6*Math.sqrt(n)),rare:Math.round(n/3)};
+  const plankton=Math.max(1,Math.round(1.1*Math.log(Math.max(n,2)))),schooler=Math.round(1.6*Math.sqrt(n));
+  return {plankton,schooler,rare:Math.max(0,n-plankton-schooler-Math.round(deepShare(n)*n))};
 }
 // An answer that just repeats words from its own prompt ("epidemiology" for "Name an epidemiology
 // term...") is as obvious as an answer can be, so it is Plankton. Matches that begin with a small word
