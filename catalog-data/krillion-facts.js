@@ -144,6 +144,11 @@ const facts = {
   "chloramination": ["Many US cities add ammonia after chlorine to make chloramine, which lasts longer in the pipes; it is harmless to drink but deadly to aquarium fish, so it must be removed before filling a tank.","name a water treatment step or water pollutant."],
   "pycnocline": ["A pycnocline is a layer where seawater gets denser quickly with depth; internal waves more than 100 meters tall can roll along it while the surface above stays calm.","name an estuary or marine-ecology concept from water quality part i."],
   "motor stooge": ["A stooge is a stand that holds a fully wound model, so the flier can let go, check the plane over and launch at just the right moment.","name a material, tool, or part used to build or fly a rubber-powered model plane."],
+  // Genuinely niche Krillions, chosen by hand (2026-11-28); each fact is scoped to its whole prompt.
+  "Howe truss": ["William Howe patented the Howe truss in 1840 for wooden railroad bridges: wooden diagonals carry compression while vertical iron rods carry the tension.","name a structural concept or rule term from boomilever."],
+  "perbromate": ["Perbromate resisted every attempt to make it until 1968, when Evan Appelman finally succeeded; chemists had begun to suspect it simply could not exist.","name an ion you are expected to know for chemistry lab."],
+  "proband": ["The proband is the person through whom a family first comes to a geneticist’s attention; on a pedigree chart, an arrow points to them.","name a term from mendelian, population, or evolutionary genetics."],
+  "spinous scales": ["Spinous, petal-shaped cuticle scales turn up on cat, mink and seal hairs but never on human hair, whose scales are flat and overlapping.","name a substance, material, or technique from the forensics rules"],
 };
 
 export const factAnswers = Object.keys(facts);

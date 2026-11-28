@@ -97,17 +97,12 @@ test('every closed list names a real base prompt', async () => {
 
 test('no Krillion is an answer on its prompt’s Plankton, Schooler or Rare list', async () => {
   const {obviousAnswers} = await import('../catalog-data/obvious-answers.js');
-  const {krillionLocks} = await import('../catalog-data/krillion-locks.js');
-  const {dailyDay} = await import('../daily-clock.js');
-  const today = dailyDay();
   const {dailyWorthy} = await import('../answer-bank.js');
   for (const [, rows] of questions) for (const row of rows) {
     const lists = obviousAnswers[row.prompt.split('\n')[0]];
     if (!lists || !dailyWorthy(row)) continue;
     const listed = new Set([lists[0], lists[1], lists[3] ?? ''].join(';').split(';').map(normalize).filter(Boolean));
     const winner = row.bank.find(entry => entry.points === 100);
-    // A Krillion locked before the 2026-11-28 re-pick can stay on a live Daily until it ends.
-    if (today <= 20785 && Object.hasOwn(krillionLocks, row.prompt)) continue;
     assert(!listed.has(normalize(winner.canonical)), 'listed answer is the Krillion: ' + row.prompt + ' → ' + winner.canonical);
   }
 });
