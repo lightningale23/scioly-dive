@@ -60,3 +60,24 @@ test('the AI judge only rules on unlisted answers to current Dailies, once per a
     delete process.env.GEMINI_API_KEY;
   }
 });
+
+test('the AI judge gets the rules scope of a scoped prompt, letter variants included', async () => {
+  process.env.GEMINI_API_KEY = 'test-key';
+  const {judgeAnswer} = await import('../judge.js');
+  const {judgeScopes} = await import('../catalog-data/judge-scopes.js');
+  const realFetch = globalThis.fetch;
+  const sent = [];
+  globalThis.fetch = async (url, options) => {
+    sent.push(JSON.parse(JSON.parse(options.body).contents[0].parts[0].text));
+    return new Response(JSON.stringify({candidates: [{content: {parts: [{text: '{"valid": false}'}]}}]}));
+  };
+  try {
+    const [prompt, scope] = Object.entries(judgeScopes)[0];
+    await judgeAnswer(prompt + '\nInclude the letter E.', 'Hubble');
+    await judgeAnswer('Name a noble gas.', 'neon');
+    assert.equal(sent[0].scope, scope);
+    assert.equal(sent[1].scope, undefined);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});

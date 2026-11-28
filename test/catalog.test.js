@@ -94,3 +94,13 @@ test('every closed list names a real base prompt', async () => {
   const prompts = new Set(questions.flatMap(([, rows]) => rows.map(row => row.prompt)));
   for (const prompt of closedLists) assert(prompts.has(prompt), 'closed list is not a prompt: ' + prompt);
 });
+
+test('every judge scope names a real base prompt that the AI judge is asked about', async () => {
+  const {judgeScopes} = await import('../catalog-data/judge-scopes.js');
+  const {closedLists} = await import('../catalog-data/closed-lists.js');
+  const prompts = new Set(questions.flatMap(([, rows]) => rows.map(row => row.prompt)));
+  for (const prompt of Object.keys(judgeScopes)) {
+    assert(prompts.has(prompt), 'judge scope is not a prompt: ' + prompt);
+    assert(!closedLists.has(prompt), 'judge scope is for a closed list: ' + prompt);
+  }
+});
