@@ -45,7 +45,17 @@ for (const page of pages) {
 }
 
 const assets=['style.css','vt323.woff2','vt323.ttf','VT323-LICENSE.txt'];
-if(!staticGame) assets.push('game.js','selection.js','features.js');
+if(!staticGame){
+  // Bundle game.js to include @vercel/analytics and other dependencies
+  const {build}=await import('esbuild');
+  await build({
+    entryPoints:['game.js'],bundle:true,format:'esm',platform:'browser',target:'es2022',
+    outfile:output+'/game.js',minify:false,
+  });
+  assets.push('selection.js','features.js');
+}else{
+  // For static build, game.js is already bundled
+}
 for(const file of assets) await copyFile(file,output+'/'+file);
 if(!staticGame){
   const {publicEvents}=await import('./answer-bank.js');
