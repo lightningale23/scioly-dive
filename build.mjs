@@ -46,11 +46,14 @@ for (const page of pages) {
 
 const assets=['style.css','vt323.woff2','vt323.ttf','VT323-LICENSE.txt'];
 if(!staticGame){
-  // Bundle game.js to include @vercel/analytics and other dependencies
+  // Bundle game.js to include @vercel/analytics and other dependencies. Without a NODE_ENV the
+  // analytics package assumes development and loads its debug script, which only logs to the
+  // console and never sends page views, so Vercel builds (VERCEL is set there) say production.
   const {build}=await import('esbuild');
   await build({
     entryPoints:['game.js'],bundle:true,format:'esm',platform:'browser',target:'es2022',
     outfile:output+'/game.js',minify:false,
+    define:{'process.env.NODE_ENV':JSON.stringify(process.env.VERCEL?'production':'development')},
   });
   assets.push('selection.js','features.js');
 }else{
