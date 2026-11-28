@@ -1,12 +1,15 @@
 // AI fallback for answers that aren't in a prompt's list. Used by api/judge.js (Pages site) and
 // api/dive.js (Node server). The AI decides whether an answer is valid and, if so, whether it is a
-// Rare (60) or a Deep Cut (85). Deep Cut is the default: an answer missing from a list of hundreds is
-// probably uncommon. An AI-judged answer can never be the One in a Krillion.
+// Schooler (30), a Rare (60) or a Deep Cut (85). Deep Cut is the default: an answer missing from a list
+// of hundreds is probably uncommon, but a core term the list simply missed ("lever arm") is a Schooler.
+// An AI-judged answer can never be the One in a Krillion.
 // Providers, by environment variable (set them in Vercel's project settings, never in the repo):
 //   GEMINI_API_KEY (+ optional GEMINI_MODEL, default gemini-flash-lite-latest, an alias Google keeps
 //   pointed at its newest Flash-Lite model): Google's Gemini API, which has a free tier.
 //   AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_DEPLOYMENT: Azure OpenAI.
-export const AI_POINTS = {rare: 60, deep: 85};
+export const AI_POINTS = {schooler: 30, rare: 60, deep: 85};
+// Cached verdicts live under this prefix. Bump it when the judge's tiers change, so every answer is judged again.
+export const JUDGMENT_CACHE = 'judgment:v2:';
 export const AI_DEFAULT_POINTS = AI_POINTS.deep;
 
 const instructions = 'You judge answers in a Science Olympiad trivia game. The user message is a JSON object with a prompt '
@@ -14,9 +17,11 @@ const instructions = 'You judge answers in a Science Olympiad trivia game. The u
   + 'if it is one specific, factually correct answer that a well-prepared student of that event could give, and it fits '
   + 'every condition in the prompt (event, scope and any letter rule). Accept common alternate names and spellings. '
   + 'Reject jokes, vague or generic words, made-up terms, several answers at once, and anything you are unsure about. '
-  + 'If you accept it, also rate how many well-prepared students of that event would think of it: "rare" only if '
-  + 'most of them would know it and it is a fairly standard answer, otherwise "deep" (a specialist or obscure answer). '
-  + 'When in doubt, choose "deep". Reply with only a JSON object: {"valid": true, "tier": "rare"}, '
+  + 'If you accept it, also rate how many well-prepared students of that event would think of it: "schooler" if it is '
+  + 'a core, textbook answer that nearly all of them would think of quickly (a basic term taught in any introduction to '
+  + 'the topic); "rare" if most of them would know it and it is a fairly standard answer, but not among the first that '
+  + 'come to mind; otherwise "deep" (a specialist or obscure answer). When in doubt between two tiers, choose the deeper '
+  + 'one. Reply with only a JSON object: {"valid": true, "tier": "schooler"}, {"valid": true, "tier": "rare"}, '
   + '{"valid": true, "tier": "deep"} or {"valid": false}.';
 
 async function gemini(prompt, answer) {
@@ -31,7 +36,7 @@ async function gemini(prompt, answer) {
       generationConfig: {
         // Room for models that reason before answering; the reply itself is a few tokens.
         temperature: 0, maxOutputTokens: 2048, responseMimeType: 'application/json',
-        responseSchema: {type: 'OBJECT', properties: {valid: {type: 'BOOLEAN'}, tier: {type: 'STRING', enum: ['rare', 'deep']}}, required: ['valid']},
+        responseSchema: {type: 'OBJECT', properties: {valid: {type: 'BOOLEAN'}, tier: {type: 'STRING', enum: ['schooler', 'rare', 'deep']}}, required: ['valid']},
       },
     }),
   });
@@ -69,13 +74,13 @@ async function azure(prompt, answer) {
 export const judgeConfigured = () => Boolean(process.env.GEMINI_API_KEY
   || (process.env.AZURE_OPENAI_ENDPOINT && process.env.AZURE_OPENAI_API_KEY && process.env.AZURE_OPENAI_DEPLOYMENT));
 
-// Returns the points an answer earns (0 when invalid, else 60 or 85), or null when no provider is
+// Returns the points an answer earns (0 when invalid, else 30, 60 or 85), or null when no provider is
 // configured. Throws when the provider fails.
 export async function judgeAnswer(prompt, answer) {
   if (!judgeConfigured()) return null;
   const {valid, tier} = await (process.env.GEMINI_API_KEY ? gemini : azure)(prompt, answer);
   if (typeof valid !== 'boolean') throw new Error('Invalid answer judgment');
-  return valid ? (tier === 'rare' ? AI_POINTS.rare : AI_DEFAULT_POINTS) : 0;
+  return valid ? (Object.hasOwn(AI_POINTS, tier) ? AI_POINTS[tier] : AI_DEFAULT_POINTS) : 0;
 }
-// Cached verdicts are '0' (invalid), '60' or '85'; older caches stored 'valid' or 'invalid'.
+// Cached verdicts are '0' (invalid), '30', '60' or '85'; older caches stored 'valid' or 'invalid'.
 export const cachedPoints = verdict => verdict === 'valid' ? AI_DEFAULT_POINTS : verdict === 'invalid' ? 0 : Number(verdict);

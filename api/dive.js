@@ -3,7 +3,7 @@ import { normalize, questionFor } from '../answer-bank.js';
 import { packs } from '../prompts.js';
 import { modeAllowed } from '../features.js';
 import { account, data, durable, equal, hash, passwordHash, salt, sign, today, verify } from '../dive-storage.js';
-import { cachedPoints, judgeAnswer } from '../judge.js';
+import { JUDGMENT_CACHE, cachedPoints, judgeAnswer } from '../judge.js';
 import { isClosedList } from '../catalog-data/closed-lists.js';
 
 async function validate(body) {
@@ -25,7 +25,7 @@ async function validate(body) {
   let status = answer ? 'invalid' : 'skipped';
   if (match) status = 'valid';
   else if (normalized && !/^\d+$/.test(bank[0].canonical) && !isClosedList(prompt)) {
-    const key = 'judgment:' + hash(JSON.stringify([prompt, normalized]));
+    const key = JUDGMENT_CACHE + hash(JSON.stringify([prompt, normalized]));
     try {
       let verdict = await data('GET', key);
       if (verdict == null) {

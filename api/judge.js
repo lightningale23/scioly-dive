@@ -11,7 +11,7 @@
 import {matchAnswer} from '../matching.js';
 import {normalize, questionFor} from '../answer-bank.js';
 import {data, durable, hash, today} from '../dive-storage.js';
-import {cachedPoints, judgeAnswer, judgeConfigured} from '../judge.js';
+import {JUDGMENT_CACHE, cachedPoints, judgeAnswer, judgeConfigured} from '../judge.js';
 import {isClosedList} from '../catalog-data/closed-lists.js';
 
 const origins = (process.env.ALLOWED_ORIGINS || 'https://lightningale23.github.io').split(',').map(origin => origin.trim());
@@ -89,7 +89,7 @@ export default async function handler(req, res) {
     if (!judgeConfigured()) return reply(200, {status: 'unverified'});
 
     const normalized = normalize(answer);
-    const key = 'judgment:' + hash(JSON.stringify([prompt, normalized]));
+    const key = JUDGMENT_CACHE + hash(JSON.stringify([prompt, normalized]));
     let verdict = await data('GET', key);
     if (verdict == null) {
       const visitor = hash(String(req.headers['x-forwarded-for'] || '').split(',')[0] || 'unknown');

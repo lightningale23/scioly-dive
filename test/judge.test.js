@@ -18,7 +18,7 @@ test('the AI judge only rules on unlisted answers to current Dailies, once per a
   globalThis.fetch = async (url, options) => {
     const {answer} = JSON.parse(JSON.parse(options.body).contents[0].parts[0].text);
     asked.push(answer);
-    const verdict = {'bronchogenic cyst': {valid: true}, 'pumice stone': {valid: true, tier: 'rare'}}[answer] ?? {valid: false};
+    const verdict = {'bronchogenic cyst': {valid: true}, 'pumice stone': {valid: true, tier: 'rare'}, 'lever arm': {valid: true, tier: 'schooler'}}[answer] ?? {valid: false};
     return new Response(JSON.stringify({candidates: [{content: {parts: [{text: JSON.stringify(verdict)}]}}]}));
   };
   try {
@@ -38,9 +38,11 @@ test('the AI judge only rules on unlisted answers to current Dailies, once per a
     assert.deepEqual([again.json.status, again.json.points], ['valid', 85]);
     const rare = await call(handler, {prompt: open.prompt, answer: 'pumice stone'});
     assert.deepEqual([rare.json.status, rare.json.points], ['valid', 60]);
+    const schooler = await call(handler, {prompt: open.prompt, answer: 'lever arm'});
+    assert.deepEqual([schooler.json.status, schooler.json.points], ['valid', 30]);
     const rejected = await call(handler, {prompt: open.prompt, answer: 'pizza'});
     assert.equal(rejected.json.status, 'invalid');
-    assert.deepEqual(asked, ['bronchogenic cyst', 'pumice stone', 'pizza'], 'listed answers and repeat answers never reach the AI');
+    assert.deepEqual(asked, ['bronchogenic cyst', 'pumice stone', 'lever arm', 'pizza'], 'listed answers and repeat answers never reach the AI');
 
     // A closed list (fixed official answers) never reaches the AI. Checked on days that have one.
     if (isClosedList(question.prompt)) {
