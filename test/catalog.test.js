@@ -83,7 +83,7 @@ test('every obvious answer is an accepted canonical answer of its prompt, and ev
     const row=rows.find(r=>r.prompt===prompt);
     assert(row,'No prompt: '+prompt);
     const names=new Set(row.bank.map(entry=>normalize(entry.canonical)));
-    for(const name of lists.slice(0,2).join(';').split(';'))assert(names.has(normalize(name)),prompt+' → '+name.trim());
+    for(const name of [lists[0],lists[1],lists[3]??''].join(';').split(';').filter(name=>name.trim()))assert(names.has(normalize(name)),prompt+' → '+name.trim());
   }
   const spellings=new Set(rows.flatMap(r=>r.bank.flatMap(e=>[e.canonical,...e.aliases].map(normalize))));
   for(const answer of factAnswers)assert(spellings.has(normalize(answer)),'No answer for fact: '+answer);
@@ -93,6 +93,23 @@ test('every closed list names a real base prompt', async () => {
   const {closedLists} = await import('../catalog-data/closed-lists.js');
   const prompts = new Set(questions.flatMap(([, rows]) => rows.map(row => row.prompt)));
   for (const prompt of closedLists) assert(prompts.has(prompt), 'closed list is not a prompt: ' + prompt);
+});
+
+test('no Krillion is an answer on its prompt’s Plankton, Schooler or Rare list', async () => {
+  const {obviousAnswers} = await import('../catalog-data/obvious-answers.js');
+  const {krillionLocks} = await import('../catalog-data/krillion-locks.js');
+  const {dailyDay} = await import('../daily-clock.js');
+  const today = dailyDay();
+  const {dailyWorthy} = await import('../answer-bank.js');
+  for (const [, rows] of questions) for (const row of rows) {
+    const lists = obviousAnswers[row.prompt.split('\n')[0]];
+    if (!lists || !dailyWorthy(row)) continue;
+    const listed = new Set([lists[0], lists[1], lists[3] ?? ''].join(';').split(';').map(normalize).filter(Boolean));
+    const winner = row.bank.find(entry => entry.points === 100);
+    // A Krillion locked before the 2026-11-28 re-pick can stay on a live Daily until it ends.
+    if (today <= 20785 && Object.hasOwn(krillionLocks, row.prompt)) continue;
+    assert(!listed.has(normalize(winner.canonical)), 'listed answer is the Krillion: ' + row.prompt + ' → ' + winner.canonical);
+  }
 });
 
 test('every judge scope names a real base prompt that the AI judge is asked about', async () => {

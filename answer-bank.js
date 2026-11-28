@@ -16,24 +16,23 @@ export { normalize };
 // Scores use the canonical name: aliases are often everyday words with other meanings ("hammer" for
 // malleus), and one- or two-letter names (symbols, "Go", "R") are capped for the same reason.
 const zipf=name=>{const key=normalize(name),z=familiarity[key]??0;return key.length<3?Math.min(z,3):z};
-// Tier sizes follow the size of the whole answer list, the way they do in a real crowd: a handful of
-// answers stay obvious however long the list gets, so obvious answers are a large share of a short list
-// and a tiny share of a list of thousands (Krillion's ~0.5% Plankton and ~5% Schooler come from lists of
-// over a thousand answers). For a list of n answers:
-//   Plankton ~ 1.1 ln n   (5 of 100, 8 of 1,500, 10 of 10,000)
-//   Schooler ~ 1.6 sqrt n (16 of 100, 62 of 1,500, 160 of 10,000)
-//   Deep Cut ~ a share that grows with the list: 20% of 60, 35% of 200, 50% of 600, 60% from 1,500
-//   Rare     = what is left, taken next in order of familiarity
-// A crowd only spreads into a long tail when there is a long list to spread into, so a short list is
-// mostly Rare, and only a list of hundreds or thousands is mostly Deep Cuts the way Krillion's are.
-// Answers are ranked by corpus familiarity; an editor's obvious list, where one exists, replaces the
-// Plankton and Schooler picks so homonyms ("Go", "Red") never count as obvious.
-export function deepShare(n){
-  return Math.min(0.6,Math.max(0.15,0.2+0.4*Math.log(Math.max(n,2)/60)/Math.log(25)));
-}
-export function tierSizes(n){
-  const plankton=Math.max(1,Math.round(1.1*Math.log(Math.max(n,2)))),schooler=Math.round(1.6*Math.sqrt(n));
-  return {plankton,schooler,rare:Math.max(0,n-plankton-schooler-Math.round(deepShare(n)*n))};
+// Tiers come from each question, not from a formula on the list's length: how many answers are obvious
+// depends on the question, so the editor's lists for that prompt set them (catalog-data/obvious-answers.js):
+//   Plankton = answers that repeat the prompt's own words, plus the prompt's Plankton list
+//   Schooler = the prompt's Schooler list
+//   Rare     = the prompt's Rare list (answers specialists know well that the corpus underrates, such as
+//              "ulexite"), plus every other answer the corpus knows at least as well as this prompt's own
+//              less familiar obvious answers (the lower quartile of their familiarity, kept between Zipf 1.5 and 3)
+//   Deep Cut = everything else
+// So a prompt with many obvious answers has a big Plankton and Schooler, a prompt whose obvious answers
+// are everyday words sets a high bar for Rare, and a technical prompt sets a low one. Prompts without
+// an obvious list (or whose list is not flagged no-fill) also let the corpus pick obvious answers by
+// familiarity: Plankton from Zipf 5 and Schooler from Zipf 4.
+const nameSet=list=>new Set((typeof list==='string'?list:'').split(';').map(name=>normalize(name)).filter(Boolean));
+export function rareBar(obviousZipfs){
+  if(!obviousZipfs.length)return 2.5;
+  const sorted=[...obviousZipfs].sort((a,b)=>a-b);
+  return Math.min(3,Math.max(1.5,sorted[Math.floor(0.25*(sorted.length-1))]));
 }
 // An answer that just repeats words from its own prompt ("epidemiology" for "Name an epidemiology
 // term...") is as obvious as an answer can be, so it is Plankton. Matches that begin with a small word
@@ -47,51 +46,40 @@ function echoesPrompt(entry,base){
     return phrase.trim().length>2&&!smallWords.test(phrase.trim().split(' ')[0])&&words.includes(phrase);
   });
 }
-function familiarityTiers(entries,bank,obvious,base=''){
-  // Hand-rated answers count toward each quota; listed obvious answers come next; the corpus fills the
-  // rest unless the list says its names double as everyday words (third element true).
-  const size=bank.length, quota=tierSizes(size);
-  for(const entry of bank){if(entry.points===10)quota.plankton--;else if(entry.points===30)quota.schooler--;else if(entry.points===60)quota.rare--;}
-  const tiers=new Map(), ranked=entries.map(entry=>({entry,z:zipf(entry.canonical)})).sort((a,b)=>b.z-a.z);
-  const [listed10,listed30]=(obvious??['','']).slice(0,2).map(list=>new Set(list.split(';').map(name=>normalize(name)).filter(Boolean)));
-  for(const {entry} of ranked)if(base&&echoesPrompt(entry,base)){tiers.set(entry,10);quota.plankton--}
-  for(const {entry} of ranked){
-    if(tiers.has(entry))continue;
-    const key=normalize(entry.canonical);
-    if(listed10.has(key)){tiers.set(entry,10);quota.plankton--}
-    else if(listed30.has(key)){tiers.set(entry,30);quota.schooler--}
+function familiarityTiers(bank,obvious,base=''){
+  const [listed10,listed30,,listed60]=[0,1,2,3].map(i=>nameSet(obvious?.[i]));
+  const tiers=new Map(), key=entry=>normalize(entry.canonical);
+  for(const entry of bank){
+    if(base&&echoesPrompt(entry,base)||listed10.has(key(entry)))tiers.set(entry,10);
+    else if(listed30.has(key(entry)))tiers.set(entry,30);
   }
-  let open=ranked.filter(item=>!tiers.has(item.entry));
-  if(!obvious?.[2]){
-    // Corpus-picked obvious answers must at least be familiar words.
-    for(const item of open.filter(item=>item.z>=2)){
-      if(quota.plankton>0){tiers.set(item.entry,10);quota.plankton--}
-      else if(quota.schooler>0){tiers.set(item.entry,30);quota.schooler--}
-      else break;
-    }
-    open=open.filter(item=>!tiers.has(item.entry));
+  if(!obvious?.[2])for(const entry of bank)if(!tiers.has(entry)){
+    const z=zipf(entry.canonical);
+    if(z>=5)tiers.set(entry,10);else if(z>=4)tiers.set(entry,30);
   }
-  for(const item of open.filter(item=>item.z>=1.2)){if(quota.rare--<=0)break;tiers.set(item.entry,60)}
-  for(const item of open)if(!tiers.has(item.entry))tiers.set(item.entry,85);
+  const bar=rareBar([...tiers.keys()].map(entry=>zipf(entry.canonical)));
+  for(const entry of bank)if(!tiers.has(entry))tiers.set(entry,listed60.has(key(entry))||zipf(entry.canonical)>=bar?60:85);
   return tiers;
 }
 
-function chooseFeatured(bank,prompt){
-  // Obvious (Plankton and Schooler) answers never become the Krillion, even when they have a fun fact.
-  const factFor=entry=>entry.points>30?factLookup([entry.canonical,...entry.aliases],prompt):undefined;
+function chooseFeatured(bank,prompt,obvious){
+  // The One in a Krillion is a genuine deep cut: never an answer on the prompt's Plankton, Schooler or
+  // Rare lists, and never one the corpus rates Rare while a Deep Cut exists. Among Deep Cuts, one with
+  // a fun fact wins, then the least familiar; a stable hash of the prompt breaks ties.
+  const listed=new Set([0,1,3].flatMap(i=>[...nameSet(obvious?.[i])]));
+  const factFor=entry=>entry.points>30&&!listed.has(normalize(entry.canonical))?factLookup([entry.canonical,...entry.aliases],prompt):undefined;
   let hash=2166136261;
   for(const c of prompt)hash=Math.imul(hash^c.charCodeAt(0),16777619)>>>0;
-  // A One in a Krillion should be a fun fact, not merely the most obscure word on the list.
-  const priority=entry=>entry.points===100?1000:factFor(entry)?700
-    :({60:300,85:200,30:100,10:50}[entry.points]??0);
-  const best=bank.reduce((n,entry)=>Math.max(n,priority(entry)),-1);
-  const candidates=bank.filter(entry=>priority(entry)===best);
+  const priority=entry=>listed.has(normalize(entry.canonical))?0:entry.points===85?(factFor(entry)?3:2):entry.points===60?1:0;
+  const best=bank.reduce((n,entry)=>Math.max(n,priority(entry)),0);
+  const pool=bank.filter(entry=>priority(entry)===best), lowest=Math.min(...pool.map(entry=>zipf(entry.canonical)));
+  const candidates=pool.filter(entry=>zipf(entry.canonical)===lowest);
   // Once a prompt has been played, its Krillion is locked (catalog-data/krillion-locks.js), so
   // growing the answer list never changes the answer at the bottom of a live or past Daily.
   const locked=Object.hasOwn(krillionLocks,prompt)?bank.find(entry=>entry.canonical===krillionLocks[prompt]):undefined;
   const winner=locked??candidates[hash%candidates.length];
-  const fact=factFor(winner);
-  return bank.map(entry=>entry===winner?{...entry,points:100,...(fact&&{fact})}:entry.points===100?{...entry,points:85}:entry);
+  const fact=locked?factLookup([winner.canonical,...winner.aliases],prompt):factFor(winner);
+  return bank.map(entry=>entry===winner?{...entry,points:100,...(fact&&{fact})}:entry);
 }
 
 // Rows are built eagerly with only what selection needs (prompt and answer count); each row's scored
@@ -99,9 +87,9 @@ function chooseFeatured(bank,prompt){
 // page no longer tiers every prompt in the catalog before it can start.
 function scoredBank(allowedGroups,base,prompt){
   const bank=allowedGroups.map(([canonical,...aliases])=>({canonical,aliases,points:null}));
-  const computed=familiarityTiers(bank,bank,obviousAnswers[base],base);
-  for(const entry of bank)entry.points=computed.get(entry)??30;
-  return chooseFeatured(bank,prompt);
+  const computed=familiarityTiers(bank,obviousAnswers[base],base);
+  for(const entry of bank)entry.points=computed.get(entry);
+  return chooseFeatured(bank,prompt,obviousAnswers[base]);
 }
 export const questions=events.map(([event,entries])=>{
   const bases=new Map();

@@ -2,9 +2,11 @@ import { normalize } from '../matching.js';
 
 // A fact may be [text, word]: then it applies only where the base prompt contains that word,
 // because some answers mean different things in different events.
-// Fun facts for One in a Krillion picks. When a prompt's answers include one of these, the
-// game prefers it as the 100-point answer and shows the fact when someone lands it: the
-// Krillion should be a delightful find, not just the most obscure word on the list.
+// Fun facts for One in a Krillion picks, shown when someone lands it. The Krillion must be a
+// genuine deep cut that few specialists would think of, so write facts only for such answers: a
+// fact never lifts a well-known answer (one on the prompt's Plankton, Schooler or Rare lists) to the
+// Krillion. Among Deep Cuts, one with a fact is preferred. Some older facts below belong to past
+// Krillions that are now listed as Rare; they are kept for the record.
 const facts = {
   // Obscure Krillions for prompts that lacked a fact or had an obvious Krillion (2026-11-27)
   'Euler buckling': ['Leonhard Euler worked out the buckling load of a slender column in 1744; doubling a column\u2019s length cuts that load to a quarter.', 'boomilever'],
@@ -102,6 +104,46 @@ const facts = {
   'Fresnel lens': 'Augustin-Jean Fresnel designed his flat, ridged lens in 1822 to make lighthouses visible for many kilometers.',
   'activated sludge': 'The activated sludge process, still the core of most sewage plants, was developed in Manchester, England, in 1914.',
   'birch': ['Howard Hughes\u2019s "Spruce Goose" flying boat was actually built almost entirely of birch.', 'boomilever'],
+  // Genuinely niche Krillions, chosen by hand (2026-11-28); each fact is scoped to its whole prompt.
+  "perforin": ["Perforin, fired by killer T cells and natural killer cells, assembles into rings that punch pores roughly 10 to 20 nanometers wide in a target cell, letting granzymes in to make it self-destruct.","name a cell, organ, or molecule of the human immune system."],
+  "enteropeptidase": ["Ivan Pavlov’s lab found enteropeptidase in 1899 and called it enterokinase. It is the master switch of protein digestion: it turns trypsinogen into trypsin, which then activates the other pancreatic enzymes.","name a part of the digestive tract, an accessory organ, or a digestive enzyme or hormone."],
+  "Uhuru": ["Uhuru, the first satellite built for X-ray astronomy, was launched from a platform off the coast of Kenya on December 12, 1970, Kenya’s independence day; uhuru is Swahili for freedom.","name an observatory, telescope, or detector used for multi-wavelength or multi-messenger astronomy."],
+  "hinoki": ["Hinoki, Japanese cypress, is the wood of Hōryū-ji’s 7th-century temple halls, among the oldest wooden buildings in the world.","name a wood, adhesive, or joint used to build a boomilever."],
+  "pneumatophore": ["Pneumatophores are roots that grow up out of the mud so mangroves can breathe; a single black mangrove can ring itself with thousands of them, like pencils stuck in the sand.","name a plant tissue, structure, or process a botanist studies."],
+  "bakanae": ["Bakanae, Japanese for “foolish seedling”, makes rice shoots grow absurdly tall and spindly. Studying it led Eiichi Kurosawa in 1926 to the fungal chemical later named gibberellin.","name a plant disease, pest, or nutrient deficiency."],
+  "systemin": ["Systemin, found in wounded tomato leaves in 1991, was the first peptide hormone discovered in plants: just 18 amino acids that spread the alarm and switch on defenses against chewing insects.","name a plant hormone, pigment, or biochemical a botanist studies."],
+  "kinetic isotope effect": ["Swap a hydrogen atom for heavier deuterium and a reaction that breaks that C–H bond can run about seven times slower, because the heavier atom sits lower in its vibrational energy well.","name a concept, law, or quantity from gas behavior or reaction kinetics."],
+  "Marquand diagram": ["Allan Marquand drew logic diagrams in 1881, about 70 years before Karnaugh maps, and soon built a mechanical logic machine as well.","name a digital logic gate, circuit, or concept."],
+  "virtual ground": ["In an inverting op-amp circuit, the minus input sits at 0 volts without being wired to ground: negative feedback holds it there, so it is called a virtual ground.","name a dc circuit idea, component, or pioneer from circuit lab."],
+  "Myszkowski transposition": ["Émile Myszkowski published his transposition in 1902: repeated letters in the key word get the same number, so their columns are read off together, left to right.","name a cipher, code type, or cryptanalysis technique from codebusters."],
+  "ETAOIN SHRDLU": ["ETAOIN SHRDLU, roughly the most common English letters in order, was the first two columns of keys on a Linotype machine, so it often slipped into old newspapers by mistake.","name a clue, technique, or term used to solve a codebusters cipher by hand."],
+  "Sleeping Beauty transposon": ["The Sleeping Beauty transposon was “awakened” in 1997 by rebuilding a working copy from fish DNA, where its relatives had lain dead for more than 10 million years.","name an enzyme, technique, or molecule used in molecular genetics."],
+  "riboswitch": ["A riboswitch is a stretch of mRNA that folds around a small molecule, such as a vitamin, and turns its own gene off with no protein involved. Riboswitches were discovered in 2002.","name a stage, structure, or factor in transcription or translation."],
+  "cordon sanitaire": ["A cordon sanitaire seals a line around a whole area. In 1665 and 1666 the English village of Eyam sealed itself off this way to keep its plague from spreading, and at least 260 villagers died inside the line.","name an epidemiology term, measure, or study design."],
+  "quaternary prevention": ["Quaternary prevention, named by the Belgian doctor Marc Jamoulle in 1986, means protecting patients from too much medicine: tests and treatments they do not need.","name a strategy to control or prevent disease in a population."],
+  "Spirillum minus": ["Spirillum minus causes sodoku, the Asian form of rat-bite fever, and no one has yet managed to grow it in a lab culture.","name a pathogen (virus, bacterium, parasite, fungus, or prion) that causes human disease."],
+  "cockpit karst": ["Cockpit karst is named for Jamaica’s Cockpit Country, where deep star-shaped hollows between steep hills reminded people of cockfighting pits.","name a karst or groundwater feature, or something you could read from a topographic map, well, or hydrograph."],
+  "flyback diode": ["A flyback diode across a motor gives the coil’s stored energy a safe path when the switch opens; without it, the voltage spike can be many times the battery voltage and destroy a transistor.","name a component, measurement, or rule term from the electric vehicle event."],
+  "DRV8833": ["The DRV8833 motor driver runs on as little as 2.7 volts, so it can work straight off two AA cells, where the classic L298N loses about 2 volts or more inside the chip.","name a microcontroller, sensor, or programming concept used to control a vehicle."],
+  "pierce": ["Onshape’s Pierce constraint pins a sketch point to the exact spot where a 3D curve passes through the sketch plane, a handy trick for lining up sweeps.","name an onshape feature, cad tool, or engineering-drawing term."],
+  "operational definition": ["The physicist Percy Bridgman popularized the operational definition in 1927: a quantity means exactly the steps you take to measure it.","name a part of an experiment or report scored on the experimental design checklist."],
+  "coronal scales": ["Coronal hair scales wrap the shaft like a stack of crowns; they are common on bat and rodent hairs and very rare on human hair.","name a test, reagent, or clue used to identify a powder, hair, fiber, or plastic in forensics."],
+  "finger skirt": ["Full-size hovercraft hang their skirts as rows of separate “fingers”, so a torn finger can be replaced without changing the whole skirt.","name a physics concept, part, or rule term from the hovercraft event."],
+  "cushion pressure": ["Cushion pressure is just weight divided by cushion area, so even big passenger hovercraft float on air only a few percent above atmospheric pressure.","name a physics equation, unit, or quantity used to plan or score a hovercraft run."],
+  "cam": ["Cams already drove Greek water-powered automata more than 2,000 years ago; today a car’s camshaft opens every engine valve at the right moment.","name an action, machine, or rule term from mission possible."],
+  "thread pitch": ["One turn of a screw moves it forward only one thread pitch, so a fine thread can give an ideal mechanical advantage of 100 or more.","name a simple machine, mechanical-advantage term, or form of energy a mission possible device could use."],
+  "Schrader valve": ["The Schrader valve, invented by August Schrader’s company in 1891, is the same kind of valve found on car tires and on many bottle-rocket launchers.","name a part, measurement, or rule term from ping pong parachute."],
+  "alpha 2,3 linkage": ["Bird flu viruses grab sialic acid joined by an alpha 2,3 linkage, common in birds’ guts, while human flu prefers the alpha 2,6 linkage lining our noses and throats; that mismatch is a big reason bird flu rarely spreads between people.","name an amino acid, structural feature, or influenza term from protein modeling."],
+  "ECOSTRESS": ["ECOSTRESS measures plant temperatures from the International Space Station, whose drifting orbit lets it see the same field at different times of day, unlike sun-synchronous satellites.","name a satellite, instrument, or concept from the remote sensing rules."],
+  "NBR": ["The Normalized Burn Ratio compares near infrared with shortwave infrared; the change in it from before to after a wildfire maps how badly each patch of land burned.","name a part of the electromagnetic spectrum, a sensor band, or a spectral index."],
+  "zincite": ["Most big zincite crystals in rock shops grew by accident in the flues of zinc smelters in Poland; natural zincite comes almost entirely from Franklin and Sterling Hill, New Jersey.","name a rock or mineral on the 2027 national rocks and minerals list."],
+  "pisolitic": ["Pisolitic rock is packed with pea-sized grains, from the Greek word for pea; the smaller grains of oolitic rock take their name from the word for egg.","name a mineral habit, physical property, or rock texture from the rocks and minerals rules."],
+  "Joseph Black": ["Around 1761 Joseph Black noticed that melting ice soaks up heat without getting any warmer, and so discovered latent heat.","name a thermodynamics law, process, quantity, or scientist from the rules."],
+  "low emissivity": ["Low-emissivity window coatings use a layer of silver only about 10 nanometers thick: thin enough to see through, yet it reflects most of the heat radiation trying to escape.","name a material or design feature for a heat-collecting device."],
+  "bumphead parrotfish": ["Bumphead parrotfish ram coral with their foreheads and bite off chunks; a single adult grinds up about five tonnes of reef a year, much of it coming out as sand.","name a coral reef organism, water test, or marine ecology term from water quality."],
+  "chloramination": ["Many US cities add ammonia after chlorine to make chloramine, which lasts longer in the pipes; it is harmless to drink but deadly to aquarium fish, so it must be removed before filling a tank.","name a water treatment step or water pollutant."],
+  "pycnocline": ["A pycnocline is a layer where seawater gets denser quickly with depth; internal waves more than 100 meters tall can roll along it while the surface above stays calm.","name an estuary or marine-ecology concept from water quality part i."],
+  "motor stooge": ["A stooge is a stand that holds a fully wound model, so the flier can let go, check the plane over and launch at just the right moment.","name a material, tool, or part used to build or fly a rubber-powered model plane."],
 };
 
 export const factAnswers = Object.keys(facts);
