@@ -6,8 +6,9 @@ ScioKrillion (formerly SciOly Dive) is a daily Science Olympiad (Division C, 202
 
 Every prompt must be a **specialist prompt** written from its event's 2027 Division C rules, so that someone who studies that event does best. For example: "Name a rock or mineral on the 2027 National Rocks and Minerals List", or "Name an ion you are expected to know for Chemistry Lab". General-knowledge prompts were deliberately removed: no "Name a country/bird/car" prompts, no unit or number puzzles. Don't reintroduce them.
 
+- Be creative and specific: ask for one focused category ("Name a scientist from the Thermodynamics rules") rather than a catch-all ("law, process, quantity, or scientist"). The owner asked for this on 2026-11-28.
 - Cite the rules section you drew from in a comment on the answer list.
-- Aim for 60+ accepted answers per prompt (the Daily minimum is `MIN_DAILY_ANSWERS` = 60 in `selection.js`). Where the topic allows, aim for hundreds to about a thousand: pull long lists from open data (Disease Ontology, REBASE, Wikipedia lists and categories, Wikidata) with `scripts/sourced-answers.mjs`, and hand-write the rest. Fixed lists (the National Rocks and Minerals List) stay their real size.
+- Short answer banks are fine: the AI judge accepts valid answers missing from the list. The Daily still needs `MIN_DAILY_ANSWERS` (60, `selection.js`). Where an open dataset fits naturally (Disease Ontology, REBASE, Wikipedia lists and categories, Wikidata), `scripts/sourced-answers.mjs` can pull a long list, but don't pad lists just to make them long. Fixed lists (the National Rocks and Minerals List) stay their real size.
 - Only include answers you are sure are correct. Respect the rules: for example, Boomilever bans bamboo and commercial plywood.
 - Only the 23 official events are used. The trial events (Code Craze, Hydraulics, Junkyard Challenge) are paused (`pausedEvents` in `features.js`).
 - Future prompt ideas without answer banks live in `catalog-data/prompt-drafts.md`.
@@ -22,7 +23,7 @@ Every prompt must be a **specialist prompt** written from its event's 2027 Divis
 | `expand-catalog.js` | Generates the letter-rule variants. A dive uses at most one. |
 | `coverage.js` | `expandedGroups`: merges a prompt's groups, adds everyday aliases (`aliases` map), and folds groups that share a spelling into one answer. |
 | `answer-bank.js` | Scores each prompt's answers lazily: tiers (from the prompt's own lists and familiarity), the One in a Krillion pick and its fun fact. Exports `questions`, `questionFor`, `publicEvents`. |
-| `catalog-data/obvious-answers.js` | Per prompt: `[Plankton list, Schooler list, noCorpusFill?, Rare list?]`, using canonical names. Use `true` as the third element for technical or multi-word lists (all specialist prompts use it). The Rare list keeps well-known specialist answers out of the Deep Cuts and the Krillion. |
+| `catalog-data/obvious-answers.js` | Per prompt: `[Plankton list, Schooler list, noCorpusFill?, Rare list?]`, using canonical names. Use `true` as the third element for technical or multi-word lists (all specialist prompts use it). The Rare list keeps well-known specialist answers out of the Deep Cuts and the Krillion. Hand-judged prompts use `[Plankton, Schooler, 'judged', '', Deep Cut]` instead (see Rarity tiers). |
 | `catalog-data/krillion-facts.js` | Fun facts keyed by answer. Use `[fact, 'word']` to restrict a fact to base prompts containing that word (needed when an answer appears in several prompts). |
 | `catalog-data/familiarity.js` | Generated wordfreq Zipf scores. Never edit by hand. |
 | `matching.js` | Answer matching: normalization, aliases, plurals, a dropped possessive ("Koch postulates"), unique-typo suggestions, letter-rule checks. |
@@ -41,6 +42,8 @@ Every prompt must be a **specialist prompt** written from its event's 2027 Divis
 ## Rarity tiers
 
 The tiers are 10 Plankton, 30 Schooler, 60 Rare, 85 Deep Cut and 100 One in a Krillion. (15 "Too Clever" still exists in `tiers` but is unused.) Tier sizes depend on each question, not on a formula on the list's length (`familiarityTiers` in `answer-bank.js`):
+
+Hand-judged prompts (every prompt with about 200 answers or fewer, re-tiered by hand on 2026-11-28 because word frequency rated everyday words like "key", "calorie" and "tire" as Rare) use `[Plankton, Schooler, 'judged', '', Deep Cut]` in `obvious-answers.js`. Every unlisted answer is Rare, and the corpus is not used. Rough shares: about 10% Plankton, 35–40% Schooler (words a non-specialist or a first-year competitor would say), 35–40% Rare, 5–15% Deep Cut. A locked Krillion must be on its Deep Cut list. When adding answers to a judged prompt, put common ones on its Plankton or Schooler list and obscure ones on its Deep Cut list. Long sourced prompts still use the corpus steps below:
 
 1. An answer that repeats words from its own prompt ("epidemiology" for "Name an epidemiology term...") is Plankton. Then the prompt's lists in `obvious-answers.js` set Plankton, Schooler and Rare. A prompt with many obvious answers gets a long Plankton list. The Rare list holds answers every specialist knows that word frequency underrates ("ulexite", "ninhydrin").
 2. Every other answer is Rare if the corpus knows it at least as well as the prompt's own less familiar obvious answers (the lower quartile of their familiarity, kept between Zipf 1.5 and 3), and a Deep Cut otherwise. So Deep Cut shares vary widely: a few percent on short rule-term lists, most of a long sourced list.
