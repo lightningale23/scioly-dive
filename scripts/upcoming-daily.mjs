@@ -1,10 +1,11 @@
 // Prints the Daily Dive prompts for the coming days with every accepted answer.
 // Usage: npm run upcoming -- [days=7] [--compact]
 import {questionFor, questions} from '../answer-bank.js';
+import { dailyDay } from '../daily-clock.js';
 
 const days = Number(process.argv.find(arg => /^\d+$/.test(arg)) ?? 7);
 const compact = process.argv.includes('--compact');
-const today = Math.floor(Date.now() / 86400000);
+const today = dailyDay();
 const seen = new Set();
 for (let d = 0; d < days; d++) {
   console.log('\n== ' + new Date((today + d) * 86400000).toISOString().slice(0, 10));

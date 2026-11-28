@@ -2,6 +2,7 @@ import {inject} from '@vercel/analytics';
 import {selection} from './selection.js';
 import {events,packs} from './client-catalog.js';
 import {dailyOnly,modeAllowed} from './features.js';
+import {dailyDay,dailyStart} from './daily-clock.js';
 
 // Initialize Vercel Web Analytics
 inject();
@@ -15,7 +16,7 @@ const requestedRoute=('/'+location.pathname.slice(siteRoot.pathname.length)).rep
 // Old Unlimited, Archive, Packs and Party links open the Daily Dive while those modes are paused.
 const route=dailyOnly?'/':requestedRoute;
 const endless=route==='/unlimited/classic';
-const day=Math.floor(Date.now()/86400000);
+const day=dailyDay();
 // Saves forwarded from the old GitHub Pages address (pages-redirect/index.html). Only taken from that
 // referrer, and only into a browser with nothing saved here yet, so a crafted link can't overwrite a save.
 if(location.hash.startsWith('#carry=')){
@@ -33,8 +34,8 @@ const chip=(url,label)=>'<a class="chip" href="'+sitePath(url)+'">'+label+'</a>'
 const button=(label,action,cls='small')=>'<button class="'+cls+'" data-action="'+action+'">'+label+'</button>';
 const help='Each dive visits seven Division C events, with one prompt written from each event\u2019s 2027 rules. Find one accepted answer per event in 25 seconds. Retry missed guesses while the clock runs, and submit a suggested spelling again to confirm it. Answers earn 10, 30, 60, 85, or 100 points by rarity, and each point sinks you 10 meters. The answers an event specialist knows sink deepest. Skip anytime and review the full answer list after each event.';
 const diveDate=d=>new Date(d*86400000).toLocaleDateString(undefined,{timeZone:'UTC',weekday:'short',month:'short',day:'numeric'});
-// Daily dives roll over at 00:00 UTC. Every [data-countdown] element ticks down to the next one.
-const untilNext=()=>{const ms=(day+1)*86400000-Date.now();if(ms<=0)return '00:00:00';const t=Math.floor(ms/1000);return [t/3600,t/60%60,t%60].map(n=>String(Math.floor(n)).padStart(2,'0')).join(':')};
+// Daily dives roll over at midnight Pacific time. Every [data-countdown] element ticks down to the next one.
+const untilNext=()=>{const ms=dailyStart(day+1)-Date.now();if(ms<=0)return '00:00:00';const t=Math.floor(ms/1000);return [t/3600,t/60%60,t%60].map(n=>String(Math.floor(n)).padStart(2,'0')).join(':')};
 setInterval(()=>{for(const el of document.querySelectorAll('[data-countdown]'))el.textContent=untilNext()},1000);
 const countdown=()=>'<p class="nextDive">NEXT DIVE IN <b data-countdown>'+untilNext()+'</b></p>';
 const escapeText=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -433,7 +434,7 @@ async function showAccount(){
 }
 async function finish(){
  const completedSeed=seed, completedDive=dive;
- const result={score,answers,mode,date:new Date((mode==='Daily'?seed:Math.floor(Date.now()/86400000))*86400000).toISOString().slice(0,10)};
+ const result={score,answers,mode,date:new Date((mode==='Daily'?seed:day)*86400000).toISOString().slice(0,10)};
  const saved={...result,answers:answers.map(({answer,bank,...entry})=>document.documentElement.hasAttribute('data-static-game')?entry:{...entry,bank})};
  if(mode==='Daily'){
    const previous=read('streak',null);

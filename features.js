@@ -10,7 +10,8 @@ export const judgeUrl = 'https://scioly-dive.vercel.app/api/judge';
 // Trial events (not yet official Division C events) are left out of every dive for now.
 export const pausedEvents = ['Code Craze', 'Hydraulics', 'Junkyard Challenge'];
 
-// Hand-picked Dailies, keyed by UTC day number (days since 1970-01-01): seven [event, prompt]
+// Hand-picked Dailies, keyed by day number (days since 1970-01-01; each runs midnight to midnight
+// Pacific time on its date, see daily-clock.js): seven [event, prompt]
 // pairs in round order. Every prompt must exist in the catalog; test/catalog.test.js checks this.
 export const featuredDailies = {
   // 2026-11-27: specialist prompts drawn from the 2027 rules.

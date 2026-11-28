@@ -1,7 +1,9 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual, scryptSync } from 'node:crypto';
+import { dailyDay } from './daily-clock.js';
 
 const secret = process.env.DIVE_SECRET || randomBytes(32);
-export const today = () => Math.floor(Date.now() / 86400000);
+// The current Daily's day number; it changes at midnight Pacific time (daily-clock.js).
+export const today = () => dailyDay();
 export const hash = value => createHash('sha256').update(value).digest('hex');
 export const passwordHash = (password, salt) => scryptSync(password, salt, 64).toString('hex');
 export const equal = (a, b) => typeof a === 'string' && typeof b === 'string' && a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));

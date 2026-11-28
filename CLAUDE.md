@@ -27,7 +27,8 @@ Every prompt must be a **specialist prompt** written from its event's 2027 Divis
 | `catalog-data/familiarity.js` | Generated wordfreq Zipf scores. Never edit by hand. |
 | `matching.js` | Answer matching: normalization, aliases, plurals, a dropped possessive ("Koch postulates"), unique-typo suggestions, letter-rule checks. |
 | `selection.js` | Picks each round's event and prompt from the seed. Honors `featuredDailies`, `pausedEvents`, `since` dates and the Daily minimum. |
-| `features.js` | Switches: `dailyOnly` (only the Daily is offered), `pausedEvents`, and `featuredDailies` (hand-pinned Dailies by UTC day number). |
+| `daily-clock.js` | When each Daily runs: midnight to midnight Pacific time (`dailyDay`, `dailyStart`). Shared by the client, server and scripts. |
+| `features.js` | Switches: `dailyOnly` (only the Daily is offered), `pausedEvents`, and `featuredDailies` (hand-pinned Dailies by day number). |
 | `game.js`, `style.css`, `index.html` | Client UI: canvas ocean scene, round flow, results. |
 | `guest-api.js` | Judges answers in the browser for the Pages build. |
 | `pages-catalog.mjs` | Pages build only: the game bundle gets a prompt-only catalog, and each prompt’s scored answers become `banks/<hash>.json`, fetched by `loadBank` in `game.js` when a dive starts. Keeps the bundle small however long the lists get. |
@@ -71,7 +72,7 @@ Most upkeep runs without Claude. Spend Claude sessions on writing new prompts an
 
 ## Pinning Dailies
 
-The Daily seed is the UTC day number (`Math.floor(Date.now() / 86400000)`; 2026-11-27 is 20784). `featuredDailies[day]` lists seven `[event, exact prompt]` pairs in round order, each from a different event. Pinned days so far: 20784–20798 (Nov 27 – Dec 11, 2026; Dec 2 onward planned by `npm run plan-dailies`). Unpinned days rotate through all eligible prompts.
+The Daily seed is a day number: day N is the calendar date N·86400000 (2026-11-27 is 20784). Each Daily runs from midnight to midnight Pacific time on its date (`dailyDay` and `dailyStart` in `daily-clock.js`, which handles daylight saving time); Dailies through Nov 27, 2026 followed UTC, and the Nov 28 Daily ran from midnight UTC Nov 28 to midnight Pacific Nov 29. Use `dailyDay()` for today, never `Math.floor(Date.now() / 86400000)`. `featuredDailies[day]` lists seven `[event, exact prompt]` pairs in round order, each from a different event. Pinned days so far: 20784–20798 (Nov 27 – Dec 11, 2026; Dec 2 onward planned by `npm run plan-dailies`). Unpinned days rotate through all eligible prompts.
 
 When preparing new days:
 

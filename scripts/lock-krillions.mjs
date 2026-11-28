@@ -4,10 +4,11 @@
 import {writeFileSync} from 'node:fs';
 import {questionFor} from '../answer-bank.js';
 import {krillionLocks} from '../catalog-data/krillion-locks.js';
+import { dailyDay } from '../daily-clock.js';
 
 export const FIRST_LOCKED_DAY = 20784;
 const ahead = Number(process.argv[2] ?? 30);
-const today = Math.floor(Date.now() / 86400000);
+const today = dailyDay();
 const locks = {...krillionLocks};
 let added = 0;
 for (let day = FIRST_LOCKED_DAY; day <= today + ahead; day++) for (let round = 0; round < 7; round++) {

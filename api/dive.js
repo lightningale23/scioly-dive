@@ -5,6 +5,7 @@ import { modeAllowed } from '../features.js';
 import { account, data, durable, equal, hash, passwordHash, salt, sign, today, verify } from '../dive-storage.js';
 import { JUDGMENT_CACHE, cachedPoints, judgeAnswer } from '../judge.js';
 import { isClosedList } from '../catalog-data/closed-lists.js';
+import { DAY_MS } from '../daily-clock.js';
 
 async function validate(body) {
   const { seed, round, mode, answer, first, dive } = body;
@@ -63,7 +64,7 @@ async function complete(body, user) {
       item.seed === first.seed && item.mode === first.mode && item.dive === first.dive)) return null;
   const score = rounds.reduce((sum, item) => sum + item.points * 10, 0);
   const { mode, dive, seed } = first;
-  const date = new Date((mode === 'Daily' ? seed : today()) * 86400000).toISOString().slice(0, 10);
+  const date = new Date((mode === 'Daily' ? seed : today()) * DAY_MS).toISOString().slice(0, 10);
   if (user) {
     const record = JSON.stringify({ score, date, mode });
     await data('ZADD', 'history:' + user, 'NX', Date.now(), dive + ':' + record);

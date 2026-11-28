@@ -7,9 +7,10 @@
 import {readFileSync, writeFileSync} from 'node:fs';
 import {questions, dailyWorthy} from '../answer-bank.js';
 import {featuredDailies, pausedEvents} from '../features.js';
+import { dailyDay } from '../daily-clock.js';
 
 const ahead = Number(process.argv[2] ?? 14);
-const today = Math.floor(Date.now() / 86400000);
+const today = dailyDay();
 const hash = text => { let h = 2166136261; for (const c of text) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0; return h; };
 
 const lastUsed = new Map(), eventLastUsed = new Map();

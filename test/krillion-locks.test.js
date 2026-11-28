@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {questions, questionFor} from '../answer-bank.js';
 import {krillionLocks} from '../catalog-data/krillion-locks.js';
+import { dailyDay } from '../daily-clock.js';
 
 const rows = new Map(questions.flatMap(([, entries]) => entries).map(row => [row.prompt, row]));
 test('every Krillion lock names an answer that is still on its prompt', () => {
@@ -12,7 +13,7 @@ test('every Krillion lock names an answer that is still on its prompt', () => {
   }
 });
 test('every Daily played so far has its Krillions locked (run npm run lock-krillions)', () => {
-  const today = Math.floor(Date.now() / 86400000);
+  const today = dailyDay();
   for (let day = 20784; day <= today; day++) for (let round = 0; round < 7; round++) {
     const {prompt} = questionFor(day, round, undefined, 'Daily');
     assert(Object.hasOwn(krillionLocks, prompt), 'unlocked prompt on day ' + day + ': ' + prompt);
