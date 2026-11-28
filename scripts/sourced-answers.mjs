@@ -181,11 +181,18 @@ async function pathogens() {
   }
   const found = new Set(), stack = ['DOID:0050117'];
   while (stack.length) for (const child of children.get(stack.pop()) ?? []) if (!found.has(child)) { found.add(child); stack.push(child); }
-  const organism = /has_material_basis_in ((?:[A-Z][a-z]+ [a-z]+(?: [a-z]+)?(?: virus| \d+)?)|(?:[A-Z][\w-]*(?: [\w-]+){0,4} virus(?: \d+)?))/g;
+  // Virus names are tried first, so "Severe acute respiratory syndrome coronavirus 2" is not cut
+  // to its first three words; other organisms are a genus and up to two lowercase words.
+  const organism = /has_material_basis_in ((?:[A-Z][\w-]*(?: [\w-]+){0,4} [\w-]*virus(?: \d+)?)|(?:[A-Z][a-z]+ [a-z]+(?: [a-z]+)?(?: \d+)?))/g;
+  // The match runs on into the rest of the definition ("Alternaria or has_material_basis_in ...",
+  // "Trichosporon and results_in_formation_of ..."), so it is cut at the first connecting word.
+  const connector = / (and|or|which|that|in|by|with|is|has|from|of|the|to|as|via|through|a|an|can|causing|transmitted\w*|results\w*|has_\w+)\b.*$/;
+  // Groups rather than pathogens: "Ascomycota fungi", "Mucorales molds", "Arenaviridae virus".
+  const group = /\b(species|viruses|subsp|spp|bacteria|infection|fever|disease|fungi|phylum|members|molds|taxon|other|\w+viridae)\b/i;
   const names = new Set();
   for (const id of found) for (const [, match] of (defs.get(id) ?? '').matchAll(organism)) {
-    const name = match.replace(/ (and|which|that|transmitted|or|in|by|with|is)$/, '').trim();
-    if (!/\b(species|viruses|subsp|spp|bacteria|infection|fever|disease)\b/.test(name)) names.add(name);
+    const name = match.replace(connector, '').replace(/ var$/, '').trim();
+    if (!group.test(name)) names.add(name);
   }
   // Binomials also match by their short form: "Mycobacterium tuberculosis" -> "M. tuberculosis".
   return [...names].sort().map(name => {
